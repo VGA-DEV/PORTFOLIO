@@ -1,0 +1,47 @@
+@font-face {
+    font-family: basis;
+    src: url(../../assets/font/BasisGrotesqueArabicPro-Regular.ttf) format('TrueType');
+}
+
+#popup_container{
+    display: flex;
+    background-color: #F9F5FF;
+    flex-direction: column;
+    padding: 28px;
+}
+input{
+    height: 36px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    border: none;
+    color: #020202;
+    background-color: #E8E5F7;
+    font-size: 20px;
+}
+textarea{
+    height: 186px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    border: none;
+    color: #020202;
+    background-color: #E8E5F7;
+    font-size: 20px;
+    resize: none;
+}
+button{
+    width: 40%;
+    margin: auto;
+    font-family: 'basis';
+    font-weight: bolder;
+    background-color: #D4C2FC;
+    color: #F9F5FF;
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 100ms;
+}
+button:active{
+    background-color: #998FC7 ;
+    transform: translateY(6px);
+}

@@ -1,0 +1,430 @@
+@font-face {
+    font-family: plaza-regular;
+    src: url(../../assets/font/Plaza-Regular.ttf) format('TrueType');
+}
+@font-face {
+    font-family: basis;
+    src: url(../../assets/font/BasisGrotesqueArabicPro-Regular.ttf) format('TrueType');
+}
+
+header{
+    background-image:url('../../assets/images/portfolio_logo-2.png');
+    background-size: contain;  
+    background-repeat: no-repeat; 
+    background-position: 0%;
+    position:sticky;
+    display: flex;
+    justify-content: flex-end;
+    padding: 16px;
+    top: 0px;
+    z-index: 1;
+
+}
+#menu ul{
+    list-style-type: none;
+}
+#menu ul li, #ham_menu ul li{
+    font-family: 'plaza-regular';
+    font-weight: bolder;
+    font-size: 40px;
+    display: inline;
+    margin-left: 40px;
+}
+#menu ul li a, #ham_menu ul li a{
+    text-decoration: none;
+    color: #D4C2FC;
+    transition: all 600ms;
+}
+#menu ul li a:hover,  #ham_menu ul li a:hover{
+    color: #998FC7;
+    transition: all 600ms;
+}
+#ham_menu{
+    display: none;
+}
+#home{
+    background-image: url('../../assets/images/back-image.jpeg');
+    background-size: cover;  
+    background-repeat: no-repeat; 
+    background-position: center;
+}
+#fade_back{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background-color: #E8E5F780;
+}
+#description{
+    font-family: 'basis';
+    text-align: justify;
+    color: #020202;
+    font-size: 20px;
+    width: 480px;
+    margin-left: 26px;
+    margin-right: 26px;
+    overflow-wrap: break-word;
+}
+#presentation_image{
+    margin-right: 26px;
+    border:  solid #F9F5FF;
+    box-shadow: 0px 0px 16px 10px#E8E5F7;                
+}
+#projects{
+    display: flex;
+    flex-direction: column;
+    margin-top: 40px;
+    margin-bottom: 20px;
+}
+#projects div{
+    margin-bottom: 8px;
+}
+#project_icon{
+    background-color: #998FC7;
+    padding: 0px 60px;
+    border-radius: 10px;
+    margin-right: 100px;
+    margin-left: 100px;
+    transition: all 300ms;
+}
+#project_icon img{
+    transition: all 1000ms;
+}
+#project_icon:hover{
+    transform: scale(1.04);
+}
+#project_description{
+    color: #020202;
+    font-size: 20px;
+    font-family: 'basis';
+    text-align: justify;
+    margin-left: 36px;
+    margin-right: 36px;
+    width: 76%;
+    align-self: stretch;
+}
+#project_description ul{
+    list-style: none;
+}
+#project_description ul li{
+    text-align: left;
+    margin-top: 10px;
+}
+#project_description ul li::before{
+    content: '\2756';
+    font-size: 36px;
+    vertical-align: -6px;
+    color: #998FC7;
+    margin-right: 12px;
+}
+#project_description ul li a{
+    font-weight: 700;
+    color: #998FC7;
+    text-decoration: none;
+}
+#gym_project{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+#gym_project #project_icon:hover img{   
+    transform: translateX(36px);
+}
+#sm_project{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+#sm_project #project_icon:hover img{   
+    transform: translateX(-36px) ;
+}
+#contact{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 34px;
+    border-top: solid #E8E5F7 56px;
+    border-bottom: solid #E8E5F7 56px;
+    margin-bottom: 60px;
+}
+#contact p{
+    overflow-wrap: break-word;
+    margin-left: 42px;
+    width: 80%;
+    font-family: 'basis';
+    font-size: 20px;
+    color: #020202;
+    text-align: justify;
+}
+#contact_left{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+#contact_icons{
+    display: flex;
+    flex-direction: column;
+}
+#contact_icons img{
+    width: 100px;
+    margin-bottom: 24px;
+    margin-left: 24px;
+    cursor: pointer;
+}
+#contact_icons img:hover{
+    filter: invert(56%) sepia(14%) saturate(970%) hue-rotate(210deg) brightness(105%) contrast(81%);
+}
+#separator{
+    border-right: solid 1px #998FC7;
+    margin-left: 42px;
+    height: 420px;
+}
+#contact_explain{
+    display: flex;
+    justify-content: space-between;
+}
+#contact_explain button{
+    align-self: center;
+    margin-left: 28px;
+}
+#contact_button{
+    font-family: 'basis';
+    font-weight: bolder;
+    background-color: #D4C2FC;
+    color: #F9F5FF;
+    padding: 10px;
+    border: solid 1px #998FC7;
+    border-radius: 6px;
+    box-shadow: 0px 0px 14px 4px #D4C2FC;
+    cursor: pointer;
+    transition: all 100ms;
+}
+#contact_button:active{
+    background-color: #998FC7;
+    box-shadow: none;
+    transform: scale(0.96) translateX(4px) translateY(4px);
+}
+#about{
+    display: flex;
+    flex-direction: column;
+    background-color: #998FC7;
+    padding: 6px;
+}
+#about h2{
+    font-family: 'basis';
+    font-size: 30px;
+    color: #F9F5FF;
+}
+#description_skills{
+    align-self: center;
+    color: #020202;
+    font-family: 'basis';
+    font-size: 20px;
+    text-align: center;
+    margin-left: 28px;
+    margin-right: 28px;
+}
+#graphic_presentation{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+}
+#coding{
+    display: flex;
+    flex-direction: column;
+    margin-left: 28px;
+    margin-right: 28px;
+}
+#software{
+    display: flex;
+    flex-direction: column;
+    margin-left: 28px;
+    margin-right: 28px;
+}
+#skill_container{
+    width: fit-content;
+    display: flex;
+    position: relative;
+    align-items: center;
+    border-bottom: solid 1px #D4C2FC;
+    margin-bottom: 20px;
+    transition: all 1300ms;
+}
+#skill_container:hover{
+    transform: scale(1.05);
+}
+#icon{
+    height: 100px;
+}
+#skillhole{
+    height: 100px;
+    margin-left: 46px;
+}
+#skillpoint{
+    height: 100px;
+    margin-left: 46px;
+}
+#important_words_1{
+    font-weight: 700;
+    color: #E8E5F7;
+}
+#important_words_2{
+    font-weight: 700;
+    color: #998FC7;
+}
+@media (max-width: 1399.98px) {  
+    #project_icon{
+        margin-left: 50px;
+        margin-right: 50px;
+        padding: 0px 0px;
+    }
+    #project_description{
+        margin-right: 28px;
+        margin-left: 28px;
+        width:60%;
+    }
+    #contact{
+        flex-wrap: wrap;
+        padding: 0px;
+    }
+    #contact p{
+        width: 60%;
+    }
+    #contact_left{
+        margin-top: 10px;
+    }
+    #contact_left, #contact_explain{
+        justify-content: space-around;
+    }
+    #separator{
+        display: none;
+    }
+}
+
+@media (max-width: 991.98px){    
+    header{
+        background-color: #E8E5F7;
+    }
+    #menu{
+        display: none;
+    }
+    #ham_menu{
+        display: flex;
+        flex-direction: column;
+    }
+    #ham_menu ul{
+        background-color: #E8E5F7;
+        position: absolute;
+        right: 0px;
+        top: 66px;
+    }
+    #ham_menu img{
+        align-self: flex-end;
+        cursor: pointer;
+    }
+    #ham_menu ul li{
+        display: flex;
+        white-space: nowrap;
+        margin-left: 0px;
+        margin-right: 8px;
+        margin-bottom: 18px;
+    }
+    #description{
+        width: 84%;
+        margin-bottom: 40px;
+    }
+    #presentation_image{
+        margin-right: 0px;
+        margin-bottom: 30px;
+    }
+    #fade_back{
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    #project_description{
+        width: 100%;
+        margin: 0px 28px;
+    }
+    #project_icon{
+        padding: 0px 60px;
+    }
+    #gym_project #project_icon:hover img,#sm_project #project_icon:hover img{   
+        transform: translateY(26px) ;
+    }
+    #gym_project{
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    #sm_project{
+        justify-content: center;
+        flex-wrap: wrap-reverse;
+    }
+    #contact p{
+        width: 100%;
+        margin-right: 42px;
+    }
+    #contact_left{
+        flex-wrap: wrap-reverse;
+    }
+    #contact_icons {
+        flex-direction: row;
+    }
+    #contact_icons img{
+        margin-bottom: 0px;
+        margin-left: 0px;
+        margin-top: 24px;
+        margin-right: 24px;
+    }
+    #contact_explain{
+        flex-wrap: wrap;
+    }
+    #contact_explain button{
+        margin-left: 0px;
+        margin-bottom: 30px;
+    }
+    #graphic_presentation{
+        justify-content: center;
+    }
+    #icon{
+        height: 70px;
+    }
+    #skillhole{
+        height: 70px;
+        margin-left: 16px;
+    }
+    #skillpoint{
+        height: 70px;
+        margin-left: 16px;
+    }
+}
+@media (max-width: 575.98px){
+    #presentation_image{
+        width: 75%;
+    }
+    #project_icon{
+        padding: 0px 0px;
+        margin-left: 18px;
+        margin-right: 18px;
+    }
+    #project_icon img{
+        width: 100%;
+    }
+    #contact_icons img{
+        width: 60px;
+        margin-right: 10px;
+    }
+    #coding h2{
+        width: min-content;
+    }
+    #icon{
+        height: 50px;
+    }
+    #skillhole{
+        height: 42px;
+        margin-left: 0px;
+    }
+    #skillpoint{
+        height: 42px;
+        margin-left: 0px;
+    }
+}

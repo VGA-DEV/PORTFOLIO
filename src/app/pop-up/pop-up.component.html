@@ -1,0 +1,6 @@
+<div id="popup_container">
+    <input type="text" id="mail" placeholder="Tu correo" #mail>
+    <input type="text" id="subject"  placeholder="Asunto" #subject>
+    <textarea id="message"  placeholder="Mensaje" #message></textarea>
+    <button (click)="sendMail(mail.value,subject.value,message.value)">ENVIAR</button>
+</div>

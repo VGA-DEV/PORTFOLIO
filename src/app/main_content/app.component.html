@@ -1,0 +1,103 @@
+<header [@toggle_header] = "header_moved ? 'moved' : 'up' ">
+    <div id="menu">
+        <ul>
+            <li><a href="#home">INICIO</a></li>
+            <li><a href="#projects">PROYECTOS</a></li>
+            <li><a href="#contact">CONTACTO</a></li>
+            <li><a href="#about">SOBRE MI</a></li>
+        </ul>
+    </div>
+    <div id="ham_menu">
+        <img src="../../assets/images/ham_close.png" alt="" (click)="toggleMenu()" [@toggle_icon] = "toggle ? 'ham' : 'close' ">
+        <img src="../../assets/images/ham_burguer.png" alt="" (click)="toggleMenu()" [@toggle_icon] = "toggle ? 'close' : 'ham' ">
+        <ul [@toggle_list] = "header_moved ? 'moved' : 'up' " [@toggle] = "toggle ? 'show' : 'hide'"  >
+            <li><a href="#home">INICIO</a></li>
+            <li><a href="#projects">PROYECTOS</a></li>
+            <li><a href="#contact">CONTACTO</a></li>
+            <li><a href="#about">SOBRE MI</a></li>
+        </ul>
+    </div>
+</header>
+<main>
+    <div id="home">
+        <div id="fade_back">
+            <p id="description">¡Hola!, soy Víctor un <span id="important_words_1">desarrollador de aplicaciones multiplataforma</span> y este es mi <span id="important_words_1">portfolio web</span> en el que podrás encontrar algunos de los <span id="important_words_1">proyectos</span> que he desarrollado y aquellos que están siendo desarrollados, junto a mis <span id="important_words_1">métodos de contacto</span> y algo más de información personal sobre <span id="important_words_1">mis habilidades</span> como desarrollador.<br><br>
+            Gracias a la <span id="important_words_1">formación </span>que he recibido y al <span id="important_words_1">periodo de prácticas</span> en empresa que he desarrollado, soy <span id="important_words_1">capaz de adaptarme </span>a trabajar en la mayoría de lenguajes populares y entornos de trabajo, tanto en el ámbito de <span id="important_words_1">front-end</span> como en el de <span id="important_words_1">back-end</span> lo que me permite adaptarme a la mayoría de situaciones y resolver aquellos problemas que puedan aparecer.<br><br>
+            </p>
+            <img src="../../assets/images/presentation.jpg" alt="" id="presentation_image">
+        </div>
+    </div>
+    
+    <div id="projects">
+        <div id="gym_project">
+            <div id="project_icon">
+                <img src="../../assets/images/gymIcon.png" alt="">
+            </div>
+            <div id="project_description">
+                <p>El nombre de este proyecto es <span id="important_words_2">"GYM_RECORDS"</span>, se trata de una aplicación móvil que busca <span id="important_words_2">digitalizar y automatizar</span> el proceso de <span id="important_words_2">rastreo del entrenamiento y el apartado nutricional</span>, de esta forma los usuarios pueden comprobar si sus rutinas y dietas están ayudando a <span id="important_words_2">cumplir sus objetivos </span>y a comprobar como estos elementos están influyendo en su <span id="important_words_2">evolución</span>.</p>
+                <ul>
+                    <li>ESTADO: <span id="important_words_2">EN DESARROLLO</span></li>
+                    <li>TECNOLOGÍAS USADAS: <span id="important_words_2">KOTLIN</span>, <span id="important_words_2">SQLITE</span>, <span id="important_words_2">PHOTOSHOP</span></li>
+                    <li>PLATAFORMAS: <span id="important_words_2">ANDROID</span> </li>
+                    <li>TAMAÑO DEL EQUIPO: <span id="important_words_2">1 INTEGRANTE</span> </li>
+                    <li><a href="https://gitfront.io/r/user-5430075/4VJNmmnQu9jr/GYM-RECORDS/" target="_blank">ENLACE AL PROYECTO</a></li>
+                </ul>
+            </div>
+        </div>
+        <div id="sm_project">
+            <div id="project_description">
+                <p>El nombre de este proyecto es <span id="important_words_2">"SM_REMASTER"</span>, se trata de un proyecto que intenta de adaptar a los <span id="important_words_2">medios actuales</span> algunos niveles del <span id="important_words_2">Spiderman-Man orginal </span>sacado para la <span id="important_words_2">Playsation 1</span>, actualizando el modelado de los personajes a un <span id="important_words_2">estilo mas actual</span> y <span id="important_words_2">tratando de mejorar la sensacion de control</span> sobre el juego</p>
+                <ul>
+                    <li>ESTADO: <span id="important_words_2">EN DESARROLLO</span></li>
+                    <li>TECNOLOGÍAS USADAS: <span id="important_words_2">UNITY</span>, <span id="important_words_2">C#</span>, <span id="important_words_2">BLENDER</span>, <span id="important_words_2">PHOTOSHOP</span></li>
+                    <li>PLATAFORMAS: <span id="important_words_2">DESKTOP</span></li>
+                    <li>TAMAÑO DEL EQUIPO: <span id="important_words_2">1 INTEGRANTE</span></li>
+                    <li><a href="https://gitfront.io/r/user-5430075/H7MaaxbaFWEm/SMREMASTER/" target="_blank">ENLACE AL PROYECTO</a></li>
+                </ul>
+            </div>
+            <div id="project_icon">
+                <img src="../../assets/images/sm_icon.png" alt="" >
+            </div>
+        </div>
+    </div>
+    <div id="contact"> 
+        <div id="contact_left">
+            <div id="contact_icons">
+                <a href="https://github.com/VGA-DEV" target="_blank"><img src="../../assets/images/github.svg" alt="" ></a>
+                <a href="https://www.instagram.com/vga_dev/" target="_blank"><img src="../../assets/images/instagram.svg" alt=""></a>
+                <a href="https://www.tiktok.com/@vga_dev" target="_blank"><img src="../../assets/images/tiktok.svg" alt=""></a>
+                <a href="https://www.linkedin.com/in/victor-manuel-gomez-alvarez" target="_blank"><img src="../../assets/images/linkedin.svg" alt=""></a>
+            </div>
+            <p>Si quieres ver más en profundidad <span id="important_words_2">mi perfil</span> o te interesa alguno de los <span id="important_words_2">proyectos</span>, puedes encontrarme en cualquiera de las <span id="important_words_2">redes</span> que te comparto en los <span id="important_words_2">iconos</span>, puedes <span id="important_words_2">contactarme</span> a través de ellas también si quieres.</p>
+        </div>
+        <div id="separator"></div>
+        <div id="contact_explain">
+            <p>Aunque si realmente estás interesado en <span id="important_words_2">mis servicios</span>, te agradecería que me contactases o bien por <span id="important_words_2">LinkedIn</span> o bien por el <span id="important_words_2">botón de "contáctame"</span> que te dejo, ya que este te redirigirá para que me <span id="important_words_2">envíes un correo a mi mail profesional</span>.</p>
+            <button id="contact_button" (click)="mailContact()">CONTÁCTAME</button>
+        </div>
+    </div>
+    <div id="about">
+        <p id="description_skills">Aunque me considero versátil en el entorno de desarrollo, sí que es cierto que tengo ciertas <span id="important_words_1">preferencias y entornos</span> en los que considero que me desenvuelvo mejor, para <span id="important_words_1">reflejar</span> estas preferencias y habilidades de una forma un poco más <span id="important_words_1">visual</span> me he <span id="important_words_1">autoevaluado</span> a mí mismo en una escala del <span id="important_words_1">0 al 5</span> en las <span id="important_words_1">tablas</span> situadas debajo de este texto</p>
+        <div id="graphic_presentation">
+            <div id="coding">
+                <h2>LENGUAJES DE PROGRAMACIÓN</h2>
+                <div id="skill_container"><img src="../../assets/images/c.svg" alt="" id="icon" ><img src="../../assets/images/skillpoint.png" alt="" id="skillpoint" *ngFor="let i of [].constructor(setSkill(4));"><img src="../../assets/images/skillhole.png" alt="" id="skillhole" *ngFor="let i of [].constructor(getHole());"></div>
+                <div id="skill_container"><img src="../../assets/images/java.svg" alt="" id="icon"><img src="../../assets/images/skillpoint.png" alt="" id="skillpoint" *ngFor="let i of [].constructor(setSkill(4));"><img src="../../assets/images/skillhole.png" alt="" id="skillhole" *ngFor="let i of [].constructor(getHole());"></div>
+                <div id="skill_container"><img src="../../assets/images/kotlin.svg" alt="" id="icon"><img src="../../assets/images/skillpoint.png" alt="" id="skillpoint" *ngFor="let i of [].constructor(setSkill(3));"><img src="../../assets/images/skillhole.png" alt="" id="skillhole" *ngFor="let i of [].constructor(getHole());"></div>
+                <div id="skill_container"><img src="../../assets/images/typescript.svg" alt="" id="icon"><img src="../../assets/images/skillpoint.png" alt="" id="skillpoint" *ngFor="let i of [].constructor(setSkill(4));"><img src="../../assets/images/skillhole.png" alt="" id="skillhole" *ngFor="let i of [].constructor(getHole());"></div>
+                <div id="skill_container"><img src="../../assets/images/sql.svg" alt="" id="icon"><img src="../../assets/images/skillpoint.png" alt="" id="skillpoint" *ngFor="let i of [].constructor(setSkill(2));"><img src="../../assets/images/skillhole.png" alt="" id="skillhole" *ngFor="let i of [].constructor(getHole());"></div>                
+            </div>
+            <div id="software">
+                <h2>SOFTWARE</h2>
+                <div id="skill_container"><img src="../../assets/images/unity.svg" alt="" id="icon"><img src="../../assets/images/skillpoint.png" alt="" id="skillpoint" *ngFor="let i of [].constructor(setSkill(4));"><img src="../../assets/images/skillhole.png" alt="" id="skillhole" *ngFor="let i of [].constructor(getHole());"></div>
+                <div id="skill_container"><img src="../../assets/images/intelli.svg" alt="" id="icon"><img src="../../assets/images/skillpoint.png" alt="" id="skillpoint" *ngFor="let i of [].constructor(setSkill(4));"><img src="../../assets/images/skillhole.png" alt="" id="skillhole" *ngFor="let i of [].constructor(getHole());"></div>
+                <div id="skill_container"><img src="../../assets/images/android.svg" alt="" id="icon"><img src="../../assets/images/skillpoint.png" alt="" id="skillpoint" *ngFor="let i of [].constructor(setSkill(3));"><img src="../../assets/images/skillhole.png" alt="" id="skillhole" *ngFor="let i of [].constructor(getHole());"></div>
+                <div id="skill_container"><img src="../../assets/images/vscode.svg" alt="" id="icon"><img src="../../assets/images/skillpoint.png" alt="" id="skillpoint" *ngFor="let i of [].constructor(setSkill(3));"><img src="../../assets/images/skillhole.png" alt="" id="skillhole" *ngFor="let i of [].constructor(getHole());"></div>
+                <div id="skill_container"><img src="../../assets/images/git.svg" alt="" id="icon"><img src="../../assets/images/skillpoint.png" alt="" id="skillpoint" *ngFor="let i of [].constructor(setSkill(3));"><img src="../../assets/images/skillhole.png" alt="" id="skillhole" *ngFor="let i of [].constructor(getHole());">    </div>
+            </div>  
+        </div>
+    </div>
+</main>
+<footer>
+
+</footer>
