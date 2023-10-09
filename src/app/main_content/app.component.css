@@ -122,20 +122,20 @@ header{
     color: #998FC7;
     text-decoration: none;
 }
-#gym_project{
+#left_project{
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
-#gym_project #project_icon:hover img{   
+#left_project #project_icon:hover img{   
     transform: translateX(36px);
 }
-#sm_project{
+#right_project{
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
-#sm_project #project_icon:hover img{   
+#right_project #project_icon:hover img{   
     transform: translateX(-36px) ;
 }
 #contact{
@@ -348,14 +348,14 @@ header{
     #project_icon{
         padding: 0px 60px;
     }
-    #gym_project #project_icon:hover img,#sm_project #project_icon:hover img{   
+    #left_project #project_icon:hover img,#right_project #project_icon:hover img{   
         transform: translateY(26px) ;
     }
-    #gym_project{
+    #left_project{
         flex-wrap: wrap;
         justify-content: center;
     }
-    #sm_project{
+    #right_project{
         justify-content: center;
         flex-wrap: wrap-reverse;
     }
