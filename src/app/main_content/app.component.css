@@ -122,6 +122,17 @@ header{
     color: #998FC7;
     text-decoration: none;
 }
+#project_description ul li ul{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+}
+#project_description ul li ul li{
+    margin:10px 19px;
+}
+#project_description ul li ul li::before{
+    vertical-align: 24px;
+}
 #left_project{
     display: flex;
     justify-content: space-between;
@@ -345,6 +356,12 @@ header{
         width: 100%;
         margin: 0px 28px;
     }
+    #project_description ul li ul{
+        display: block;
+    }
+    #project_description ul li ul li{
+        margin: 0px 0px;
+    }
     #project_icon{
         padding: 0px 60px;
     }
@@ -358,7 +375,7 @@ header{
     #right_project{
         justify-content: center;
         flex-wrap: wrap-reverse;
-    }
+    }   
     #contact p{
         width: 100%;
         margin-right: 42px;
