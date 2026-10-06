@@ -40,3 +40,8 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Local project context (personal data, solo project)
+CLAUDE*.md
+.codegraph/
+.rtk/
