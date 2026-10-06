@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Víctor Manuel Gómez Álvarez</title>
+    <link rel="canonical" href="https://vga-dev.es/es/" />
+    <link rel="alternate" hreflang="es" href="https://vga-dev.es/es/" />
+    <link rel="alternate" hreflang="en" href="https://vga-dev.es/en/" />
+    <link rel="alternate" hreflang="x-default" href="https://vga-dev.es/es/" />
+    <!-- No JavaScript: go to the default language (Spanish). -->
+    <noscript><meta http-equiv="refresh" content="0; url=/es/" /></noscript>
+    <script>
+      // Static host: no server-side redirect, so pick the language here.
+      var languages = navigator.languages || [navigator.language || 'es'];
+      var target = /^en\b/i.test(languages[0] || '') ? '/en/' : '/es/';
+      location.replace(target);
+    </script>
+  </head>
+  <body>
+    <p><a href="/es/">Español</a> · <a href="/en/">English</a></p>
+  </body>
+</html>

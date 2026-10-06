@@ -1,0 +1,17 @@
+[
+  { "id": "backend", "items": ["C#", ".NET", "SQL Server", "MySQL"] },
+  {
+    "id": "frontend",
+    "items": ["React", "Angular", "TypeScript", "JavaScript", "HTML/CSS", "WPF"]
+  },
+  {
+    "id": "architecture",
+    "items": [
+      { "es": "Monolito modular", "en": "Modular monolith" },
+      "MVC",
+      { "es": "APIs REST", "en": "REST APIs" },
+      "WebSockets"
+    ]
+  },
+  { "id": "devops", "items": ["GitLab CI", "Git", "IIS Server"] }
+]

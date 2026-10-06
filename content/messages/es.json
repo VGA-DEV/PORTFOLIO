@@ -1,0 +1,105 @@
+{
+  "meta": {
+    "title": "Víctor Manuel Gómez Álvarez · Desarrollador Full Stack",
+    "description": "Portfolio de Víctor Manuel Gómez Álvarez, desarrollador Full Stack con base en .NET y React. Madrid."
+  },
+  "a11y": {
+    "skipToContent": "Saltar al contenido",
+    "mainNav": "Navegación principal",
+    "language": "Idioma"
+  },
+  "nav": {
+    "projects": "Proyectos",
+    "experience": "Experiencia",
+    "stack": "Stack",
+    "evolution": "Evolución",
+    "contact": "Contacto"
+  },
+  "hero": {
+    "name": "Víctor Manuel Gómez Álvarez",
+    "role": "Desarrollador Full Stack · Madrid",
+    "intro": "Trabajo con .NET y React. TODO: redactar la presentación (una o dos frases sobrias)."
+  },
+  "projects": {
+    "title": "Proyectos",
+    "intro": "TODO: elegir 3-4 proyectos propios. Las tarjetas de abajo son de ejemplo.",
+    "statusLabel": "Estado",
+    "stackLabel": "Stack",
+    "status": {
+      "inDevelopment": "En desarrollo",
+      "working": "Funcionando",
+      "pending": "Pendiente"
+    },
+    "items": [
+      {
+        "name": "Proyecto de ejemplo 1",
+        "summary": "TODO: qué es y qué problema resuelve.",
+        "status": "inDevelopment",
+        "stack": ["TODO"]
+      },
+      {
+        "name": "Proyecto de ejemplo 2",
+        "summary": "TODO: qué es y qué problema resuelve.",
+        "status": "working",
+        "stack": ["TODO"]
+      },
+      {
+        "name": "Proyecto de ejemplo 3",
+        "summary": "TODO: qué es y qué problema resuelve.",
+        "status": "pending",
+        "stack": ["TODO"]
+      }
+    ]
+  },
+  "experience": {
+    "title": "Experiencia",
+    "intro": "TODO: decidir el nivel de detalle que se puede publicar sobre cada empleo.",
+    "items": [
+      {
+        "company": "Devoteam",
+        "role": "TODO: cargo exacto",
+        "period": "Mayo 2024 – actualidad",
+        "summary": "TODO: 2-3 frases sobre el tipo de trabajo y las tecnologías."
+      },
+      {
+        "company": "WE DO THE BEST SL",
+        "role": "TODO: cargo exacto",
+        "period": "Julio 2023 – mayo 2024",
+        "summary": "TODO: 2-3 frases sobre el tipo de trabajo y las tecnologías."
+      }
+    ]
+  },
+  "stack": {
+    "title": "Stack",
+    "groups": {
+      "backend": "Backend y datos",
+      "frontend": "Frontend",
+      "architecture": "Arquitectura",
+      "devops": "DevOps"
+    }
+  },
+  "evolution": {
+    "title": "Evolución",
+    "intro": "TODO (Fase 3): comparador de diseño por secciones, archivo de versiones y métricas.",
+    "versions": [
+      {
+        "tag": "v1-angular",
+        "name": "Versión 1",
+        "summary": "Primera versión del portfolio, hecha con Angular."
+      }
+    ],
+    "tagLabel": "Etiqueta de git"
+  },
+  "contact": {
+    "title": "Contacto",
+    "intro": "TODO: frase breve de contacto.",
+    "email": "Correo",
+    "linkedin": "LinkedIn",
+    "github": "GitHub",
+    "cvTitle": "CV",
+    "cvPending": "TODO: añadir los PDF del CV (español e inglés) en /public/cv/."
+  },
+  "footer": {
+    "rights": "Víctor Manuel Gómez Álvarez"
+  }
+}

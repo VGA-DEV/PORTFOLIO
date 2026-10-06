@@ -1,0 +1,105 @@
+{
+  "meta": {
+    "title": "Víctor Manuel Gómez Álvarez · Full Stack Developer",
+    "description": "Portfolio of Víctor Manuel Gómez Álvarez, a Full Stack developer working with .NET and React. Madrid."
+  },
+  "a11y": {
+    "skipToContent": "Skip to content",
+    "mainNav": "Main navigation",
+    "language": "Language"
+  },
+  "nav": {
+    "projects": "Projects",
+    "experience": "Experience",
+    "stack": "Stack",
+    "evolution": "Evolution",
+    "contact": "Contact"
+  },
+  "hero": {
+    "name": "Víctor Manuel Gómez Álvarez",
+    "role": "Full Stack Developer · Madrid",
+    "intro": "I work with .NET and React. TODO: write the introduction (one or two plain sentences)."
+  },
+  "projects": {
+    "title": "Projects",
+    "intro": "TODO: choose 3-4 personal projects. The cards below are examples.",
+    "statusLabel": "Status",
+    "stackLabel": "Stack",
+    "status": {
+      "inDevelopment": "In development",
+      "working": "Working",
+      "pending": "Pending"
+    },
+    "items": [
+      {
+        "name": "Example project 1",
+        "summary": "TODO: what it is and what problem it solves.",
+        "status": "inDevelopment",
+        "stack": ["TODO"]
+      },
+      {
+        "name": "Example project 2",
+        "summary": "TODO: what it is and what problem it solves.",
+        "status": "working",
+        "stack": ["TODO"]
+      },
+      {
+        "name": "Example project 3",
+        "summary": "TODO: what it is and what problem it solves.",
+        "status": "pending",
+        "stack": ["TODO"]
+      }
+    ]
+  },
+  "experience": {
+    "title": "Experience",
+    "intro": "TODO: decide how much detail can be published about each job.",
+    "items": [
+      {
+        "company": "Devoteam",
+        "role": "TODO: exact job title",
+        "period": "May 2024 – present",
+        "summary": "TODO: 2-3 sentences about the type of work and the technologies."
+      },
+      {
+        "company": "WE DO THE BEST SL",
+        "role": "TODO: exact job title",
+        "period": "July 2023 – May 2024",
+        "summary": "TODO: 2-3 sentences about the type of work and the technologies."
+      }
+    ]
+  },
+  "stack": {
+    "title": "Stack",
+    "groups": {
+      "backend": "Backend and data",
+      "frontend": "Frontend",
+      "architecture": "Architecture",
+      "devops": "DevOps"
+    }
+  },
+  "evolution": {
+    "title": "Evolution",
+    "intro": "TODO (Phase 3): design comparison by section, version archive and metrics.",
+    "versions": [
+      {
+        "tag": "v1-angular",
+        "name": "Version 1",
+        "summary": "First version of the portfolio, built with Angular."
+      }
+    ],
+    "tagLabel": "Git tag"
+  },
+  "contact": {
+    "title": "Contact",
+    "intro": "TODO: short contact sentence.",
+    "email": "Email",
+    "linkedin": "LinkedIn",
+    "github": "GitHub",
+    "cvTitle": "CV",
+    "cvPending": "TODO: add the CV PDFs (Spanish and English) in /public/cv/."
+  },
+  "footer": {
+    "rights": "Víctor Manuel Gómez Álvarez"
+  }
+}
