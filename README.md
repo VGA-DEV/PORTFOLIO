@@ -1,27 +1,25 @@
 # Portfolio
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 16.2.1.
+Personal portfolio of Víctor Manuel Gómez Álvarez. Next.js (App Router, TypeScript), static export, Spanish and English.
 
-## Development server
+## Commands
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+```bash
+npm install
+npm run dev        # development server
+npm run build      # static export to ./out
+npm run lint
+npm run typecheck
+```
 
-## Code scaffolding
+## Structure
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+- `src/app/[lang]/` – layout, home page and styles, one route per language (`/es/`, `/en/`).
+- `src/components/` – small reusable components.
+- `src/i18n/` – locale configuration, dictionaries and content helpers.
+- `content/` – texts (`messages/`), data and the evolution archive. Content lives here, not in components.
+- `public/index.html` – root redirect to the browser language.
 
-## Build
+## Previous versions
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
-
-## Running unit tests
-
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Running end-to-end tests
-
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+Version 1 (Angular) is kept in the git tag `v1-angular`. It is not deployed.
