@@ -1,10 +1,25 @@
 import type { Metadata } from 'next';
+import { Josefin_Sans, Poiret_One } from 'next/font/google';
 import { SiteFooter } from '@/components/SiteFooter';
 import { SiteHeader } from '@/components/SiteHeader';
 import { defaultLocale, locales } from '@/i18n/config';
 import { getProfile } from '@/i18n/content';
 import { getDictionary, getLocale } from '@/i18n/dictionaries';
 import './globals.css';
+
+// Self-hosted at build time by next/font: no third-party request at runtime.
+const display = Poiret_One({
+  subsets: ['latin'],
+  weight: '400',
+  variable: '--font-display',
+  display: 'swap',
+});
+
+const sans = Josefin_Sans({
+  subsets: ['latin'],
+  variable: '--font-sans',
+  display: 'swap',
+});
 
 // Only the declared locales exist; anything else is a 404 in the static export.
 export const dynamicParams = false;
@@ -45,7 +60,7 @@ export default async function RootLayout({ children }: LayoutProps<'/[lang]'>) {
   const dict = await getDictionary();
 
   return (
-    <html lang={locale}>
+    <html lang={locale} className={`${display.variable} ${sans.variable}`}>
       <body>
         <a className='skip-link' href='#main'>
           {dict.a11y.skipToContent}
@@ -58,7 +73,7 @@ export default async function RootLayout({ children }: LayoutProps<'/[lang]'>) {
           languageLabel={dict.a11y.language}
         />
         <main id='main'>{children}</main>
-        <SiteFooter rights={dict.footer.rights} />
+        <SiteFooter rights={dict.footer.rights} logoAlt={dict.footer.logoAlt} />
       </body>
     </html>
   );

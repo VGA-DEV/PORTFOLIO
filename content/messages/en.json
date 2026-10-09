@@ -19,7 +19,17 @@
     "name": "Víctor Manuel Gómez Álvarez",
     "role": "Full Stack Developer · Madrid",
     "intro": "I build web applications with C# and .NET on the backend and React on the frontend.",
-    "logoAlt": "{VGA_DEV} logo"
+    "cta": { "projects": "See projects", "contact": "Contact" },
+    "zones": { "madrid": "Madrid", "dublin": "Dublin" },
+    "legend": {
+      "title": "An application, like a watch",
+      "items": [
+        { "part": "Crystal", "tech": "React and TypeScript" },
+        { "part": "Dial", "tech": "REST APIs and WebSockets" },
+        { "part": "Movement", "tech": "C#, .NET and SQL Server" },
+        { "part": "Case", "tech": "GitLab CI and IIS" }
+      ]
+    }
   },
   "projects": {
     "title": "Projects",
@@ -101,6 +111,7 @@
     "cvPending": "TODO: add the CV PDFs (Spanish and English) in /public/cv/."
   },
   "footer": {
-    "rights": "Víctor Manuel Gómez Álvarez"
+    "rights": "Víctor Manuel Gómez Álvarez",
+    "logoAlt": "{VGA_DEV} logo"
   }
 }

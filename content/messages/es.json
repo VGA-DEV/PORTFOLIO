@@ -19,7 +19,17 @@
     "name": "Víctor Manuel Gómez Álvarez",
     "role": "Desarrollador Full Stack · Madrid",
     "intro": "Desarrollo aplicaciones web con C# y .NET en el backend y React en el frontend.",
-    "logoAlt": "Logotipo {VGA_DEV}"
+    "cta": { "projects": "Ver proyectos", "contact": "Contacto" },
+    "zones": { "madrid": "Madrid", "dublin": "Dublín" },
+    "legend": {
+      "title": "Una aplicación, como un reloj",
+      "items": [
+        { "part": "Cristal", "tech": "React y TypeScript" },
+        { "part": "Esfera", "tech": "APIs REST y WebSockets" },
+        { "part": "Movimiento", "tech": "C#, .NET y SQL Server" },
+        { "part": "Caja", "tech": "GitLab CI e IIS" }
+      ]
+    }
   },
   "projects": {
     "title": "Proyectos",
@@ -101,6 +111,7 @@
     "cvPending": "TODO: añadir los PDF del CV (español e inglés) en /public/cv/."
   },
   "footer": {
-    "rights": "Víctor Manuel Gómez Álvarez"
+    "rights": "Víctor Manuel Gómez Álvarez",
+    "logoAlt": "Logotipo {VGA_DEV}"
   }
 }
