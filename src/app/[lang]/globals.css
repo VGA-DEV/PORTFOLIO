@@ -149,6 +149,32 @@ p {
   padding-block: var(--space-5) var(--space-4);
 }
 
+.hero__inner {
+  display: grid;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+@media (min-width: 48rem) {
+  .hero__inner {
+    grid-template-columns: 1fr auto;
+    gap: var(--space-4);
+  }
+}
+
+.hero__logo {
+  order: -1;
+  width: 8rem;
+  height: auto;
+}
+
+@media (min-width: 48rem) {
+  .hero__logo {
+    order: 0;
+    width: 13rem;
+  }
+}
+
 .hero__name {
   margin-bottom: var(--space-1);
   font-size: clamp(2rem, 5vw, 3rem);

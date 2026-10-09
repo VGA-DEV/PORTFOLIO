@@ -18,7 +18,8 @@
   "hero": {
     "name": "Víctor Manuel Gómez Álvarez",
     "role": "Desarrollador Full Stack · Madrid",
-    "intro": "Trabajo con .NET y React. TODO: redactar la presentación (una o dos frases sobrias)."
+    "intro": "Desarrollo aplicaciones web con C# y .NET en el backend y React en el frontend.",
+    "logoAlt": "Logotipo {VGA_DEV}"
   },
   "projects": {
     "title": "Proyectos",

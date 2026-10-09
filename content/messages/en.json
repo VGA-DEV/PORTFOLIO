@@ -18,7 +18,8 @@
   "hero": {
     "name": "Víctor Manuel Gómez Álvarez",
     "role": "Full Stack Developer · Madrid",
-    "intro": "I work with .NET and React. TODO: write the introduction (one or two plain sentences)."
+    "intro": "I build web applications with C# and .NET on the backend and React on the frontend.",
+    "logoAlt": "{VGA_DEV} logo"
   },
   "projects": {
     "title": "Projects",

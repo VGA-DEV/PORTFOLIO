@@ -1,3 +1,4 @@
+import { Hero } from '@/components/Hero';
 import { Section } from '@/components/Section';
 import { getProfile, getStack } from '@/i18n/content';
 import { getDictionary, getLocale } from '@/i18n/dictionaries';
@@ -10,15 +11,12 @@ export default async function HomePage() {
 
   return (
     <>
-      <section aria-labelledby='hero-title' className='hero'>
-        <div className='container'>
-          <h1 id='hero-title' className='hero__name'>
-            {dict.hero.name}
-          </h1>
-          <p className='hero__role'>{dict.hero.role}</p>
-          <p className='hero__intro'>{dict.hero.intro}</p>
-        </div>
-      </section>
+      <Hero
+        name={dict.hero.name}
+        role={dict.hero.role}
+        intro={dict.hero.intro}
+        logoAlt={dict.hero.logoAlt}
+      />
 
       <Section id='projects' title={dict.projects.title} intro={dict.projects.intro}>
         <ul className='cards'>
