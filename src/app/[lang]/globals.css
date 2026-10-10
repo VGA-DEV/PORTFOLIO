@@ -340,8 +340,9 @@ code {
   margin-bottom: 0;
 }
 
-/* The watch: a framed window onto the piece each section is about. */
-.watch {
+/* The flat watch in the hero: the whole visual on phones and tablets, and the
+   placeholder until the 3D scene starts. */
+.hero__watch {
   display: grid;
   justify-items: center;
   --hour-angle: 305deg;
@@ -388,6 +389,7 @@ code {
   stroke-width: 1px;
   stroke-opacity: 0.55;
   pointer-events: none;
+  transition: opacity 0.9s var(--ease-out);
 }
 
 .watch__frame path {
@@ -396,46 +398,6 @@ code {
 
 .watch__frame-inner {
   stroke-opacity: 0.28;
-}
-
-.watch__canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  transition: opacity 0.9s var(--ease-out);
-  pointer-events: none;
-}
-
-.watch[data-mode='3d'] .watch__canvas {
-  opacity: 1;
-}
-
-.watch[data-mode='3d'] .dial {
-  opacity: 0;
-}
-
-.watch__caption {
-  position: absolute;
-  left: 50%;
-  bottom: 1.4rem;
-  margin: 0;
-  color: var(--color-champagne);
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  transform: translateX(-50%);
-  animation: caption-in 0.7s var(--ease-out) both;
-}
-
-@keyframes caption-in {
-  from {
-    opacity: 0;
-    transform: translate(-50%, 0.6rem);
-  }
 }
 
 /* Large screens, finger or mouse: the watch sits beside the hero text. */
@@ -459,39 +421,51 @@ code {
   }
 }
 
-/* Precise pointer: the watch becomes a fixed window next to the content, and the
-   3D scene moves it from one piece to the next as the sections go by. */
+/* The 3D watch: a full-screen canvas behind the content, so it lives in the page
+   backgrounds instead of in a box. Section backgrounds sit under it; text above. */
+.watch-bg {
+  display: none;
+}
+
 @media (min-width: 62rem) and (pointer: fine) {
-  :root {
-    --panel-w: min(38vw, 34rem);
-  }
-
-  .watch {
+  .watch-bg {
+    display: block;
     position: fixed;
-    z-index: 5;
-    top: calc(var(--header-h) + 1.25rem);
-    bottom: 1.25rem;
-    right: max(1rem, calc((100vw - var(--container)) / 2));
-    width: var(--panel-w);
+    inset: 0;
+    z-index: 1;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.9s var(--ease-out);
   }
 
-  .watch__figure {
+  html[data-watch='3d'] .watch-bg {
+    opacity: 1;
+  }
+
+  html[data-watch='3d'] .hero__watch .dial,
+  html[data-watch='3d'] .hero__watch .watch__frame {
+    opacity: 0;
+  }
+
+  .watch-bg__canvas {
+    display: block;
     width: 100%;
-    max-width: none;
     height: 100%;
-    background:
-      radial-gradient(70% 58% at 50% 46%, rgb(88 17 159 / 0.4), transparent 78%),
-      var(--color-stage);
   }
 
-  .watch__frame {
-    inset: 0.6rem;
-    width: calc(100% - 1.2rem);
-    height: calc(100% - 1.2rem);
+  .hero__grid,
+  .section > .container {
+    position: relative;
+    z-index: 2;
   }
 
-  .hero__grid {
-    grid-template-columns: minmax(0, 1fr);
+  /* Each section's text takes one half of the screen; the watch takes the other. */
+  .section__body {
+    width: min(100%, 36rem);
+  }
+
+  .section[data-side='right'] .section__body {
+    margin-left: auto;
   }
 
   /* One screen per section, so the watch has time to settle on its piece. */
@@ -499,23 +473,6 @@ code {
     display: grid;
     align-content: center;
     min-height: calc(100svh - var(--header-h));
-  }
-
-  .hero__grid,
-  .section > .container,
-  .site-footer__inner {
-    padding-right: calc(var(--panel-w) + 3rem);
-  }
-}
-
-/* If the window narrows after the 3D scene started, the flat watch takes over at once. */
-@media not ((min-width: 62rem) and (pointer: fine)) {
-  .watch__canvas {
-    display: none;
-  }
-
-  .watch[data-mode='3d'] .dial {
-    opacity: 1;
   }
 }
 
@@ -573,6 +530,17 @@ code {
   width: min(100%, 20rem);
   height: auto;
   color: var(--color-champagne-deep);
+}
+
+.section__note {
+  max-width: 32rem;
+  margin-bottom: var(--space-3);
+  color: var(--color-ink-soft);
+  font-size: 1rem;
+}
+
+.section--stage .section__note {
+  color: var(--color-stage-soft);
 }
 
 .section__intro {

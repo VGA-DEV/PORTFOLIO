@@ -1,5 +1,6 @@
 import { Hero } from '@/components/Hero';
 import { Section } from '@/components/Section';
+import { WatchBackdrop } from '@/components/WatchBackdrop';
 import { getProfile, getStack } from '@/i18n/content';
 import { getDictionary, getLocale } from '@/i18n/dictionaries';
 
@@ -18,16 +19,21 @@ export default async function HomePage() {
 
   return (
     <>
+      <WatchBackdrop engraving={dict.watch.engraving} logoUrl='/images/logo-vga-dev.webp' />
       <Hero
         name={dict.hero.name}
         role={dict.hero.role}
         intro={dict.hero.intro}
         cta={dict.hero.cta}
-        captions={dict.watch.captions}
-        engraving={dict.watch.engraving}
       />
 
-      <Section id='projects' title={dict.projects.title} intro={dict.projects.intro}>
+      <Section
+        id='projects'
+        title={dict.projects.title}
+        note={dict.notes.projects}
+        intro={dict.projects.intro}
+        side='right'
+      >
         <ol className='ledger'>
           {dict.projects.items.map((project) => (
             <li key={project.name} className='ledger__row'>
@@ -64,7 +70,9 @@ export default async function HomePage() {
       <Section
         id='experience'
         title={dict.experience.title}
+        note={dict.notes.experience}
         intro={dict.experience.intro}
+        side='left'
       >
         <ol className='ledger ledger--dated'>
           {dict.experience.items.map((job, index) => (
@@ -85,7 +93,7 @@ export default async function HomePage() {
         </ol>
       </Section>
 
-      <Section id='stack' title={dict.stack.title}>
+      <Section id='stack' title={dict.stack.title} note={dict.notes.stack} side='right'>
         <div className='stack'>
           {stack.map((group) => (
             <div key={group.id} className='stack__group'>
@@ -105,7 +113,13 @@ export default async function HomePage() {
         </div>
       </Section>
 
-      <Section id='evolution' title={dict.evolution.title} intro={dict.evolution.intro}>
+      <Section
+        id='evolution'
+        title={dict.evolution.title}
+        note={dict.notes.evolution}
+        intro={dict.evolution.intro}
+        side='left'
+      >
         <ol className='ledger'>
           {dict.evolution.versions.map((version) => (
             <li key={version.tag} className='ledger__row'>
@@ -124,7 +138,9 @@ export default async function HomePage() {
       <Section
         id='contact'
         title={dict.contact.title}
+        note={dict.notes.contact}
         intro={dict.contact.intro}
+        side='right'
         tone='stage'
       >
         <ul className='contact-links'>

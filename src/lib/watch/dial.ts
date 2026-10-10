@@ -11,19 +11,64 @@ export const BACK_HALF_Y = BACK_SCALE * CASE.b;
 
 const ROMAN = ['XII', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI'];
 
-/**
- * Silvered-lavender sunburst dial with a railway minute track and Roman
- * numerals, painted to a canvas so the text uses the site's real typeface.
- */
-export function makeDialCanvas(outline: readonly Vec2[], fontFamily: string) {
+/** Draw the black {VGA_DEV} logo centred at (x, y), `width` pixels wide. */
+function drawLogo(
+  ctx: CanvasRenderingContext2D,
+  logo: HTMLImageElement | null,
+  x: number,
+  y: number,
+  width: number,
+  alpha = 1,
+) {
+  if (!logo || !logo.naturalWidth) return;
+  const height = (width * logo.naturalHeight) / logo.naturalWidth;
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.drawImage(logo, x - width / 2, y - height / 2, width, height);
+  ctx.restore();
+}
+
+/** Shrink a line of text until it fits `maxWidth`. */
+function fitText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  fontFamily: string,
+  size: number,
+  maxWidth: number,
+  weight = 600,
+) {
+  let current = size;
+  ctx.font = `${weight} ${current}px ${fontFamily}`;
+  while (ctx.measureText(text).width > maxWidth && current > 12) {
+    current -= 2;
+    ctx.font = `${weight} ${current}px ${fontFamily}`;
+  }
+}
+
+export function createDialCanvas() {
   const width = 1024;
   const pxPerUnit = width / 2 / DIAL_HALF_X;
   const height = Math.round(DIAL_HALF_Y * 2 * pxPerUnit);
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
+  return canvas;
+}
+
+/**
+ * Silvered-lavender sunburst dial with a railway minute track, Roman numerals and
+ * the logo, painted to a canvas so the text uses the site's real typeface.
+ */
+export function paintDial(
+  canvas: HTMLCanvasElement,
+  outline: readonly Vec2[],
+  fontFamily: string,
+  logo: HTMLImageElement | null,
+) {
+  const { width, height } = canvas;
+  const pxPerUnit = width / 2 / DIAL_HALF_X;
   const ctx = canvas.getContext('2d');
-  if (!ctx) return canvas;
+  if (!ctx) return;
 
   const cx = width / 2;
   const cy = height / 2;
@@ -89,34 +134,36 @@ export function makeDialCanvas(outline: readonly Vec2[], fontFamily: string) {
     ctx.fillText(numeral, X, Y);
   });
 
-  // Signature, small and quiet, under the XII.
-  ctx.font = `600 30px ${fontFamily}`;
-  ctx.fillStyle = 'rgba(52,4,64,0.75)';
-  const [sx, sy] = px(0, 0.36);
-  ctx.fillText('V G A · D E V', sx, sy);
+  // The logo, in the lower half, opposite the 12.
+  const [lx, ly] = px(0, -0.33);
+  drawLogo(ctx, logo, lx, ly, 0.5 * pxPerUnit, 0.9);
+}
 
+export function createEngravingCanvas() {
+  const width = 1024;
+  const pxPerUnit = width / 2 / BACK_HALF_X;
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = Math.round(BACK_HALF_Y * 2 * pxPerUnit);
   return canvas;
 }
 
 /**
  * Engraving mask for the case back: white is polished metal, black is cut.
- * Guilloché rings around a plate of engraved lines of text.
+ * Guilloché rings around a clear plate holding the logo and two lines of text,
+ * all kept inside the plate.
  */
-export function makeEngravingCanvas(
+export function paintEngraving(
+  canvas: HTMLCanvasElement,
   outline: readonly Vec2[],
   fontFamily: string,
   lines: readonly string[],
+  logo: HTMLImageElement | null,
 ) {
-  const halfX = BACK_HALF_X;
-  const halfY = BACK_HALF_Y;
-  const width = 1024;
-  const pxPerUnit = width / 2 / halfX;
-  const height = Math.round(halfY * 2 * pxPerUnit);
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
+  const { width, height } = canvas;
+  const pxPerUnit = width / 2 / BACK_HALF_X;
   const ctx = canvas.getContext('2d');
-  if (!ctx) return canvas;
+  if (!ctx) return;
   const cx = width / 2;
   const cy = height / 2;
 
@@ -142,27 +189,29 @@ export function makeEngravingCanvas(
     ctx.stroke();
   }
 
-  // Clear plate for the text, with a cut border.
-  trace(0.6);
+  // Clear plate with a cut border.
+  const plate = 0.66;
+  trace(plate);
   ctx.fillStyle = '#ffffff';
   ctx.fill();
   ctx.strokeStyle = '#000000';
   ctx.lineWidth = 5;
-  trace(0.62);
+  trace(plate + 0.02);
   ctx.stroke();
-  trace(0.585);
+  trace(plate - 0.025);
   ctx.lineWidth = 2;
   ctx.stroke();
+
+  // Everything sits on the centre line and inside the plate's width.
+  const maxWidth = 2 * (plate - 0.1) * pxPerUnit * (1 - CASE.taper * 0.2);
+  drawLogo(ctx, logo, cx, cy - 0.3 * pxPerUnit, Math.min(0.78 * pxPerUnit, maxWidth));
 
   ctx.fillStyle = '#000000';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  const sizes = [76, 60, 46, 42];
-  const ys = [-0.62, -0.2, 0.18, 0.62];
-  lines.forEach((line, i) => {
-    ctx.font = `600 ${sizes[i] ?? 34}px ${fontFamily}`;
-    ctx.fillText(line, cx, cy + (ys[i] ?? 0) * pxPerUnit * 0.62 * 1.35);
+  const rows = [0.08, 0.3];
+  lines.slice(0, 2).forEach((line, i) => {
+    fitText(ctx, line, fontFamily, i === 0 ? 70 : 52, maxWidth);
+    ctx.fillText(line, cx, cy + rows[i] * pxPerUnit);
   });
-
-  return canvas;
 }

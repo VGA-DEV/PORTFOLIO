@@ -120,19 +120,31 @@
     "logoAlt": "Logotipo {VGA_DEV}"
   },
   "watch": {
-    "captions": [
-      "",
-      "Movimiento",
-      "Esfera y agujas",
-      "Desmontado",
-      "Fondo de caja",
-      "Corona"
-    ],
     "engraving": [
-      "V G A · D E V",
       "REVISIÓN 2",
-      "v1 Angular → v2 Next.js",
-      "MAD → DUB"
+      "v1 Angular → v2 Next.js"
     ]
+  },
+  "notes": {
+    "projects": {
+      "part": "Movimiento",
+      "text": "El movimiento es el mecanismo del reloj: piezas pequeñas que encajan para que todo funcione. Los proyectos son lo mismo; lo importante está en cómo encajan por dentro."
+    },
+    "experience": {
+      "part": "Esfera y agujas",
+      "text": "La esfera y las agujas son lo que se lee de un reloj: el tiempo, en orden. La experiencia se cuenta igual, capítulo a capítulo."
+    },
+    "stack": {
+      "part": "Desmontado",
+      "text": "Para ver de qué está hecho un reloj hay que desmontarlo. Aquí están las piezas sueltas, agrupadas por la parte del reloj a la que corresponden."
+    },
+    "evolution": {
+      "part": "Fondo de caja",
+      "text": "En el fondo de la caja se graban las revisiones del reloj. Aquí queda el registro de las versiones de esta web y de lo que cambió en cada una."
+    },
+    "contact": {
+      "part": "Corona",
+      "text": "La corona es por donde se da cuerda a un reloj. También es por donde puedes escribirme."
+    }
   }
 }

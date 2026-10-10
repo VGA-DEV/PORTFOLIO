@@ -1,19 +1,23 @@
 import { DialArt } from './DialArt';
+import { HeroWatch } from './HeroWatch';
 import { WatchFrame } from './WatchFrame';
-import { WatchStage } from './WatchStage';
 
 type HeroProps = {
   name: string;
   role: string;
   intro: string;
   cta: { projects: string; contact: string };
-  captions: readonly string[];
-  engraving: readonly string[];
 };
 
-export function Hero({ name, role, intro, cta, captions, engraving }: HeroProps) {
+export function Hero({ name, role, intro, cta }: HeroProps) {
   return (
-    <section aria-labelledby='hero-title' className='hero' data-hero data-watch-section>
+    <section
+      aria-labelledby='hero-title'
+      className='hero'
+      data-hero
+      data-watch-section
+      data-side='left'
+    >
       <div className='hero__stage'>
         <div className='container hero__grid'>
           <div className='hero__text'>
@@ -31,10 +35,10 @@ export function Hero({ name, role, intro, cta, captions, engraving }: HeroProps)
               </a>
             </p>
           </div>
-          <WatchStage captions={captions} engraving={engraving}>
+          <HeroWatch>
             <DialArt />
             <WatchFrame />
-          </WatchStage>
+          </HeroWatch>
         </div>
       </div>
     </section>

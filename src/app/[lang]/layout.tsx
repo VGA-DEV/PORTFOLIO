@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Josefin_Sans, Poiret_One } from 'next/font/google';
+import { ScrollRestore } from '@/components/ScrollRestore';
 import { SiteFooter } from '@/components/SiteFooter';
 import { SiteHeader } from '@/components/SiteHeader';
 import { defaultLocale, locales } from '@/i18n/config';
@@ -72,6 +73,7 @@ export default async function RootLayout({ children }: LayoutProps<'/[lang]'>) {
           navLabel={dict.a11y.mainNav}
           languageLabel={dict.a11y.language}
         />
+        <ScrollRestore />
         <main id='main'>{children}</main>
         <SiteFooter rights={dict.footer.rights} logoAlt={dict.footer.logoAlt} />
       </body>

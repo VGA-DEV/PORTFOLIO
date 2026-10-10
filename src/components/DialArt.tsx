@@ -1,4 +1,4 @@
-import { rayHit, tonneauOutline } from '@/lib/watch/smooth';
+import { rayHit, roundedTrapezoid, tonneauOutline } from '@/lib/watch/smooth';
 
 /**
  * Flat front elevation of the tonneau watch, drawn in SVG. It is the LCP element
@@ -35,13 +35,14 @@ const MINUTES = Array.from({ length: 60 }, (_, m) => {
   return { m, x0, y0, x1, y1 };
 });
 
-const LUGS = [-1, 1].flatMap((sx) =>
-  [-1, 1].map((sy) => ({
-    key: `${sx}${sy}`,
-    x: CX + sx * 0.68 * UNIT - 0.19 * UNIT,
-    y: CY - sy * 1.3 * UNIT - 0.3 * UNIT,
-  })),
-);
+/** The end pieces that carry the strap: the same rounded trapezoid as the 3D model. */
+const PLATE = roundedTrapezoid(1.34, 1.16, 0.62, 0.17);
+const plateAt = (centreY: number, flip: boolean) =>
+  (flip ? [...PLATE].reverse().map(([x, y]) => [x, -y] as const) : PLATE)
+    .map(([x, y]) => `${(CX + x * UNIT).toFixed(1)},${(CY - (y + centreY) * UNIT).toFixed(1)}`)
+    .join(' ');
+const PLATE_TOP = plateAt(1.26, false);
+const PLATE_BOTTOM = plateAt(-1.26, true);
 
 export function DialArt() {
   return (
@@ -78,23 +79,13 @@ export function DialArt() {
         </radialGradient>
       </defs>
 
-      <path d='M117 0H283L292 126H108Z' fill='url(#leather)' />
-      <path d='M108 434H292L283 560H117Z' fill='url(#leather)' />
+      <path d='M131 0H269L273.5 96H126.5Z' fill='url(#leather)' />
+      <path d='M126.5 464H273.5L269 560H131Z' fill='url(#leather)' />
       <g stroke='#d6bd8a' strokeWidth='1' strokeDasharray='4 3.5' strokeOpacity='0.8' fill='none'>
-        <path d='M128 0L120 126M272 0L280 126M120 434L128 560M280 434L272 560' />
+        <path d='M140 0L137 96M260 0L263 96M137 464L140 560M263 464L260 560' />
       </g>
-
-      {LUGS.map((lug) => (
-        <rect
-          key={lug.key}
-          x={lug.x}
-          y={lug.y}
-          width={0.38 * UNIT}
-          height={0.6 * UNIT}
-          rx='10'
-          fill='url(#gold-deep)'
-        />
-      ))}
+      <polygon points={PLATE_TOP} fill='url(#gold-deep)' stroke='#f6dca0' strokeOpacity='0.5' strokeWidth='1' />
+      <polygon points={PLATE_BOTTOM} fill='url(#gold-deep)' stroke='#f6dca0' strokeOpacity='0.5' strokeWidth='1' />
       <rect x={CX + 0.99 * UNIT - 2} y={CY - 0.32 * UNIT - 15} width='17' height='30' rx='4' fill='url(#gold-deep)' />
 
       <polygon points={toPoints(1)} fill='url(#gold-deep)' />
@@ -148,15 +139,17 @@ export function DialArt() {
         })}
       </g>
 
+      <image href='/images/logo-vga-dev.webp' x={CX - 32} y={CY + 0.33 * UNIT - 19.5} width='64' height='39' opacity='0.9' />
+
       <g className='dial__hand dial__hand--hour'>
-        <polygon points={`${CX - 7},${CY} ${CX},${CY - 0.66 * UNIT} ${CX + 7},${CY} ${CX},${CY + 14}`} fill='#1c2278' />
+        <polygon points={`${CX - 7},${CY} ${CX},${CY - 0.5 * UNIT} ${CX + 7},${CY} ${CX},${CY + 14}`} fill='#1c2278' />
       </g>
       <g className='dial__hand dial__hand--minute'>
-        <polygon points={`${CX - 4.5},${CY} ${CX},${CY - 1.02 * UNIT} ${CX + 4.5},${CY} ${CX},${CY + 18}`} fill='#242c8c' />
+        <polygon points={`${CX - 4.5},${CY} ${CX},${CY - 0.78 * UNIT} ${CX + 4.5},${CY} ${CX},${CY + 18}`} fill='#242c8c' />
       </g>
       <g className='dial__hand dial__hand--second'>
-        <polygon points={`${CX - 1.6},${CY} ${CX},${CY - 0.98 * UNIT} ${CX + 1.6},${CY} ${CX},${CY + 24}`} fill='#e08a76' />
-        <circle cx={CX} cy={CY + 26} r='7' fill='#e08a76' />
+        <polygon points={`${CX - 1.6},${CY} ${CX},${CY - 0.74 * UNIT} ${CX + 1.6},${CY} ${CX},${CY + 16}`} fill='#e08a76' />
+        <circle cx={CX} cy={CY + 17} r='6' fill='#e08a76' />
       </g>
       <circle cx={CX} cy={CY} r='5.5' fill='#d9a444' />
       <circle cx={CX} cy={CY} r='1.8' fill='#340440' />

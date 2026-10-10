@@ -1,7 +1,16 @@
 import { Camera, Geometry, Mesh, Program, Renderer, Texture, Transform } from 'ogl';
-import { BACK_HALF_X, BACK_HALF_Y, DIAL_HALF_X, DIAL_HALF_Y, makeDialCanvas, makeEngravingCanvas } from './dial';
-import { blossom, box, gear, hand, lathe, merge, translateFlat } from './geometry';
-import { loft, strap, tonneauOutline, type SmoothMesh } from './smooth';
+import {
+  BACK_HALF_X,
+  BACK_HALF_Y,
+  createDialCanvas,
+  createEngravingCanvas,
+  DIAL_HALF_X,
+  DIAL_HALF_Y,
+  paintDial,
+  paintEngraving,
+} from './dial';
+import { blossom, gear, hand, lathe, merge, translateFlat } from './geometry';
+import { loft, roundedTrapezoid, strap, tonneauOutline, type SmoothMesh } from './smooth';
 
 type Rgb = readonly [number, number, number];
 type V3 = readonly [number, number, number];
@@ -133,7 +142,7 @@ void main() {
   vec2 uvd = vec2(vLocal.x / ${DIAL_HALF_X.toFixed(4)} * 0.5 + 0.5, vLocal.y / ${DIAL_HALF_Y.toFixed(4)} * 0.5 + 0.5);
   vec3 tex = pow(texture(tDial, uvd).rgb, vec3(2.2));
   float fres = 0.04 + 0.96 * pow(1.0 - ndv, 5.0);
-  vec3 col = tex * (0.2 + 0.26 * key) + studio(r, 0.1) * fres * 0.3;
+  vec3 col = tex * (0.34 + 0.34 * key) + studio(r, 0.1) * fres * 0.3;
   outColor = vec4(pow(aces(col), vec3(1.0 / 2.2)), 1.0);
 #elif MODE == 4
   // Seen from behind, so the engraving is mirrored left to right.
@@ -170,6 +179,10 @@ export type WatchSceneOptions = {
   still: boolean;
   /** Lines engraved on the case back. */
   engraving: readonly string[];
+  /** Black {VGA_DEV} logo painted on the dial and the case back. */
+  logoUrl: string;
+  /** Per section: +1 puts the watch on the right of the screen, -1 on the left. */
+  sides: readonly number[];
 };
 
 type Group =
@@ -204,12 +217,12 @@ const ALL: Partial<Record<Group, number>> = {
  * longer needs and settles on the one the next section is about.
  */
 const STATES: readonly PoseState[] = [
-  { rotation: [0.16, -0.45, 0], focus: [0, 0, 0], half: 2.3, explode: 0, show: ALL },
-  { rotation: [0.3, -0.55, 0], focus: [0, 0, -0.35], half: 1.4, explode: 0.45, show: { movement: 1 } },
-  { rotation: [0.12, -0.3, 0], focus: [0, 0, 0.2], half: 1.5, explode: 0.3, show: { dial: 1, hands: 1 } },
-  { rotation: [0.2, -0.95, 0.05], focus: [0, 0, 0], half: 3.55, explode: 1, show: ALL },
-  { rotation: [0.04, Math.PI + 0.12, 0], focus: [0, 0, -0.4], half: 1.45, explode: 0.12, show: { caseBack: 1, caseBand: 1 } },
-  { rotation: [0.15, -1.15, 0], focus: [0.95, 0.3, -0.1], half: 1.6, explode: 0.15, show: { crown: 1, caseBand: 1, lugs: 1, strap: 1, bezel: 1 } },
+  { rotation: [0.16, -0.45, 0], focus: [0, 0, 0], half: 2.9, explode: 0, show: ALL },
+  { rotation: [0.3, -0.55, 0], focus: [0, 0, -0.35], half: 2.0, explode: 0.45, show: { movement: 1 } },
+  { rotation: [0.12, -0.3, 0], focus: [0, 0, 0.2], half: 2.0, explode: 0.3, show: { dial: 1, hands: 1 } },
+  { rotation: [0.2, -0.95, 0.05], focus: [0, 0, 0], half: 4.1, explode: 1, show: ALL },
+  { rotation: [0.04, Math.PI + 0.12, 0], focus: [0, 0, -0.4], half: 2.0, explode: 0.12, show: { caseBack: 1, caseBand: 1 } },
+  { rotation: [0.15, -1.15, 0], focus: [0.95, 0.3, -0.1], half: 2.2, explode: 0.15, show: { crown: 1, caseBand: 1, lugs: 1, strap: 1, bezel: 1 } },
 ];
 
 const damp = (current: number, target: number, rate: number, dt: number) =>
@@ -230,28 +243,19 @@ const translate = (mesh: SmoothMesh, dx: number, dy: number, dz: number): Smooth
   return { ...mesh, position };
 };
 
-/** Curve a lug down toward the wrist: its tip dips as it leaves the case. */
-const horn = (mesh: SmoothMesh): SmoothMesh => {
-  const position = new Float32Array(mesh.position);
-  for (let i = 0; i < position.length; i += 3) {
-    position[i + 2] -= 0.4 * Math.max(0, Math.abs(position[i + 1]) - 1.1) ** 1.2;
-  }
-  return { ...mesh, position };
-};
-
 const mergeSmooth = (...parts: SmoothMesh[]): SmoothMesh => ({
   position: merge(...parts.map((p) => p.position)),
   normal: merge(...parts.map((p) => p.normal)),
   uv: merge(...parts.map((p) => p.uv)),
 });
 
-export function createWatchScene({ canvas, still, engraving }: WatchSceneOptions): WatchScene {
+export function createWatchScene({ canvas, still, engraving, logoUrl, sides }: WatchSceneOptions): WatchScene {
   const renderer = new Renderer({
     canvas,
     alpha: true,
     premultipliedAlpha: true,
     antialias: true,
-    dpr: Math.min(window.devicePixelRatio || 1, 1.75),
+    dpr: Math.min(window.devicePixelRatio || 1, 1.5),
     webgl: 2,
   });
   const { gl } = renderer;
@@ -279,8 +283,23 @@ export function createWatchScene({ canvas, still, engraving }: WatchSceneOptions
       magFilter: gl.LINEAR,
       anisotropy: 8,
     });
-  const dialTexture = texture(makeDialCanvas(outline, fontFamily));
-  const backTexture = texture(makeEngravingCanvas(outline, fontFamily, engraving));
+  const dialCanvas = createDialCanvas();
+  const backCanvas = createEngravingCanvas();
+  paintDial(dialCanvas, outline, fontFamily, null);
+  paintEngraving(backCanvas, outline, fontFamily, engraving, null);
+  const dialTexture = texture(dialCanvas);
+  const backTexture = texture(backCanvas);
+
+  // The logo arrives after the first frame: repaint both textures once it has loaded.
+  const logo = new Image();
+  logo.onload = () => {
+    paintDial(dialCanvas, outline, fontFamily, logo);
+    paintEngraving(backCanvas, outline, fontFamily, engraving, logo);
+    dialTexture.needsUpdate = true;
+    backTexture.needsUpdate = true;
+    if (still) redrawStill();
+  };
+  logo.src = logoUrl;
 
   const glassPhase = { value: 0.2 };
 
@@ -374,16 +393,15 @@ export function createWatchScene({ canvas, still, engraving }: WatchSceneOptions
     [0, 0, -0.95],
   );
 
-  const lugShape = loft(tonneauOutline(56, 0.15, 0.3, 3.2, 3.2, 0), [
-    [0, -0.2], [0.9, -0.2], [1.0, -0.16], [1.0, -0.05], [0.9, -0.01], [0, -0.01],
-  ]);
+  // End pieces: straight-sided trapezoids with rounded corners that carry the strap.
+  const plateUp = roundedTrapezoid(1.34, 1.16, 0.62, 0.17);
+  const plateDown = [...plateUp].reverse().map(([x, y]) => [x, -y] as const);
+  const plateProfile = [[0, -0.31], [0.92, -0.31], [1.0, -0.27], [1.0, -0.07], [0.92, -0.03], [0, -0.03]] as const;
   addLayer(
     'lugs',
     mergeSmooth(
-      horn(translate(lugShape, -0.7, 1.28, 0)),
-      horn(translate(lugShape, 0.7, 1.28, 0)),
-      horn(translate(lugShape, -0.7, -1.28, 0)),
-      horn(translate(lugShape, 0.7, -1.28, 0)),
+      translate(loft(plateUp, plateProfile), 0, 1.26, 0),
+      translate(loft(plateDown, plateProfile), 0, -1.26, 0),
     ),
     gold(0.2),
     [0, 0, -0.95],
@@ -412,7 +430,7 @@ export function createWatchScene({ canvas, still, engraving }: WatchSceneOptions
 
   // --- strap --------------------------------------------------------------
   const leather: Material = { mode: 1, albedo: COLORS.leather, f0: [0.04, 0.04, 0.04], rough: 0.7 };
-  const strapOptions = { start: 1.15, lengthUnits: 1.9, widthStart: 1.12, widthEnd: 0.9, thickness: 0.16, bend: 0.55, z: -0.14 };
+  const strapOptions = { start: 1.5, lengthUnits: 1.8, widthStart: 1.12, widthEnd: 0.94, thickness: 0.16, bend: 0.55, z: -0.14 };
   addLayer('strap', strap({ direction: 1, ...strapOptions }), leather, [0, 0.6, -0.95]);
   addLayer('strap', strap({ direction: -1, ...strapOptions }), leather, [0, -0.6, -0.95]);
 
@@ -427,16 +445,16 @@ export function createWatchScene({ canvas, still, engraving }: WatchSceneOptions
   // --- movement -----------------------------------------------------------
   addLayer(
     'movement',
-    loft(outline, [[0, -0.31], [0.86, -0.31], [0.86, -0.27], [0, -0.27]]),
-    steel(COLORS.rhodium, 0.45),
+    loft(outline, [[0, -0.31], [0.84, -0.31], [0.84, -0.27], [0, -0.27]]),
+    steel(COLORS.rhodium, 0.3),
     [0, 0, -0.5],
   );
 
+  // Three meshing gears in a V: two on top, the larger one at the point.
   const gearSpecs = [
-    { x: 0.0, y: -0.15, teeth: 28, out: 0.62, root: 0.54, rim: 0.48, hub: 0.12, spokes: 5, material: steel(COLORS.rhodium, 0.22), speed: 0.2 },
-    { x: 0.52, y: 0.7, teeth: 14, out: 0.3, root: 0.24, rim: 0.2, hub: 0.07, spokes: 3, material: gold(0.2), speed: -0.4 },
-    { x: -0.5, y: 0.64, teeth: 12, out: 0.27, root: 0.21, rim: 0.18, hub: 0.07, spokes: 3, material: steel(COLORS.violet, 0.25), speed: 0.47 },
-    { x: 0.5, y: -0.8, teeth: 16, out: 0.34, root: 0.28, rim: 0.23, hub: 0.08, spokes: 3, material: steel(COLORS.lavender, 0.25), speed: -0.35 },
+    { x: -0.42, y: 0.38, teeth: 14, out: 0.32, hub: 0.07, spokes: 3, material: steel(COLORS.violet, 0.25), speed: 0.5 },
+    { x: 0.42, y: 0.38, teeth: 14, out: 0.32, hub: 0.07, spokes: 3, material: steel(COLORS.lavender, 0.25), speed: 0.5 },
+    { x: 0.0, y: -0.26, teeth: 18, out: 0.42, hub: 0.09, spokes: 4, material: gold(0.2), speed: -0.39 },
   ];
   const gears = gearSpecs.map((spec, index) => {
     const mesh = addLayer(
@@ -444,30 +462,18 @@ export function createWatchScene({ canvas, still, engraving }: WatchSceneOptions
       gear({
         teeth: spec.teeth,
         outerRadius: spec.out,
-        rootRadius: spec.root,
-        rimRadius: spec.rim,
+        rootRadius: spec.out * 0.84,
+        rimRadius: spec.out * 0.7,
         hubRadius: spec.hub,
         spokes: spec.spokes,
         thickness: 0.05,
       }),
       spec.material,
-      [0, 0, -0.62 + index * 0.05],
+      [0, 0, -0.3 + index * 0.04],
       [spec.x, spec.y, -0.23],
     );
     return { mesh, speed: spec.speed };
   });
-
-  const balance = addLayer(
-    'movement',
-    merge(
-      lathe([[0.2, -0.025], [0.3, -0.025], [0.3, 0.025], [0.2, 0.025]], 24, 0),
-      box(0, 0, 0, 0.5, 0.03, 0.035),
-      box(0, 0, 0, 0.03, 0.5, 0.035),
-    ),
-    gold(0.15),
-    [0, 0, -0.45],
-    [-0.45, -0.78, -0.2],
-  );
 
   // --- hands --------------------------------------------------------------
   const handGroup = new Transform();
@@ -488,16 +494,26 @@ export function createWatchScene({ canvas, still, engraving }: WatchSceneOptions
   };
 
   const blued = steel(COLORS.bluedSteel, 0.1);
-  const hourHand = makeHand(hand(0.66, 0.075, 0.13, -0.012, 0.012), blued, 0.0);
-  const minuteHand = makeHand(hand(1.02, 0.047, 0.17, -0.012, 0.012), blued, 0.03);
+  const hourHand = makeHand(hand(0.5, 0.07, 0.12, -0.012, 0.012), blued, 0.0);
+  const minuteHand = makeHand(hand(0.78, 0.045, 0.16, -0.012, 0.012), blued, 0.03);
   const secondHand = makeHand(
     merge(
-      hand(0.98, 0.012, 0.2, -0.006, 0.006),
-      translateFlat(blossom(0.06, -0.006, 0.006), 0, -0.2, 0),
+      hand(0.74, 0.012, 0.13, -0.006, 0.006),
+      translateFlat(blossom(0.045, -0.006, 0.006), 0, -0.13, 0),
     ),
     steel(COLORS.roseGold, 0.18),
     0.06,
   );
+
+  // A gold cap holds the three hands to the movement.
+  const capMesh = new Mesh(gl, {
+    geometry: new Geometry(gl, {
+      position: { size: 3, data: lathe([[0, 0], [0.075, 0], [0.06, 0.04], [0, 0.05]], 20, 0) },
+    }),
+    program: program(gold(0.12), true),
+  });
+  capMesh.position.z = 0.085;
+  capMesh.setParent(handGroup);
 
   // --- sapphire crystal, drawn last ----------------------------------------
   const crystal = addLayer(
@@ -574,7 +590,11 @@ export function createWatchScene({ canvas, still, engraving }: WatchSceneOptions
     watch.position.set(-focus[0], -focus[1], -focus[2]);
     rotator.rotation.x = rotation[0] + burst * 0.15 - shownY * 0.12;
     rotator.rotation.y = rotation[1] - burst * 0.6 + shownX * 0.18;
-    rotator.rotation.z = rotation[2];
+    // Each jump turns the watch once around, clockwise, like a hand sweeping the dial.
+    rotator.rotation.z = rotation[2] - Math.PI * 2 * ease;
+    // Left or right of the screen, opposite the section's text; it crosses the middle mid-jump.
+    const side = lerp(sides[a] ?? 1, sides[b] ?? 1, ease);
+    rotator.position.x = side * 0.46 * half * (width / height);
     rotator.position.y = Math.sin(t * 0.0009) * 0.03;
     glassPhase.value = 0.2 + 0.4 * explode + shownX * 0.25 + Math.sin(t * 0.0004) * 0.05;
     fitCamera(half);
@@ -586,16 +606,16 @@ export function createWatchScene({ canvas, still, engraving }: WatchSceneOptions
     const hours = (now.getHours() % 12) + minutes / 60;
     const tau = Math.PI * 2;
     secondHand.rotation.z = -(seconds / 60) * tau;
-    minuteHand.rotation.z = -(minutes / 60) * tau;
-    hourHand.rotation.z = -(hours / 12) * tau;
+    // The minute and hour hands run ahead during a jump, as if time were passing.
+    minuteHand.rotation.z = -(minutes / 60) * tau - tau * ease;
+    hourHand.rotation.z = -(hours / 12) * tau - (tau / 12) * ease;
 
     const spin = 1 + 5 * burst + (a === 1 && u < 0.5 ? 1.5 : 0);
     for (const g of gears) g.mesh.rotation.z += g.speed * dt * spin;
-    balance.rotation.z = Math.sin(t * 0.0126) * 0.9;
   };
 
   const frame = (now: number) => {
-    const dt = Math.min(Math.max((now - lastTime) / 1000, 0.001), 0.05);
+    const dt = Math.min(Math.max((now - lastTime) / 1000, 0.001), 0.25);
     lastTime = now;
     shownPosition = damp(shownPosition, position, 6, dt);
     shownX = damp(shownX, pointerX, 4, dt);

@@ -29,7 +29,7 @@ const normalize = (a: V3): V3 => {
 const dot = (a: V3, b: V3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 
 /** Case proportions shared by the 3D scene, the dial canvas and the SVG fallback. */
-export const CASE = { a: 1, b: 1.22, taper: 0.16 } as const;
+export const CASE = { a: 1, b: 1.22, taper: 0.14 } as const;
 
 /**
  * A barrel (tonneau) outline, counter-clockwise: widest at the waist, narrower at
@@ -40,7 +40,7 @@ export function tonneauOutline(
   a: number = CASE.a,
   b: number = CASE.b,
   ex = 2.1,
-  ey = 3.4,
+  ey = 4,
   taper: number = CASE.taper,
 ): Vec2[] {
   return Array.from({ length: count }, (_, i) => {
@@ -254,4 +254,49 @@ export function strap(options: {
     },
     true,
   );
+}
+
+/**
+ * A trapezoid with straight edges and rounded corners, centred on the origin and
+ * counter-clockwise: `wideWidth` at the bottom edge, `narrowWidth` at the top.
+ * Used for the case end-pieces that carry the strap.
+ */
+export function roundedTrapezoid(
+  wideWidth: number,
+  narrowWidth: number,
+  height: number,
+  rounding = 0.22,
+): Vec2[] {
+  const corners: Vec2[] = [
+    [-wideWidth / 2, -height / 2],
+    [wideWidth / 2, -height / 2],
+    [narrowWidth / 2, height / 2],
+    [-narrowWidth / 2, height / 2],
+  ];
+  // Each corner becomes a quadratic curve between two points set back along its edges.
+  const points: Vec2[] = [];
+  const steps = 8;
+  corners.forEach((corner, i) => {
+    const prev = corners[(i + corners.length - 1) % corners.length];
+    const next = corners[(i + 1) % corners.length];
+    const setBack = (to: Vec2): Vec2 => {
+      const dx = to[0] - corner[0];
+      const dy = to[1] - corner[1];
+      const k = Math.min(rounding / Math.hypot(dx, dy), 0.45);
+      return [corner[0] + dx * k, corner[1] + dy * k];
+    };
+    const from = setBack(prev);
+    const toward = setBack(next);
+    for (let t = 0; t <= steps; t++) {
+      const u = t / steps;
+      const w0 = (1 - u) * (1 - u);
+      const w1 = 2 * u * (1 - u);
+      const w2 = u * u;
+      points.push([
+        from[0] * w0 + corner[0] * w1 + toward[0] * w2,
+        from[1] * w0 + corner[1] * w1 + toward[1] * w2,
+      ]);
+    }
+  });
+  return points;
 }

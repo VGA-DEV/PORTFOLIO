@@ -120,19 +120,31 @@
     "logoAlt": "{VGA_DEV} logo"
   },
   "watch": {
-    "captions": [
-      "",
-      "Movement",
-      "Dial and hands",
-      "Taken apart",
-      "Case back",
-      "Crown"
-    ],
     "engraving": [
-      "V G A · D E V",
       "REVISION 2",
-      "v1 Angular → v2 Next.js",
-      "MAD → DUB"
+      "v1 Angular → v2 Next.js"
     ]
+  },
+  "notes": {
+    "projects": {
+      "part": "Movement",
+      "text": "The movement is the watch’s mechanism: small parts that fit together so everything works. Projects are the same; what matters is how they fit inside."
+    },
+    "experience": {
+      "part": "Dial and hands",
+      "text": "The dial and hands are what you read on a watch: time, in order. Experience is told the same way, chapter by chapter."
+    },
+    "stack": {
+      "part": "Taken apart",
+      "text": "To see what a watch is made of, you take it apart. Here are the loose pieces, grouped by the part of the watch they match."
+    },
+    "evolution": {
+      "part": "Case back",
+      "text": "The revisions of a watch are engraved on the case back. Here is the record of this website’s versions and what changed in each."
+    },
+    "contact": {
+      "part": "Crown",
+      "text": "The crown is how you wind a watch. It is also where you can write to me."
+    }
   }
 }
