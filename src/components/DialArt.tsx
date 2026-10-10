@@ -30,16 +30,16 @@ const RAYS = Array.from({ length: 36 }, (_, i) => {
 });
 
 const MINUTES = Array.from({ length: 60 }, (_, m) => {
-  const [x0, y0] = at(m * 6, 0.71);
-  const [x1, y1] = at(m * 6, 0.775);
+  const [x0, y0] = at(m * 6, 0.765);
+  const [x1, y1] = at(m * 6, 0.83);
   return { m, x0, y0, x1, y1 };
 });
 
 const LUGS = [-1, 1].flatMap((sx) =>
   [-1, 1].map((sy) => ({
     key: `${sx}${sy}`,
-    x: CX + sx * 0.56 * UNIT - 0.17 * UNIT,
-    y: CY - sy * 1.46 * UNIT - 0.27 * UNIT,
+    x: CX + sx * 0.68 * UNIT - 0.19 * UNIT,
+    y: CY - sy * 1.3 * UNIT - 0.3 * UNIT,
   })),
 );
 
@@ -55,7 +55,7 @@ export function DialArt() {
     >
       <defs>
         <clipPath id='dial-clip'>
-          <polygon points={toPoints(0.84)} />
+          <polygon points={toPoints(0.9)} />
         </clipPath>
         <linearGradient id='gold' x1='0' y1='0' x2='1' y2='1'>
           <stop offset='0' stopColor='#f6dca0' />
@@ -78,10 +78,10 @@ export function DialArt() {
         </radialGradient>
       </defs>
 
-      <path d='M163 0H237L231 154H169Z' fill='url(#leather)' />
-      <path d='M169 406H231L237 560H163Z' fill='url(#leather)' />
+      <path d='M117 0H283L292 126H108Z' fill='url(#leather)' />
+      <path d='M108 434H292L283 560H117Z' fill='url(#leather)' />
       <g stroke='#d6bd8a' strokeWidth='1' strokeDasharray='4 3.5' strokeOpacity='0.8' fill='none'>
-        <path d='M176 0L180 150M224 0L220 150M180 410L176 560M220 410L224 560' />
+        <path d='M128 0L120 126M272 0L280 126M120 434L128 560M280 434L272 560' />
       </g>
 
       {LUGS.map((lug) => (
@@ -89,18 +89,18 @@ export function DialArt() {
           key={lug.key}
           x={lug.x}
           y={lug.y}
-          width={0.34 * UNIT}
-          height={0.54 * UNIT}
-          rx='9'
+          width={0.38 * UNIT}
+          height={0.6 * UNIT}
+          rx='10'
           fill='url(#gold-deep)'
         />
       ))}
-      <rect x={CX + 0.97 * UNIT - 2} y={CY - 0.32 * UNIT - 15} width='17' height='30' rx='4' fill='url(#gold-deep)' />
+      <rect x={CX + 0.99 * UNIT - 2} y={CY - 0.32 * UNIT - 15} width='17' height='30' rx='4' fill='url(#gold-deep)' />
 
       <polygon points={toPoints(1)} fill='url(#gold-deep)' />
       <polygon points={toPoints(0.985)} fill='url(#gold)' />
-      <polygon points={toPoints(0.865)} fill='#8a5e1a' />
-      <polygon points={toPoints(0.84)} fill='url(#lacquer)' />
+      <polygon points={toPoints(0.915)} fill='#8a5e1a' />
+      <polygon points={toPoints(0.9)} fill='url(#lacquer)' />
 
       <g clipPath='url(#dial-clip)'>
         <g fill='#ffffff' fillOpacity='0.14'>
@@ -116,8 +116,8 @@ export function DialArt() {
       </g>
 
       <g fill='none' stroke='#340440' strokeOpacity='0.85'>
-        <polygon points={toPoints(0.775)} strokeWidth='1.1' />
-        <polygon points={toPoints(0.71)} strokeWidth='1.1' />
+        <polygon points={toPoints(0.83)} strokeWidth='1.1' />
+        <polygon points={toPoints(0.765)} strokeWidth='1.1' />
         {MINUTES.map((tick) => (
           <line
             key={tick.m}
@@ -139,7 +139,7 @@ export function DialArt() {
         style={{ fontFamily: 'var(--font-sans-stack)' }}
       >
         {ROMAN.map((numeral, h) => {
-          const [x, y] = at(h * 30, 0.6);
+          const [x, y] = at(h * 30, 0.64);
           return (
             <text key={numeral} x={x.toFixed(1)} y={y.toFixed(1)}>
               {numeral}
@@ -149,13 +149,13 @@ export function DialArt() {
       </g>
 
       <g className='dial__hand dial__hand--hour'>
-        <polygon points={`${CX - 7},${CY} ${CX},${CY - 0.6 * UNIT} ${CX + 7},${CY} ${CX},${CY + 14}`} fill='#1c2278' />
+        <polygon points={`${CX - 7},${CY} ${CX},${CY - 0.66 * UNIT} ${CX + 7},${CY} ${CX},${CY + 14}`} fill='#1c2278' />
       </g>
       <g className='dial__hand dial__hand--minute'>
-        <polygon points={`${CX - 4.5},${CY} ${CX},${CY - 0.96 * UNIT} ${CX + 4.5},${CY} ${CX},${CY + 18}`} fill='#242c8c' />
+        <polygon points={`${CX - 4.5},${CY} ${CX},${CY - 1.02 * UNIT} ${CX + 4.5},${CY} ${CX},${CY + 18}`} fill='#242c8c' />
       </g>
       <g className='dial__hand dial__hand--second'>
-        <polygon points={`${CX - 1.6},${CY} ${CX},${CY - 0.92 * UNIT} ${CX + 1.6},${CY} ${CX},${CY + 24}`} fill='#e08a76' />
+        <polygon points={`${CX - 1.6},${CY} ${CX},${CY - 0.98 * UNIT} ${CX + 1.6},${CY} ${CX},${CY + 24}`} fill='#e08a76' />
         <circle cx={CX} cy={CY + 26} r='7' fill='#e08a76' />
       </g>
       <circle cx={CX} cy={CY} r='5.5' fill='#d9a444' />

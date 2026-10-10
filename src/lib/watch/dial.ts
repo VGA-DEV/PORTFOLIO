@@ -1,9 +1,13 @@
-import { rayHit, type Vec2 } from './smooth';
+import { CASE, rayHit, type Vec2 } from './smooth';
 
-/** Dial half-extents in scene units: the dial plate is the outline scaled by 0.84. */
-export const DIAL_SCALE = 0.84;
-export const DIAL_HALF_X = DIAL_SCALE * 1;
-export const DIAL_HALF_Y = DIAL_SCALE * 1.35;
+/** Dial half-extents in scene units: the dial plate is the outline scaled by 0.9. */
+export const DIAL_SCALE = 0.9;
+export const DIAL_HALF_X = DIAL_SCALE * CASE.a;
+export const DIAL_HALF_Y = DIAL_SCALE * CASE.b;
+/** The engraved case back is the outline scaled by 0.985. */
+export const BACK_SCALE = 0.985;
+export const BACK_HALF_X = BACK_SCALE * CASE.a;
+export const BACK_HALF_Y = BACK_SCALE * CASE.b;
 
 const ROMAN = ['XII', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI'];
 
@@ -48,8 +52,8 @@ export function makeDialCanvas(outline: readonly Vec2[], fontFamily: string) {
   }
 
   // Railway minute track.
-  const outer = 0.775;
-  const inner = 0.71;
+  const outer = 0.83;
+  const inner = 0.765;
   ctx.strokeStyle = 'rgba(52,4,64,0.85)';
   ctx.lineWidth = 3;
   for (const s of [outer, inner]) {
@@ -80,7 +84,7 @@ export function makeDialCanvas(outline: readonly Vec2[], fontFamily: string) {
   ctx.textBaseline = 'middle';
   ctx.font = `600 84px ${fontFamily}`;
   ROMAN.forEach((numeral, h) => {
-    const [x, y] = rayHit(outline, h * 30, 0.6);
+    const [x, y] = rayHit(outline, h * 30, 0.64);
     const [X, Y] = px(x, y);
     ctx.fillText(numeral, X, Y);
   });
@@ -103,8 +107,8 @@ export function makeEngravingCanvas(
   fontFamily: string,
   lines: readonly string[],
 ) {
-  const halfX = 0.985;
-  const halfY = 0.985 * 1.35;
+  const halfX = BACK_HALF_X;
+  const halfY = BACK_HALF_Y;
   const width = 1024;
   const pxPerUnit = width / 2 / halfX;
   const height = Math.round(halfY * 2 * pxPerUnit);

@@ -28,22 +28,28 @@ const normalize = (a: V3): V3 => {
 };
 const dot = (a: V3, b: V3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 
-/** A barrel (tonneau) outline, counter-clockwise, taller than wide. */
+/** Case proportions shared by the 3D scene, the dial canvas and the SVG fallback. */
+export const CASE = { a: 1, b: 1.22, taper: 0.16 } as const;
+
+/**
+ * A barrel (tonneau) outline, counter-clockwise: widest at the waist, narrower at
+ * the flat top and bottom where the lugs attach.
+ */
 export function tonneauOutline(
   count = 160,
-  a = 1,
-  b = 1.35,
+  a: number = CASE.a,
+  b: number = CASE.b,
   ex = 2.1,
-  ey = 3.6,
+  ey = 3.4,
+  taper: number = CASE.taper,
 ): Vec2[] {
   return Array.from({ length: count }, (_, i) => {
     const t = (i / count) * Math.PI * 2;
     const c = Math.cos(t);
     const s = Math.sin(t);
-    return [
-      a * Math.sign(c) * Math.abs(c) ** (2 / ex),
-      b * Math.sign(s) * Math.abs(s) ** (2 / ey),
-    ] as const;
+    const y = b * Math.sign(s) * Math.abs(s) ** (2 / ey);
+    const squeeze = 1 - taper * (y / b) ** 2;
+    return [a * Math.sign(c) * Math.abs(c) ** (2 / ex) * squeeze, y] as const;
   });
 }
 
@@ -231,8 +237,8 @@ export function strap(options: {
       const c = Math.cos(theta);
       const s = Math.sin(theta);
       const w = (widthStart + (widthEnd - widthStart) * v) / 2;
-      const cx = w * Math.sign(c) * Math.abs(c) ** (2 / 5);
-      const cz = (thickness / 2) * Math.sign(s) * Math.abs(s) ** (2 / 5);
+      const cx = w * Math.sign(c) * Math.abs(c) ** (2 / 4);
+      const cz = (thickness / 2) * Math.sign(s) * Math.abs(s) ** (2 / 4);
       const cy = direction * (start + v * lengthUnits);
       const centerZ = z - bend * v * v;
       // Frame along the path: T is the tangent, N the side that faces the viewer.
