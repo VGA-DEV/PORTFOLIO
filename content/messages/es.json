@@ -19,16 +19,9 @@
     "name": "Víctor Manuel Gómez Álvarez",
     "role": "Desarrollador Full Stack · Madrid",
     "intro": "Desarrollo aplicaciones web con C# y .NET en el backend y React en el frontend.",
-    "cta": { "projects": "Ver proyectos", "contact": "Contacto" },
-    "zones": { "madrid": "Madrid", "dublin": "Dublín" },
-    "legend": {
-      "title": "Una aplicación, como un reloj",
-      "items": [
-        { "part": "Cristal", "tech": "React y TypeScript" },
-        { "part": "Esfera", "tech": "APIs REST y WebSockets" },
-        { "part": "Movimiento", "tech": "C#, .NET y SQL Server" },
-        { "part": "Caja", "tech": "GitLab CI e IIS" }
-      ]
+    "cta": {
+      "projects": "Ver proyectos",
+      "contact": "Contacto"
     }
   },
   "projects": {
@@ -46,19 +39,25 @@
         "name": "Proyecto de ejemplo 1",
         "summary": "TODO: qué es y qué problema resuelve.",
         "status": "inDevelopment",
-        "stack": ["TODO"]
+        "stack": [
+          "TODO"
+        ]
       },
       {
         "name": "Proyecto de ejemplo 2",
         "summary": "TODO: qué es y qué problema resuelve.",
         "status": "working",
-        "stack": ["TODO"]
+        "stack": [
+          "TODO"
+        ]
       },
       {
         "name": "Proyecto de ejemplo 3",
         "summary": "TODO: qué es y qué problema resuelve.",
         "status": "pending",
-        "stack": ["TODO"]
+        "stack": [
+          "TODO"
+        ]
       }
     ]
   },
@@ -87,6 +86,12 @@
       "frontend": "Frontend",
       "architecture": "Arquitectura",
       "devops": "DevOps"
+    },
+    "parts": {
+      "backend": "Movimiento",
+      "frontend": "Cristal",
+      "architecture": "Esfera",
+      "devops": "Caja"
     }
   },
   "evolution": {
@@ -113,5 +118,21 @@
   "footer": {
     "rights": "Víctor Manuel Gómez Álvarez",
     "logoAlt": "Logotipo {VGA_DEV}"
+  },
+  "watch": {
+    "captions": [
+      "",
+      "Movimiento",
+      "Esfera y agujas",
+      "Desmontado",
+      "Fondo de caja",
+      "Corona"
+    ],
+    "engraving": [
+      "V G A · D E V",
+      "REVISIÓN 2",
+      "v1 Angular → v2 Next.js",
+      "MAD → DUB"
+    ]
   }
 }

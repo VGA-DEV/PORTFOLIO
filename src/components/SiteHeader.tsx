@@ -22,7 +22,7 @@ export function SiteHeader({
   return (
     <header className='site-header'>
       <div className='container site-header__inner'>
-        <Link href={`/${locale}/`} className='site-header__brand'>
+        <Link href={`/${locale}/`} className='site-header__brand' prefetch={false}>
           {name}
         </Link>
         <nav aria-label={navLabel} className='site-header__nav'>

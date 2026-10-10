@@ -19,16 +19,9 @@
     "name": "Víctor Manuel Gómez Álvarez",
     "role": "Full Stack Developer · Madrid",
     "intro": "I build web applications with C# and .NET on the backend and React on the frontend.",
-    "cta": { "projects": "See projects", "contact": "Contact" },
-    "zones": { "madrid": "Madrid", "dublin": "Dublin" },
-    "legend": {
-      "title": "An application, like a watch",
-      "items": [
-        { "part": "Crystal", "tech": "React and TypeScript" },
-        { "part": "Dial", "tech": "REST APIs and WebSockets" },
-        { "part": "Movement", "tech": "C#, .NET and SQL Server" },
-        { "part": "Case", "tech": "GitLab CI and IIS" }
-      ]
+    "cta": {
+      "projects": "See projects",
+      "contact": "Contact"
     }
   },
   "projects": {
@@ -46,19 +39,25 @@
         "name": "Example project 1",
         "summary": "TODO: what it is and what problem it solves.",
         "status": "inDevelopment",
-        "stack": ["TODO"]
+        "stack": [
+          "TODO"
+        ]
       },
       {
         "name": "Example project 2",
         "summary": "TODO: what it is and what problem it solves.",
         "status": "working",
-        "stack": ["TODO"]
+        "stack": [
+          "TODO"
+        ]
       },
       {
         "name": "Example project 3",
         "summary": "TODO: what it is and what problem it solves.",
         "status": "pending",
-        "stack": ["TODO"]
+        "stack": [
+          "TODO"
+        ]
       }
     ]
   },
@@ -87,6 +86,12 @@
       "frontend": "Frontend",
       "architecture": "Architecture",
       "devops": "DevOps"
+    },
+    "parts": {
+      "backend": "Movement",
+      "frontend": "Crystal",
+      "architecture": "Dial",
+      "devops": "Case"
     }
   },
   "evolution": {
@@ -113,5 +118,21 @@
   "footer": {
     "rights": "Víctor Manuel Gómez Álvarez",
     "logoAlt": "{VGA_DEV} logo"
+  },
+  "watch": {
+    "captions": [
+      "",
+      "Movement",
+      "Dial and hands",
+      "Taken apart",
+      "Case back",
+      "Crown"
+    ],
+    "engraving": [
+      "V G A · D E V",
+      "REVISION 2",
+      "v1 Angular → v2 Next.js",
+      "MAD → DUB"
+    ]
   }
 }

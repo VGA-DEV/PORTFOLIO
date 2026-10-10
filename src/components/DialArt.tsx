@@ -148,14 +148,15 @@ export function DialArt() {
         })}
       </g>
 
-      <g className='dial__hand dial__hand--dublin'>
-        <polygon points={`${CX - 3},${CY} ${CX},${CY - 0.78 * UNIT} ${CX + 3},${CY} ${CX},${CY + 12}`} fill='#c8902a' />
-      </g>
       <g className='dial__hand dial__hand--hour'>
         <polygon points={`${CX - 7},${CY} ${CX},${CY - 0.6 * UNIT} ${CX + 7},${CY} ${CX},${CY + 14}`} fill='#1c2278' />
       </g>
       <g className='dial__hand dial__hand--minute'>
         <polygon points={`${CX - 4.5},${CY} ${CX},${CY - 0.96 * UNIT} ${CX + 4.5},${CY} ${CX},${CY + 18}`} fill='#242c8c' />
+      </g>
+      <g className='dial__hand dial__hand--second'>
+        <polygon points={`${CX - 1.6},${CY} ${CX},${CY - 0.92 * UNIT} ${CX + 1.6},${CY} ${CX},${CY + 24}`} fill='#e08a76' />
+        <circle cx={CX} cy={CY + 26} r='7' fill='#e08a76' />
       </g>
       <circle cx={CX} cy={CY} r='5.5' fill='#d9a444' />
       <circle cx={CX} cy={CY} r='1.8' fill='#340440' />

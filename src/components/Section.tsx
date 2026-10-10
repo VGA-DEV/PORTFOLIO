@@ -16,6 +16,7 @@ export function Section({ id, title, intro, tone = 'paper', children }: SectionP
       id={id}
       aria-labelledby={`${id}-title`}
       className={`section section--${tone}`}
+      data-watch-section
     >
       <div className='container'>
         <header className='section__head'>

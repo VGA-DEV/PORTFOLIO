@@ -35,7 +35,7 @@
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@media (min-width: 40rem) {
+@media (min-width: 58rem) {
   :root {
     --header-h: 3.5rem;
   }
@@ -255,7 +255,7 @@ code {
   border-bottom: 1px solid var(--color-champagne);
 }
 
-@media (min-width: 40rem) {
+@media (min-width: 58rem) {
   .site-header__inner {
     grid-template-columns: auto 1fr auto;
   }
@@ -340,81 +340,13 @@ code {
   margin-bottom: 0;
 }
 
-.legend__title {
-  margin-bottom: var(--space-1);
-  color: var(--color-stage-soft);
-  font-family: var(--font-display-stack);
-  font-size: 1.35rem;
-}
-
-.legend ul {
-  display: grid;
-  gap: 0.15rem;
-  max-width: 26rem;
-  border-top: 1px solid rgb(214 189 138 / 0.4);
-}
-
-.legend li {
-  display: grid;
-  grid-template-columns: 7.5rem 1fr;
-  gap: var(--space-2);
-  padding-block: 0.4rem;
-  border-bottom: 1px solid rgb(214 189 138 / 0.2);
-  font-size: 0.95rem;
-}
-
-.legend__part {
-  color: var(--color-champagne);
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  font-size: 0.8rem;
-}
-
-/* In-column legend: only where the 3D scene runs; it fades in as the watch opens. */
-.hero__legend {
-  display: none;
-  margin-top: var(--space-4);
-}
-
-.hero__legend li {
-  opacity: clamp(0, calc((var(--explode, 0) - 0.12 * var(--i, 0)) * 5), 1);
-}
-
-/* Static anatomy: the exploded drawing for phones, tablets and no-WebGL. */
-.hero__anatomy {
-  display: grid;
-  gap: var(--space-3);
-  justify-items: center;
-  padding-bottom: var(--space-5);
-}
-
-.exploded {
-  width: min(100%, 22rem);
-  height: auto;
-}
-
-.hero__anatomy .legend {
-  width: min(100%, 26rem);
-}
-
-@media (min-width: 40rem) {
-  .hero__anatomy {
-    grid-template-columns: auto minmax(0, 26rem);
-    justify-content: center;
-    align-items: center;
-    gap: var(--space-4);
-  }
-}
-
-/* The watch. */
+/* The watch: a framed window onto the piece each section is about. */
 .watch {
   display: grid;
   justify-items: center;
-  gap: var(--space-4);
-  --madrid-hour: 305deg;
-  --madrid-minute: 60deg;
-  --dublin-hour: 275deg;
+  --hour-angle: 305deg;
+  --minute-angle: 60deg;
+  --second-angle: 180deg;
 }
 
 .watch__figure {
@@ -432,19 +364,18 @@ code {
 
 .dial__hand {
   transform-origin: 200px 280px;
-  transition: transform 1.2s var(--ease-out);
 }
 
 .dial__hand--hour {
-  transform: rotate(var(--madrid-hour));
+  transform: rotate(var(--hour-angle));
 }
 
 .dial__hand--minute {
-  transform: rotate(var(--madrid-minute));
+  transform: rotate(var(--minute-angle));
 }
 
-.dial__hand--dublin {
-  transform: rotate(var(--dublin-hour));
+.dial__hand--second {
+  transform: rotate(var(--second-angle));
 }
 
 .watch__frame {
@@ -456,7 +387,6 @@ code {
   stroke: var(--color-champagne);
   stroke-width: 1px;
   stroke-opacity: 0.55;
-  vector-effect: non-scaling-stroke;
   pointer-events: none;
 }
 
@@ -486,24 +416,29 @@ code {
   opacity: 0;
 }
 
-.watch__zones {
-  display: flex;
-  gap: var(--space-3);
+.watch__caption {
+  position: absolute;
+  left: 50%;
+  bottom: 1.4rem;
   margin: 0;
-  color: var(--color-stage-soft);
-  font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-
-.watch__zones time {
-  display: inline-block;
-  min-width: 3.4em;
   color: var(--color-champagne);
-  font-variant-numeric: tabular-nums;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  animation: caption-in 0.7s var(--ease-out) both;
 }
 
+@keyframes caption-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 0.6rem);
+  }
+}
+
+/* Large screens, finger or mouse: the watch sits beside the hero text. */
 @media (min-width: 62rem) {
   .hero__grid {
     grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
@@ -524,32 +459,63 @@ code {
   }
 }
 
-/* The scroll runway: only where the 3D can actually run. */
+/* Precise pointer: the watch becomes a fixed window next to the content, and the
+   3D scene moves it from one piece to the next as the sections go by. */
 @media (min-width: 62rem) and (pointer: fine) {
-  .hero__anatomy {
-    display: none;
+  :root {
+    --panel-w: min(38vw, 34rem);
   }
 
-  .hero__legend {
-    display: block;
-    visibility: hidden;
+  .watch {
+    position: fixed;
+    z-index: 5;
+    top: calc(var(--header-h) + 1.25rem);
+    bottom: 1.25rem;
+    right: max(1rem, calc((100vw - var(--container)) / 2));
+    width: var(--panel-w);
   }
 
-  .hero:has([data-mode='3d']) .hero__legend {
-    visibility: visible;
+  .watch__figure {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    background:
+      radial-gradient(70% 58% at 50% 46%, rgb(88 17 159 / 0.4), transparent 78%),
+      var(--color-stage);
+  }
+
+  .watch__frame {
+    inset: 0.6rem;
+    width: calc(100% - 1.2rem);
+    height: calc(100% - 1.2rem);
+  }
+
+  .hero__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* One screen per section, so the watch has time to settle on its piece. */
+  .section {
+    display: grid;
+    align-content: center;
+    min-height: calc(100svh - var(--header-h));
+  }
+
+  .hero__grid,
+  .section > .container,
+  .site-footer__inner {
+    padding-right: calc(var(--panel-w) + 3rem);
   }
 }
 
-@media (min-width: 62rem) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-  .hero {
-    height: 250vh;
+/* If the window narrows after the 3D scene started, the flat watch takes over at once. */
+@media not ((min-width: 62rem) and (pointer: fine)) {
+  .watch__canvas {
+    display: none;
   }
 
-  .hero__stage {
-    position: sticky;
-    top: var(--header-h);
-    height: calc(100svh - var(--header-h));
-    padding-block: var(--space-3);
+  .watch[data-mode='3d'] .dial {
+    opacity: 1;
   }
 }
 
@@ -656,6 +622,20 @@ code {
   letter-spacing: 0.04em;
 }
 
+.ledger__when {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.ledger__numeral {
+  min-width: 2.2ch;
+  color: var(--color-champagne-deep);
+  font-family: var(--font-display-stack);
+  font-size: 2.4rem;
+  line-height: 1;
+}
+
 .ledger__period {
   margin: 0;
   color: var(--color-ink-soft);
@@ -696,12 +676,27 @@ code {
   font-weight: 600;
 }
 
-.status::before {
-  content: '';
-  width: 0.55em;
-  height: 0.55em;
-  background: var(--color-champagne-deep);
-  transform: rotate(45deg);
+/* A three-step level bar, like a game HUD: pending, in development, working. */
+.status__level {
+  display: inline-block;
+  width: 2.5em;
+  height: 0.7em;
+  background:
+    linear-gradient(var(--color-purple), var(--color-purple)) 0 0 / calc(var(--lv, 1) * 33.34%) 100% no-repeat,
+    var(--color-lavender);
+  mask: repeating-linear-gradient(90deg, #000 0 0.75em, transparent 0.75em 0.875em);
+}
+
+.status__level[data-level='1'] {
+  --lv: 1;
+}
+
+.status__level[data-level='2'] {
+  --lv: 2;
+}
+
+.status__level[data-level='3'] {
+  --lv: 3;
 }
 
 .ledger__tag {
@@ -710,7 +705,7 @@ code {
 }
 
 @media (max-width: 47.99rem) {
-  .ledger--dated .ledger__period {
+  .ledger--dated .ledger__when {
     order: 2;
   }
 }
@@ -740,6 +735,14 @@ code {
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
+}
+
+.stack__part {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--color-ink-soft);
+  font-weight: 600;
+  letter-spacing: 0.14em;
 }
 
 .stack li {
@@ -776,7 +779,7 @@ code {
   padding-block: var(--space-2);
   color: var(--color-stage-ink);
   font-family: var(--font-display-stack);
-  font-size: clamp(1.3rem, 3.4vw, 2.1rem);
+  font-size: clamp(1.15rem, 2.6vw, 1.7rem);
   line-height: 1.2;
   text-decoration: none;
   overflow-wrap: anywhere;

@@ -3,6 +3,11 @@ import { Section } from '@/components/Section';
 import { getProfile, getStack } from '@/i18n/content';
 import { getDictionary, getLocale } from '@/i18n/dictionaries';
 
+/** Pending, in development, working: one, two or three of three. */
+const STATUS_LEVEL: Record<string, number> = { pending: 1, inDevelopment: 2, working: 3 };
+
+const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI'];
+
 const displayUrl = (url: string) => url.replace(/^https?:\/\/(www\.)?/, '');
 
 export default async function HomePage() {
@@ -18,8 +23,8 @@ export default async function HomePage() {
         role={dict.hero.role}
         intro={dict.hero.intro}
         cta={dict.hero.cta}
-        zones={dict.hero.zones}
-        legend={dict.hero.legend}
+        captions={dict.watch.captions}
+        engraving={dict.watch.engraving}
       />
 
       <Section id='projects' title={dict.projects.title} intro={dict.projects.intro}>
@@ -33,6 +38,11 @@ export default async function HomePage() {
                   <div>
                     <dt>{dict.projects.statusLabel}</dt>
                     <dd className='status'>
+                      <span
+                        className='status__level'
+                        data-level={STATUS_LEVEL[project.status] ?? 1}
+                        aria-hidden='true'
+                      />
                       {
                         dict.projects.status[
                           project.status as keyof typeof dict.projects.status
@@ -57,9 +67,14 @@ export default async function HomePage() {
         intro={dict.experience.intro}
       >
         <ol className='ledger ledger--dated'>
-          {dict.experience.items.map((job) => (
+          {dict.experience.items.map((job, index) => (
             <li key={job.company} className='ledger__row'>
-              <p className='ledger__period'>{job.period}</p>
+              <div className='ledger__when'>
+                <span className='ledger__numeral' aria-hidden='true'>
+                  {ROMAN[index]}
+                </span>
+                <p className='ledger__period'>{job.period}</p>
+              </div>
               <div className='ledger__body'>
                 <h3 className='ledger__title'>{job.company}</h3>
                 <p className='ledger__role'>{job.role}</p>
@@ -76,6 +91,9 @@ export default async function HomePage() {
             <div key={group.id} className='stack__group'>
               <h3 className='stack__title'>
                 {dict.stack.groups[group.id as keyof typeof dict.stack.groups]}
+                <span className='stack__part'>
+                  {dict.stack.parts[group.id as keyof typeof dict.stack.parts]}
+                </span>
               </h3>
               <ul>
                 {group.items.map((item) => (

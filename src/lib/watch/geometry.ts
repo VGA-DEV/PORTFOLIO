@@ -199,3 +199,24 @@ export function hand(length: number, width: number, tail: number, z0: number, z1
     z1,
   );
 }
+
+/** Shift a flat triangle list. */
+export function translateFlat(data: Float32Array, dx: number, dy: number, dz: number) {
+  const out = new Float32Array(data);
+  for (let i = 0; i < out.length; i += 3) {
+    out[i] += dx;
+    out[i + 1] += dy;
+    out[i + 2] += dz;
+  }
+  return out;
+}
+
+/** A five-petal blossom, star-shaped about the origin, for the seconds-hand counterweight. */
+export function blossom(radius: number, z0: number, z1: number) {
+  const outline: Vec2[] = Array.from({ length: 60 }, (_, i) => {
+    const a = (i / 60) * Math.PI * 2;
+    const r = radius * (0.72 + 0.28 * Math.abs(Math.cos((5 * a) / 2)));
+    return [Math.cos(a) * r, Math.sin(a) * r] as const;
+  });
+  return extrudeStar(outline, z0, z1);
+}

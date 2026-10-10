@@ -1,6 +1,4 @@
 import { DialArt } from './DialArt';
-import { ExplodedArt } from './ExplodedArt';
-import { HeroLegend } from './HeroLegend';
 import { WatchFrame } from './WatchFrame';
 import { WatchStage } from './WatchStage';
 
@@ -9,13 +7,13 @@ type HeroProps = {
   role: string;
   intro: string;
   cta: { projects: string; contact: string };
-  zones: { madrid: string; dublin: string };
-  legend: { title: string; items: { part: string; tech: string }[] };
+  captions: readonly string[];
+  engraving: readonly string[];
 };
 
-export function Hero({ name, role, intro, cta, zones, legend }: HeroProps) {
+export function Hero({ name, role, intro, cta, captions, engraving }: HeroProps) {
   return (
-    <section aria-labelledby='hero-title' className='hero' data-hero>
+    <section aria-labelledby='hero-title' className='hero' data-hero data-watch-section>
       <div className='hero__stage'>
         <div className='container hero__grid'>
           <div className='hero__text'>
@@ -32,17 +30,12 @@ export function Hero({ name, role, intro, cta, zones, legend }: HeroProps) {
                 {cta.contact}
               </a>
             </p>
-            <HeroLegend className='hero__legend' title={legend.title} items={legend.items} />
           </div>
-          <WatchStage madridLabel={zones.madrid} dublinLabel={zones.dublin}>
+          <WatchStage captions={captions} engraving={engraving}>
             <DialArt />
             <WatchFrame />
           </WatchStage>
         </div>
-      </div>
-      <div className='container hero__anatomy'>
-        <ExplodedArt />
-        <HeroLegend title={legend.title} items={legend.items} />
       </div>
     </section>
   );

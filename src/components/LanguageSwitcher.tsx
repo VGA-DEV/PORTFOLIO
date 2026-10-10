@@ -14,6 +14,7 @@ export function LanguageSwitcher({ current, label }: LanguageSwitcherProps) {
           <li key={locale}>
             <Link
               href={`/${locale}/`}
+              prefetch={false}
               hrefLang={locale}
               lang={locale}
               aria-current={locale === current ? 'true' : undefined}
