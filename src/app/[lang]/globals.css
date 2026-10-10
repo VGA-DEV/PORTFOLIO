@@ -420,7 +420,7 @@ code {
 .watch__figure {
   position: relative;
   width: min(100%, 15rem);
-  aspect-ratio: 400 / 520;
+  aspect-ratio: 400 / 560;
 }
 
 .dial {
@@ -431,7 +431,7 @@ code {
 }
 
 .dial__hand {
-  transform-origin: 200px 260px;
+  transform-origin: 200px 280px;
   transition: transform 1.2s var(--ease-out);
 }
 
@@ -520,7 +520,7 @@ code {
   .dial {
     margin-inline: auto;
     width: auto;
-    aspect-ratio: 400 / 520;
+    aspect-ratio: 400 / 560;
   }
 }
 

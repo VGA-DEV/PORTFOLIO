@@ -1,3 +1,5 @@
+import { tonneauOutline } from '@/lib/watch/smooth';
+
 /**
  * Static exploded drawing of the watch for devices that do not run the 3D scene
  * (phones, tablets, no WebGL). Four slabs on one axis: crystal, dial, movement, case.
@@ -6,11 +8,13 @@
 const CX = 200;
 const SQUASH = 0.42;
 
+const OUTLINE = tonneauOutline(72);
+
+/** The tonneau outline seen from above at an angle: `radius` is the half width. */
 const octagon = (cy: number, radius: number) =>
-  Array.from({ length: 8 }, (_, i) => {
-    const a = Math.PI / 8 + (i / 8) * Math.PI * 2;
-    return `${(CX + Math.cos(a) * radius).toFixed(1)},${(cy - Math.sin(a) * radius * SQUASH).toFixed(1)}`;
-  }).join(' ');
+  OUTLINE.map(
+    ([x, y]) => `${(CX + x * radius * 0.72).toFixed(1)},${(cy - y * radius * 0.72 * SQUASH * 1.1).toFixed(1)}`,
+  ).join(' ');
 
 function Slab({
   cy,
