@@ -1196,7 +1196,7 @@ html[data-sweep] .plate {
 
 html[data-sweep] .dwell {
   display: block;
-  height: clamp(12rem, 45svh, 30rem);
+  height: clamp(16rem, 60svh, 36rem);
 }
 
 html[data-sweep] .pin {
@@ -1206,6 +1206,14 @@ html[data-sweep] .pin {
 
 @media (min-width: 62rem) and (pointer: fine) {
   html[data-sweep] .dwell {
-    height: clamp(18rem, 62svh, 44rem);
+    height: clamp(22rem, 85svh, 52rem);
   }
+}
+
+/* Each section is pulled up over the end of the dwell before it, so its content is in
+   place just as the dwell ends; until then it is hidden. */
+html[data-sweep] .section {
+  margin-top: calc(-1 * var(--overlap, 0px));
+  /* The section itself is never painted; its content shows only when it has arrived. */
+  visibility: hidden;
 }
