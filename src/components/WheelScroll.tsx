@@ -5,6 +5,14 @@ import { useEffect } from 'react';
 const REDUCED_QUERY = '(prefers-reduced-motion: reduce)';
 
 /**
+ * How strong the wheel feels. The pivot is RADIUS viewport-heights below the middle
+ * of the screen: the smaller the radius, the closer the centre and the tighter the arc.
+ */
+const RADIUS = 0.5;
+const PIVOT_Y = 0.5 + RADIUS;
+const MAX_ANGLE = 1.15;
+
+/**
  * Makes moving from one section to the next feel like a wheel turning instead of
  * a page sliding up. Each section's content swings along an arc around a pivot far
  * below the screen, upright while it fills the view and tilting as it enters or
@@ -26,7 +34,7 @@ export function WheelScroll() {
       frame = 0;
       const vh = window.innerHeight;
       // A gentler swing on narrow screens, where text is wide.
-      const gain = window.innerWidth < 992 ? 0.5 : 1;
+      const gain = window.innerWidth < 992 ? 0.6 : 1;
 
       for (const { section, content } of targets) {
         const rect = section.getBoundingClientRect();
@@ -38,17 +46,17 @@ export function WheelScroll() {
         else if (entering > 0) distance = entering;
         else if (leaving < 0) distance = leaving;
 
-        const angle = Math.max(Math.min((distance / (vh * 1.4)) * gain, 0.5), -0.5);
+        const angle = Math.max(Math.min((distance / (vh * RADIUS)) * gain, MAX_ANGLE), -MAX_ANGLE);
         if (Math.abs(angle) < 0.0008) {
           content.style.transform = '';
           content.style.transformOrigin = '';
           content.style.opacity = '';
           continue;
         }
-        const pivotY = vh * 1.3 - (rect.top + content.offsetTop);
+        const pivotY = vh * PIVOT_Y - (rect.top + content.offsetTop);
         content.style.transformOrigin = `50% ${pivotY.toFixed(1)}px`;
         content.style.transform = `rotate(${angle.toFixed(4)}rad)`;
-        content.style.opacity = String(1 - Math.min(Math.abs(angle) * 1.1, 0.7));
+        content.style.opacity = String(1 - Math.min(Math.abs(angle) * 0.8, 0.8));
       }
     };
 

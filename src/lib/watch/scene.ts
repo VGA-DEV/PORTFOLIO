@@ -755,7 +755,7 @@ export async function createWatchScene({
     const viewW = portrait ? half : half * aspect;
     const viewH = portrait ? half / aspect : half;
     const rx = (portrait ? 0.16 : 0.46) * viewW;
-    const ry = (portrait ? 0.08 : 0.28) * viewH;
+    const ry = (portrait ? 0.2 : 0.55) * viewH;
     const row = lerp(portraitRows[a] ?? 0.6, portraitRows[b] ?? 0.6, ease);
     const baseY = portrait ? (0.5 - row) * 2 * viewH : 0;
     rotator.position.x = rx * Math.cos(theta);
