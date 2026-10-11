@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { gapProgress } from '@/lib/transition';
 import type { AnchorInfo, WatchScene } from '@/lib/watch/scene';
 
 type WatchBackdropProps = {
@@ -52,11 +53,25 @@ function deviceIsTooWeak() {
   return false;
 }
 
-/** The line boxes of the text on screen, a little padded, so notes and the crown can keep clear of them. */
-function scanText(): Rect[] {
+/**
+ * The safe areas notes and the crown keep out of: on wide screens, the column each
+ * section's content sits in, whole, however its lines happen to wrap; on a phone,
+ * where the text fills the width, the line boxes themselves.
+ */
+function scanText(wide: boolean): Rect[] {
   const vh = window.innerHeight;
-  const pad = 6;
   const out: Rect[] = [];
+  if (wide) {
+    const pad = 14;
+    document.querySelectorAll<HTMLElement>('[data-watch-section] :is(.section__body, .hero__text)').forEach((el) => {
+      const r = el.getBoundingClientRect();
+      if (r.width > 0 && r.bottom > 0 && r.top < vh) {
+        out.push({ l: r.left - pad, t: r.top - pad, r: r.right + pad, b: r.bottom + pad });
+      }
+    });
+    return out;
+  }
+  const pad = 6;
   const range = document.createRange();
   document
     .querySelectorAll<HTMLElement>('[data-watch-section] :is(h1, h2, h3, p, li, dt, dd)')
@@ -248,7 +263,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       const now = performance.now();
       const rethink = now - lastScan > RETHINK_MS;
       if (rethink) {
-        text = scanText();
+        text = scanText(!narrow.matches);
         lastScan = now;
       }
 
@@ -365,6 +380,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
 
       const sections = Array.from(document.querySelectorAll<HTMLElement>('[data-watch-section]'));
       sectionEls = sections;
+      const gaps = Array.from(document.querySelectorAll<HTMLElement>('[data-gap]'));
       // Text on the left puts the watch on the right, and the other way round.
       const sides = sections.map((el) => (el.dataset.side === 'right' ? -1 : 1));
 
@@ -404,12 +420,17 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       const update = () => {
         frame = 0;
         const viewport = window.innerHeight;
-        // Each boundary between two sections is crossed while the next section's
-        // top travels from 80% to 30% of the viewport height.
+        // Each move to the next section is paced by the transition gap before it.
         let position = 0;
         for (let i = 1; i < sections.length; i++) {
-          const top = sections[i].getBoundingClientRect().top;
-          position += clamp01((viewport * 0.8 - top) / (viewport * 0.5));
+          const gap = gaps[i - 1];
+          const progress = gap ? gapProgress(gap, viewport) : -1;
+          if (progress >= 0) {
+            position += progress;
+          } else {
+            const top = sections[i].getBoundingClientRect().top;
+            position += clamp01((viewport * 0.8 - top) / (viewport * 0.5));
+          }
         }
         current.setPosition(position);
         // The crown on the watch turns with the page.

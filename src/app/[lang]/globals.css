@@ -1183,3 +1183,20 @@ html[data-sweep] .plate {
 .sweep__layer[data-state='sweeping'] .sweep__edge {
   opacity: 1;
 }
+
+/* The stretch of scroll between sections, where only the watch and the background move. */
+.gap {
+  display: none;
+  pointer-events: none;
+}
+
+html[data-sweep] .gap {
+  display: block;
+  height: clamp(12rem, 45svh, 30rem);
+}
+
+@media (min-width: 62rem) and (pointer: fine) {
+  html[data-sweep] .gap {
+    height: clamp(18rem, 62svh, 44rem);
+  }
+}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { gapProgress } from '@/lib/transition';
 
 const REDUCED_QUERY = '(prefers-reduced-motion: reduce)';
 /** How long one sweep takes, in seconds, whatever the speed of the scroll. */
@@ -22,6 +23,7 @@ export function BackdropSweep() {
     if (!root || window.matchMedia(REDUCED_QUERY).matches) return;
     const html = document.documentElement;
     const sections = Array.from(document.querySelectorAll<HTMLElement>('[data-watch-section]'));
+    const gaps = Array.from(document.querySelectorAll<HTMLElement>('[data-gap]'));
 
     // One layer per section, read from the page itself so the two never disagree.
     const nodes = sections.map((el, i) => {
@@ -72,10 +74,11 @@ export function BackdropSweep() {
     const aim = (instant: boolean) => {
       const viewport = window.innerHeight;
       for (let i = 1; i < sections.length; i++) {
-        const top = sections[i].getBoundingClientRect().top;
-        // A little slack either side, so hovering around the line does not flip it.
-        if (top < viewport * 0.6) goal[i] = 1;
-        else if (top > viewport * 0.72) goal[i] = 0;
+        // Section i is swept in once the move through the gap before it is half done,
+        // with a little slack either side so hovering around the line does not flip it.
+        const progress = gaps[i - 1] ? gapProgress(gaps[i - 1], viewport) : 0;
+        if (progress > 0.5) goal[i] = 1;
+        else if (progress < 0.4) goal[i] = 0;
       }
       // Only the layer on top is ever seen moving: the ones under it settle at once,
       // so a quick scroll through several sections never piles animations up.
