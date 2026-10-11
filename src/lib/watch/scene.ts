@@ -858,7 +858,7 @@ export async function createWatchScene({
   const frame = (now: number) => {
     const dt = Math.min(Math.max((now - lastTime) / 1000, 0.001), 0.25);
     lastTime = now;
-    shownPosition = damp(shownPosition, position, 6, dt);
+    shownPosition = damp(shownPosition, position, 10, dt);
     shownX = damp(shownX, pointerX, 4, dt);
     shownY = damp(shownY, pointerY, 4, dt);
     if (Math.abs(shownPosition - position) > 0.002) wake();

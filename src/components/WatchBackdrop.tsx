@@ -420,13 +420,16 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       const update = () => {
         frame = 0;
         const viewport = window.innerHeight;
-        // Each move to the next section is paced by the dwell that ends the section before it.
+        // Each move to the next section is triggered in the second half of the dwell that ends the section before it.
         let position = 0;
         for (let i = 1; i < sections.length; i++) {
           const gap = gaps[i - 1];
           const progress = gap ? dwellProgress(gap, viewport) : -1;
           if (progress >= 0) {
-            position += progress;
+            // The watch moves on quickly, once the held content has faded, rather than
+            // following the scroll: it is the background that stretches with it.
+            const t = clamp01((progress - 0.55) / 0.1);
+            position += t * t * (3 - 2 * t);
           } else {
             const top = sections[i].getBoundingClientRect().top;
             position += clamp01((viewport * 0.8 - top) / (viewport * 0.5));
