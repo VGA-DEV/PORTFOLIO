@@ -7,8 +7,8 @@ type SectionProps = {
   intro?: string;
   /** Which side of the screen the text sits on; the watch takes the other. */
   side?: 'left' | 'right';
-  /** `stage` is the dark variant that bookends the page. */
-  tone?: 'paper' | 'stage';
+  /** `stage` is the dark variant that bookends the page; `mist` is a second light tone, so neighbours differ. */
+  tone?: 'paper' | 'mist' | 'stage';
   children?: ReactNode;
 };
 

@@ -9,6 +9,7 @@
   --color-ink: #0e0a14;
   --color-ink-soft: #4a3d5c;
   --color-lavender: #c7ccf1;
+  --color-mist: #dde0f5;
   --color-purple: #58119f;
   --color-violet: #a21dff; /* large text and details only: ~4.5:1 on paper */
   --color-aubergine: #340440;
@@ -313,6 +314,18 @@ code {
   background: var(--color-paper);
 }
 
+.section--mist .plate {
+  background: var(--color-mist);
+}
+
+.section--paper {
+  --section-bg: var(--color-paper);
+}
+
+.section--mist {
+  --section-bg: var(--color-mist);
+}
+
 .section--stage .plate {
   background: var(--color-stage);
 }
@@ -584,7 +597,7 @@ html[data-watch='flat'] .hero__watch .watch__frame {
   gap: var(--space-1) var(--space-4);
   padding-block: var(--space-3);
   border-top: 1px solid var(--color-ink);
-  box-shadow: inset 0 3px 0 -2px var(--color-paper), inset 0 4px 0 -2px var(--color-ink);
+  box-shadow: inset 0 3px 0 -2px var(--section-bg, var(--color-paper)), inset 0 4px 0 -2px var(--color-ink);
 }
 
 .ledger__row:last-child {
@@ -841,8 +854,10 @@ html[data-watch='flat'] .hero__watch .watch__frame {
   background: transparent;
   cursor: grab;
   touch-action: none;
-  opacity: 0.45;
+  opacity: 0.6;
   transition: opacity 0.25s var(--ease-out);
+  --ctl: var(--color-champagne);
+  --ctl-disc: rgb(18 8 24 / 0.5);
   --progress: 0;
   --turn: 0deg;
 }
@@ -855,6 +870,20 @@ html[data-watch='flat'] .hero__watch .watch__frame {
 
 html[data-watch='3d'] .crown-control[data-ready='true'] {
   display: block;
+}
+
+/* On the light sections the control takes dark ink, so it stays readable. */
+.crown-control[data-tone='paper'] {
+  --ctl: #5b4a22;
+  --ctl-disc: rgb(243 244 252 / 0.75);
+}
+
+.crown-control::before {
+  content: '';
+  position: absolute;
+  inset: 16%;
+  border-radius: 50%;
+  background: var(--ctl-disc);
 }
 
 .crown-control[data-held] {
@@ -877,27 +906,27 @@ html[data-watch='3d'] .crown-control[data-ready='true'] {
 }
 
 .crown-control__track {
-  stroke: rgb(214 189 138 / 0.45);
+  stroke: color-mix(in srgb, var(--ctl) 55%, transparent);
   stroke-width: 1.4;
 }
 
 .crown-control__fill {
-  stroke: var(--color-champagne);
+  stroke: var(--ctl);
   stroke-width: 3;
   stroke-dasharray: 1;
   stroke-dashoffset: calc(1 - var(--progress));
-  filter: drop-shadow(0 0 2px rgb(18 8 24 / 0.7));
+  filter: drop-shadow(0 0 2px var(--ctl-disc));
 }
 
 .crown-control__ticks {
   position: absolute;
   inset: 12%;
   border-radius: 50%;
-  background: repeating-conic-gradient(rgb(214 189 138 / 0.85) 0 1.2deg, transparent 1.2deg 15deg);
+  background: repeating-conic-gradient(var(--ctl) 0 1.4deg, transparent 1.4deg 15deg);
   -webkit-mask-image: radial-gradient(circle, transparent 66%, #000 68%, #000 100%);
   mask-image: radial-gradient(circle, transparent 66%, #000 68%, #000 100%);
   transform: rotate(var(--turn));
-  filter: drop-shadow(0 0 2px rgb(18 8 24 / 0.7));
+  filter: drop-shadow(0 0 2px var(--ctl-disc));
   transition: transform 0.25s linear;
 }
 
@@ -915,11 +944,11 @@ html[data-watch='3d'] .crown-control[data-ready='true'] {
   position: absolute;
   bottom: calc(100% + 0.1rem);
   left: 50%;
-  color: var(--color-champagne);
+  color: var(--ctl);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.2em;
-  text-shadow: 0 0 6px rgb(18 8 24 / 0.9);
+  text-shadow: 0 0 6px var(--ctl-disc);
   text-transform: uppercase;
   white-space: nowrap;
   transform: translateX(-50%);
@@ -983,7 +1012,7 @@ html[data-watch='3d'] .callout {
   overflow: visible;
 }
 
-.callout__line polyline {
+.callout__line path {
   fill: none;
   stroke: var(--callout-line);
   stroke-width: 1.6;
@@ -1086,6 +1115,10 @@ html[data-sweep] .plate {
   position: absolute;
   inset: 0;
   background: var(--color-paper);
+}
+
+.sweep__layer[data-tone='mist'] .sweep__fill {
+  background: var(--color-mist);
 }
 
 .sweep__layer[data-tone='stage'] .sweep__fill {

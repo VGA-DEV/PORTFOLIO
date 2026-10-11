@@ -80,6 +80,7 @@ export default async function HomePage() {
 
       <Section
         id='experience'
+        tone='mist'
         title={dict.experience.title}
         intro={dict.experience.intro}
         side='left'
@@ -125,6 +126,7 @@ export default async function HomePage() {
 
       <Section
         id='evolution'
+        tone='mist'
         title={dict.evolution.title}
         intro={dict.evolution.intro}
         side='left'

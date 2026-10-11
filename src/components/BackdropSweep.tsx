@@ -3,13 +3,16 @@
 import { useEffect, useRef } from 'react';
 
 const REDUCED_QUERY = '(prefers-reduced-motion: reduce)';
-const clamp01 = (n: number) => Math.min(Math.max(n, 0), 1);
+/** How long one sweep takes, in seconds, whatever the speed of the scroll. */
+const DURATION = 1.8;
+
+const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
 /**
- * The section backgrounds, fixed behind the page. Moving to the next section, its
- * background is swept in like a clock hand going round, from six o'clock. The layers
- * are fixed, so nothing here changes the length of the page; without script, or with
- * reduced motion, each section keeps its own plain background.
+ * The section backgrounds, fixed behind the page. Reaching the next section, its
+ * background is swept in like a clock hand going round, from six o'clock, taking its
+ * own time. The layers are fixed, so nothing here changes the length of the page;
+ * without script, or with reduced motion, each section keeps its own plain background.
  */
 export function BackdropSweep() {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -24,37 +27,68 @@ export function BackdropSweep() {
     const nodes = sections.map((el, i) => {
       const layer = document.createElement('div');
       layer.className = 'sweep__layer';
-      layer.dataset.tone = el.classList.contains('section--paper') ? 'paper' : 'stage';
+      const dark = el.classList.contains('hero') || el.classList.contains('section--stage');
+      layer.dataset.tone = dark ? 'stage' : el.classList.contains('section--mist') ? 'mist' : 'paper';
       layer.dataset.side = el.dataset.side === 'right' ? 'right' : 'left';
       layer.dataset.state = i === 0 ? 'full' : 'hidden';
       if (i === 0) layer.dataset.hero = 'true';
-      layer.innerHTML = '<div class="sweep__fill"></div><div class="sweep__edge"></div>';
+      for (const name of ['sweep__fill', 'sweep__edge']) {
+        const part = document.createElement('div');
+        part.className = name;
+        layer.appendChild(part);
+      }
       root.appendChild(layer);
       return layer;
     });
     html.dataset.sweep = 'on';
-    const last: number[] = nodes.map(() => -1);
-    let frame = 0;
 
-    const update = () => {
+    // 0 = not swept in yet, 1 = fully swept in; each layer glides toward its target.
+    const shown: number[] = nodes.map((_, i) => (i === 0 ? 1 : 0));
+    const goal: number[] = nodes.map((_, i) => (i === 0 ? 1 : 0));
+    let frame = 0;
+    let lastTime = 0;
+
+    const paint = (i: number) => {
+      const angle = Math.round(easeInOut(shown[i]) * 3600) / 10;
+      nodes[i].style.setProperty('--sweep', `${angle}deg`);
+      nodes[i].dataset.state = angle <= 0 ? 'hidden' : angle >= 360 ? 'full' : 'sweeping';
+    };
+
+    const tick = (now: number) => {
       frame = 0;
+      const dt = Math.min((now - lastTime) / 1000, 0.1);
+      lastTime = now;
+      let moving = false;
+      for (let i = 1; i < nodes.length; i++) {
+        if (shown[i] === goal[i]) continue;
+        const step = dt / DURATION;
+        shown[i] = shown[i] < goal[i] ? Math.min(shown[i] + step, goal[i]) : Math.max(shown[i] - step, goal[i]);
+        paint(i);
+        if (shown[i] !== goal[i]) moving = true;
+      }
+      if (moving) frame = requestAnimationFrame(tick);
+    };
+
+    const aim = (instant: boolean) => {
       const viewport = window.innerHeight;
-      // Section i is swept in while its top travels from 80% to 30% of the screen.
-      nodes.forEach((node, i) => {
-        if (i === 0) return;
+      for (let i = 1; i < sections.length; i++) {
         const top = sections[i].getBoundingClientRect().top;
-        const progress = clamp01((viewport * 0.8 - top) / (viewport * 0.5));
-        const angle = Math.round(progress * 3600) / 10;
-        if (angle === last[i]) return;
-        last[i] = angle;
-        node.style.setProperty('--sweep', `${angle}deg`);
-        node.dataset.state = angle <= 0 ? 'hidden' : angle >= 360 ? 'full' : 'sweeping';
-      });
+        // A little slack either side, so hovering around the line does not flip it.
+        if (top < viewport * 0.6) goal[i] = 1;
+        else if (top > viewport * 0.72) goal[i] = 0;
+        if (instant) {
+          shown[i] = goal[i];
+          paint(i);
+        }
+      }
+      if (!instant && !frame) {
+        lastTime = performance.now();
+        frame = requestAnimationFrame(tick);
+      }
     };
-    const onScroll = () => {
-      if (!frame) frame = requestAnimationFrame(update);
-    };
-    update();
+
+    aim(true);
+    const onScroll = () => aim(false);
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll, { passive: true });
     return () => {

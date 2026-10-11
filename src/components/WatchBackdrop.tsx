@@ -23,6 +23,16 @@ const MARGIN = 14;
 const clamp01 = (n: number) => Math.min(Math.max(n, 0), 1);
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
+/** Every time the watch settles on a section the note draws a fresh look: where it likes to sit and how its line bends. */
+const rollLook = () => ({
+  fx: 0.08 + Math.random() * 0.84,
+  fy: 0.14 + Math.random() * 0.76,
+  hookAngle: ((35 + Math.random() * 45) * Math.PI) / 180,
+  sideAngle: ((25 + Math.random() * 35) * Math.PI) / 180,
+  curved: Math.random() < 0.4,
+  bow: Math.random() < 0.5 ? 1 : -1,
+});
+
 type Rect = { l: number; t: number; r: number; b: number };
 
 const overlap = (a: Rect, b: Rect) =>
@@ -67,7 +77,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
   const logoRef = useRef(logoUrl);
   const calloutRef = useRef<HTMLDivElement>(null);
   const boxRef = useRef<HTMLParagraphElement>(null);
-  const lineRef = useRef<SVGPolylineElement>(null);
+  const lineRef = useRef<SVGPathElement>(null);
   const tetherRef = useRef<SVGLineElement>(null);
   const dotRef = useRef<SVGCircleElement>(null);
   const crownRef = useRef<HTMLButtonElement>(null);
@@ -90,6 +100,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
     let teardown: (() => void) | null = null;
     let lastScrollY = window.scrollY;
     let sectionEls: HTMLElement[] = [];
+    let look = rollLook();
 
     let text: Rect[] = [];
     let lastScan = -1e9;
@@ -113,7 +124,9 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       if (crownRect) cost += overlap(box, crownRect) * 3;
       const dx = (box.l + box.r) / 2 - a.x;
       const dy = (box.t + box.b) / 2 - a.y;
-      return cost + Math.hypot(dx, dy) * 30;
+      const wx = (box.l + box.r) / 2 - look.fx * window.innerWidth;
+      const wy = (box.t + box.b) / 2 - look.fy * window.innerHeight;
+      return cost + Math.hypot(dx, dy) * 6 + Math.hypot(wx, wy) * 45;
     };
 
     /** Look for the freest background around, and keep the choice unless a clearly better one appears. */
@@ -228,8 +241,12 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
         indexRef.current = nearest;
         setIndex(nearest);
         const el = sectionEls[nearest];
-        callout.dataset.tone = el && el.classList.contains('section--paper') ? 'paper' : 'stage';
+        const light = !!el && !el.classList.contains('hero') && !el.classList.contains('section--stage');
+        callout.dataset.tone = light ? 'paper' : 'stage';
+        if (crownRef.current) crownRef.current.dataset.tone = light ? 'paper' : 'stage';
         measured = { key: '', w: 0, h: 0 };
+        look = rollLook();
+        target = { x: target.x, y: target.y, key: '' };
       }
       const settle = clamp01(1.6 - Math.abs(a.position - nearest) * 4);
       const vw = window.innerWidth;
@@ -263,7 +280,17 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       const bcx = (L + R) / 2;
       const bcy = (T + B) / 2;
       const f = (n: number) => n.toFixed(1);
-      let points: string;
+      // The first leg of the line is straight, or bows a little to one side.
+      const leg = (x1: number, y1: number, x2: number, y2: number) => {
+        if (!look.curved) return `L${f(x2)},${f(y2)}`;
+        const mx = (x1 + x2) / 2;
+        const my = (y1 + y2) / 2;
+        const bow = Math.hypot(x2 - x1, y2 - y1) * 0.22 * look.bow;
+        const nx = -(y2 - y1) / (Math.hypot(x2 - x1, y2 - y1) || 1);
+        const ny = (x2 - x1) / (Math.hypot(x2 - x1, y2 - y1) || 1);
+        return `Q${f(mx + nx * bow)},${f(my + ny * bow)} ${f(x2)},${f(y2)}`;
+      };
+      let d: string;
       let edge: 'top' | 'bottom' | 'left' | 'right';
 
       if (bcx - w / 2 > a.x + 24 || bcx + w / 2 < a.x - 24) {
@@ -271,20 +298,19 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
         const edgeX = dirx > 0 ? L : R;
         const attachY = T + 14;
         const dy = attachY - a.y;
-        let kneeX = a.x + dirx * Math.abs(dy);
+        let kneeX = a.x + dirx * (Math.abs(dy) / Math.tan(look.sideAngle));
         if (dirx * (edgeX - kneeX) < 10) kneeX = edgeX - dirx * 10;
-        points = `${f(a.x)},${f(a.y)} ${f(kneeX)},${f(attachY)} ${f(edgeX)},${f(attachY)} ${f(edgeX)},${f(B)}`;
+        d = `M${f(a.x)},${f(a.y)} ${leg(a.x, a.y, kneeX, attachY)} L${f(edgeX)},${f(attachY)} L${f(edgeX)},${f(B)}`;
         edge = dirx > 0 ? 'left' : 'right';
       } else {
         const below = bcy > a.y;
         const edgeY = below ? T : B;
         const dy = Math.max(Math.abs(edgeY - a.y), 24);
         const angleTo = (end: number) => Math.atan2(dy, Math.max(Math.abs(a.x - end), 1));
-        const ideal = Math.PI / 3;
-        const kneeAtLeft = Math.abs(angleTo(L) - ideal) < Math.abs(angleTo(R) - ideal);
+        const kneeAtLeft = Math.abs(angleTo(L) - look.hookAngle) < Math.abs(angleTo(R) - look.hookAngle);
         const kneeX = kneeAtLeft ? L : R;
         const farX = kneeAtLeft ? R : L;
-        points = `${f(a.x)},${f(a.y)} ${f(kneeX)},${f(edgeY)} ${f(farX)},${f(edgeY)}`;
+        d = `M${f(a.x)},${f(a.y)} ${leg(a.x, a.y, kneeX, edgeY)} L${f(farX)},${f(edgeY)}`;
         edge = below ? 'top' : 'bottom';
       }
 
@@ -292,7 +318,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       callout.style.setProperty('--box-x', `${f(L)}px`);
       callout.style.setProperty('--box-y', `${f(T)}px`);
       callout.style.setProperty('--settle', settle.toFixed(3));
-      line.setAttribute('points', points);
+      line.setAttribute('d', d);
       dot.setAttribute('cx', f(a.x));
       dot.setAttribute('cy', f(a.y));
 
@@ -437,6 +463,17 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
     };
   }, []);
 
+  // If the lock is released some other way (Escape), the drag ends with it.
+  useEffect(() => {
+    const onLockChange = () => {
+      if (document.pointerLockElement) return;
+      drag.current.active = false;
+      if (crownRef.current) delete crownRef.current.dataset.held;
+    };
+    document.addEventListener('pointerlockchange', onLockChange);
+    return () => document.removeEventListener('pointerlockchange', onLockChange);
+  }, []);
+
   const note = notes[index] ?? '';
 
   // Winding the crown: dragging it scrolls the page, a tap moves to the next section.
@@ -471,7 +508,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       </div>
       <div className='callout' ref={calloutRef} data-tone='stage' data-edge='top' data-empty={note ? undefined : 'true'}>
         <svg className='callout__line' aria-hidden='true' focusable='false'>
-          <polyline ref={lineRef} pathLength='1' />
+          <path ref={lineRef} pathLength='1' />
           <circle ref={dotRef} r='3.5' />
         </svg>
         <p className='callout__box' ref={boxRef}>
@@ -493,10 +530,20 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
         }}
         onPointerMove={(event) => {
           if (!drag.current.active) return;
-          const dy = event.clientY - drag.current.lastY;
+          // With the pointer locked the cursor can no longer reach the edge of the screen,
+          // so the crown keeps turning however far the mouse travels.
+          const locked = document.pointerLockElement === event.currentTarget;
+          const dy = locked ? event.movementY : event.clientY - drag.current.lastY;
           drag.current.lastY = event.clientY;
           drag.current.moved += Math.abs(dy);
           if (drag.current.moved > 4) {
+            if (event.pointerType === 'mouse' && !locked && !document.pointerLockElement) {
+              try {
+                void Promise.resolve(event.currentTarget.requestPointerLock()).catch(() => undefined);
+              } catch {
+                // Without pointer lock the drag still works up to the edge of the screen.
+              }
+            }
             wind(dy);
             sceneHandle.current?.spinCrown(dy * 0.05);
           }
@@ -505,11 +552,13 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
           const wasTap = drag.current.active && drag.current.moved <= 4;
           drag.current.active = false;
           delete event.currentTarget.dataset.held;
+          if (document.pointerLockElement === event.currentTarget) document.exitPointerLock();
           if (wasTap) goToNext();
         }}
         onPointerCancel={(event) => {
           drag.current.active = false;
           delete event.currentTarget.dataset.held;
+          if (document.pointerLockElement === event.currentTarget) document.exitPointerLock();
         }}
         onKeyDown={(event) => {
           if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
