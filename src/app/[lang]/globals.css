@@ -1043,7 +1043,7 @@ html[data-watch='3d'] .callout {
   line-height: 1.55;
   opacity: var(--settle);
   text-wrap: pretty;
-  transform: translateY(calc((1 - var(--settle)) * 0.6rem));
+  transform: translate3d(0, var(--shift, 0px), 0);
 }
 
 @media (max-width: 61.99rem) {

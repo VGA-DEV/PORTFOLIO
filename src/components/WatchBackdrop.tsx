@@ -125,6 +125,8 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
     let lastScrollY = window.scrollY;
     let sectionEls: HTMLElement[] = [];
     let look = rollLook();
+    /** Which note is up, and how far in or out it is, read from the scroll through the dwells. */
+    let noteState: { index: number; alpha: number; shift: number } | null = null;
 
     let text: Rect[] = [];
     let lastScan = -1e9;
@@ -268,7 +270,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
         lastScan = now;
       }
 
-      const nearest = Math.round(a.position);
+      const nearest = noteState ? noteState.index : Math.round(a.position);
       if (nearest !== indexRef.current) {
         indexRef.current = nearest;
         setIndex(nearest);
@@ -280,7 +282,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
         look = rollLook();
         target = { x: target.x, y: target.y, key: '' };
       }
-      const settle = clamp01(1.6 - Math.abs(a.position - nearest) * 4);
+      const settle = noteState ? noteState.alpha : clamp01(1.6 - Math.abs(a.position - nearest) * 4);
       const vw = window.innerWidth;
       const phone = narrow.matches;
       const w = Math.min(phone ? 20 * 16 : 22 * 16, vw - 2 * MARGIN);
@@ -350,6 +352,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       callout.style.setProperty('--box-x', `${f(L)}px`);
       callout.style.setProperty('--box-y', `${f(T)}px`);
       callout.style.setProperty('--settle', settle.toFixed(3));
+      callout.style.setProperty('--shift', `${(noteState ? noteState.shift : 0).toFixed(1)}px`);
       line.setAttribute('d', d);
       dot.setAttribute('cx', f(a.x));
       dot.setAttribute('cy', f(a.y));
@@ -437,6 +440,20 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
           }
         }
         current.setPosition(position);
+        // The note moves like the content does: it leaves as the last piece of the section,
+        // and arrives as the last piece of the next one, so the two feel the same.
+        const progress = gaps.map((gap) => dwellProgress(gap, viewport));
+        if (progress.every((p) => p >= 0)) {
+          const index = progress.filter((p) => p > 0.6).length;
+          const own = progress[index] ?? 0;
+          const before = index > 0 ? progress[index - 1] : 1;
+          const smooth = (t: number) => t * t * (3 - 2 * t);
+          const out = smooth(clamp01((own - 0.3) / 0.28));
+          const inn = smooth(clamp01((before - 0.8) / 0.12));
+          noteState = { index, alpha: (1 - out) * inn, shift: -34 * out + 46 * (1 - inn) };
+        } else {
+          noteState = null;
+        }
         // The crown on the watch turns with the page.
         const y = window.scrollY;
         current.spinCrown((y - lastScrollY) * 0.006);
