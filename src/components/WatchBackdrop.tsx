@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import type { CrownPosition, WatchScene } from '@/lib/watch/scene';
+import { useEffect, useRef, useState } from 'react';
+import type { AnchorInfo, WatchScene } from '@/lib/watch/scene';
 
 type WatchBackdropProps = {
   /** Black {VGA_DEV} logo for the dial and the case back. */
   logoUrl: string;
-  /** Accessible name of the crown control, and the hint shown beside it in the hero. */
-  crown: { label: string; hint: string };
+  /** One short text per page section: why that part of the watch tells that section. */
+  notes: readonly string[];
 };
 
 const REDUCED_QUERY = '(prefers-reduced-motion: reduce)';
@@ -32,15 +32,19 @@ function deviceIsTooWeak() {
 }
 
 /**
- * A full-screen canvas fixed behind the page content. Its scene is the watch,
- * which travels round the screen to the piece each section is about as the page
- * scrolls. On phones it sits fainter behind the text.
+ * A full-screen canvas fixed behind the page content. Its scene is the watch, which
+ * moves to the piece each section is about as the page scrolls. A text callout, tied
+ * to that piece by a line, explains why. On phones the watch sits fainter behind the text.
  */
-export function WatchBackdrop({ logoUrl, crown }: WatchBackdropProps) {
+export function WatchBackdrop({ logoUrl, notes }: WatchBackdropProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const crownRef = useRef<HTMLButtonElement>(null);
-  const sceneHandle = useRef<WatchScene | null>(null);
   const logoRef = useRef(logoUrl);
+  const calloutRef = useRef<HTMLDivElement>(null);
+  const boxRef = useRef<HTMLParagraphElement>(null);
+  const lineRef = useRef<SVGPolylineElement>(null);
+  const dotRef = useRef<SVGCircleElement>(null);
+  const [index, setIndex] = useState(0);
+  const indexRef = useRef(0);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -54,21 +58,47 @@ export function WatchBackdrop({ logoUrl, crown }: WatchBackdropProps) {
     let startTimer = 0;
     let scene: WatchScene | null = null;
     let teardown: (() => void) | null = null;
+    let lastScrollY = window.scrollY;
+    let sides: number[] = [];
 
-    /** Keep the real button exactly over the 3D crown. */
-    const placeCrown = (p: CrownPosition) => {
-      const button = crownRef.current;
-      if (!button) return;
-      const x = Math.min(Math.max(p.x, 28), window.innerWidth - 28);
-      const y = Math.min(Math.max(p.y, 80), window.innerHeight - 28);
-      button.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) translate(-50%, -50%)`;
-      button.style.width = button.style.height = `${(p.radius * 2).toFixed(1)}px`;
-      button.dataset.ready = 'true';
+    /** Tie the text box to the part: a dot on the part, a line down to the box. */
+    const placeCallout = (a: AnchorInfo) => {
+      const callout = calloutRef.current;
+      const box = boxRef.current;
+      const line = lineRef.current;
+      const dot = dotRef.current;
+      if (!callout || !box || !line || !dot) return;
+
+      const nearest = Math.round(a.position);
+      if (nearest !== indexRef.current) {
+        indexRef.current = nearest;
+        setIndex(nearest);
+      }
+      // Visible only while the watch rests on a piece, not during the jump between two.
+      const settle = clamp01(1.6 - Math.abs(a.position - nearest) * 4);
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const boxWidth = box.offsetWidth || 320;
+      // Wide screens: the box stays on the watch's side, clear of the text column.
+      let low = boxWidth / 2 + 14;
+      let high = vw - boxWidth / 2 - 14;
+      if (!narrow.matches) {
+        if ((sides[nearest] ?? 1) > 0) low = Math.max(low, vw * 0.58 + boxWidth / 2);
+        else high = Math.min(high, vw * 0.42 - boxWidth / 2);
+      }
+      const boxX = Math.min(Math.max(a.centreX, low), Math.max(low, high));
+      // Phones: a compact strip at the foot of the screen, so it covers as little text as possible.
+      const boxY = narrow.matches ? vh - (box.offsetHeight || 80) - 18 : vh * 0.78;
+
+      callout.style.setProperty('--box-x', `${boxX.toFixed(1)}px`);
+      callout.style.setProperty('--box-y', `${boxY.toFixed(1)}px`);
+      callout.style.setProperty('--settle', settle.toFixed(3));
+      line.setAttribute('points', `${a.x.toFixed(1)},${a.y.toFixed(1)} ${boxX.toFixed(1)},${boxY.toFixed(1)}`);
+      dot.setAttribute('cx', a.x.toFixed(1));
+      dot.setAttribute('cy', a.y.toFixed(1));
     };
 
     const stop = () => {
-      sceneHandle.current = null;
-      if (crownRef.current) delete crownRef.current.dataset.ready;
       window.clearTimeout(startTimer);
       teardown?.();
       teardown = null;
@@ -90,7 +120,7 @@ export function WatchBackdrop({ logoUrl, crown }: WatchBackdropProps) {
 
       const sections = Array.from(document.querySelectorAll<HTMLElement>('[data-watch-section]'));
       // Text on the left puts the watch on the right, and the other way round.
-      const sides = sections.map((el) => (el.dataset.side === 'right' ? -1 : 1));
+      sides = sections.map((el) => (el.dataset.side === 'right' ? -1 : 1));
 
       // Phones: the hero watch takes the place of the flat one under the hero text.
       const spacer = document.querySelector<HTMLElement>('.hero__watch');
@@ -108,10 +138,10 @@ export function WatchBackdrop({ logoUrl, crown }: WatchBackdropProps) {
           logoUrl: logoRef.current,
           sides,
           heroAnchor,
-          onCrown: placeCrown,
+          onAnchor: placeCallout,
         });
       } catch {
-        root.dataset.watch = 'flat'; // No WebGL2: the flat watch is the whole visual.
+        root.dataset.watch = 'flat'; // No WebGL2: the flat SVG watch is the whole visual.
         return;
       }
       if (!alive) {
@@ -120,7 +150,6 @@ export function WatchBackdrop({ logoUrl, crown }: WatchBackdropProps) {
         return;
       }
       root.dataset.watch = '3d';
-      sceneHandle.current = scene;
       const cleanups: (() => void)[] = [];
       const current = scene;
 
@@ -136,6 +165,10 @@ export function WatchBackdrop({ logoUrl, crown }: WatchBackdropProps) {
           position += clamp01((viewport * 0.8 - top) / (viewport * 0.5));
         }
         current.setPosition(position);
+        // The crown on the watch turns with the page, like the one on the screen's edge.
+        const y = window.scrollY;
+        current.spinCrown((y - lastScrollY) * 0.006);
+        lastScrollY = y;
         // Behind single-column text the watch is fainter, except in the hero.
         if (narrow.matches) {
           root.style.setProperty('--watch-opacity', lerp(1, 0.38, clamp01(position * 1.6)).toFixed(3));
@@ -188,72 +221,22 @@ export function WatchBackdrop({ logoUrl, crown }: WatchBackdropProps) {
     };
   }, []);
 
-  // Winding the crown: dragging it scrolls the page, a tap moves to the next section.
-  const drag = useRef({ active: false, moved: 0, lastY: 0 });
-
-  const goToNext = () => {
-    const sections = Array.from(document.querySelectorAll<HTMLElement>('[data-watch-section]'));
-    const line = window.innerHeight * 0.4;
-    const next = sections.find((section) => section.getBoundingClientRect().top > line);
-    if (next) next.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    else window.scrollTo({ top: 0, behavior: 'smooth' });
-    sceneHandle.current?.spinCrown(Math.PI * 2);
-  };
-
-  const onPointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
-    event.currentTarget.setPointerCapture(event.pointerId);
-    drag.current = { active: true, moved: 0, lastY: event.clientY };
-  };
-  const onPointerMove = (event: React.PointerEvent<HTMLButtonElement>) => {
-    if (!drag.current.active) return;
-    const dy = event.clientY - drag.current.lastY;
-    drag.current.lastY = event.clientY;
-    drag.current.moved += Math.abs(dy);
-    if (drag.current.moved > 4) {
-      window.scrollBy({ top: dy * 2.4, behavior: 'instant' });
-      sceneHandle.current?.spinCrown(dy * 0.05);
-    }
-  };
-  const onPointerUp = () => {
-    const wasTap = drag.current.active && drag.current.moved <= 4;
-    drag.current.active = false;
-    if (wasTap) goToNext();
-  };
-  const onKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
-    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-      event.preventDefault();
-      window.scrollBy({ top: (event.key === 'ArrowDown' ? 1 : -1) * window.innerHeight * 0.6, behavior: 'smooth' });
-      sceneHandle.current?.spinCrown(event.key === 'ArrowDown' ? 0.8 : -0.8);
-    }
-  };
+  const note = notes[index] ?? '';
 
   return (
     <>
       <div className='watch-bg' aria-hidden='true'>
         <canvas className='watch-bg__canvas' ref={canvasRef} />
       </div>
-      <button
-        type='button'
-        className='crown-control'
-        ref={crownRef}
-        aria-label={crown.label}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerCancel={() => {
-          drag.current.active = false;
-        }}
-        onKeyDown={onKeyDown}
-        onClick={(event) => {
-          // Keyboard activation only: pointer taps are handled on release.
-          if (event.detail === 0) goToNext();
-        }}
-      >
-        <span className='crown-control__ring' aria-hidden='true' />
-        <span className='crown-control__hint' aria-hidden='true'>
-          {crown.hint}
-        </span>
-      </button>
+      <div className='callout' ref={calloutRef} data-empty={note ? undefined : 'true'}>
+        <svg className='callout__line' aria-hidden='true' focusable='false'>
+          <polyline ref={lineRef} pathLength='1' />
+          <circle ref={dotRef} r='4' />
+        </svg>
+        <p className='callout__box' ref={boxRef}>
+          {note}
+        </p>
+      </div>
     </>
   );
 }

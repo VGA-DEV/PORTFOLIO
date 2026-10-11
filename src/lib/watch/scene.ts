@@ -165,7 +165,14 @@ void main() {
 }
 `;
 
-export type CrownPosition = { x: number; y: number; radius: number };
+/** Where the part being described sits on screen, and the middle of the watch. */
+export type AnchorInfo = {
+  x: number;
+  y: number;
+  centreX: number;
+  /** Continuous position along the page, 0 = hero. */
+  position: number;
+};
 
 export type WatchScene = {
   /** Turn the crown, in radians; the visitor winds it by dragging. */
@@ -185,8 +192,8 @@ export type WatchSceneOptions = {
   logoUrl: string;
   /** Per section: +1 puts the watch on the right of the screen, -1 on the left. */
   sides: readonly number[];
-  /** Called after every rendered frame with where the crown is on screen. */
-  onCrown?: (crown: CrownPosition) => void;
+  /** Called after every rendered frame with where the highlighted part is on screen. */
+  onAnchor?: (anchor: AnchorInfo) => void;
   /** Portrait screens: where the hero watch sits, as a fraction of the screen height from the top. */
   heroAnchor?: number;
 };
@@ -209,6 +216,8 @@ type Group =
   | 'propPetals';
 
 type PoseState = {
+  /** Point of the highlighted part, in watch space: where the text callout is tied. */
+  anchor: V3;
   /** Widest extent of what is on show, in scene units. */
   width: number;
   rotation: V3;
@@ -232,12 +241,12 @@ const ALL: Partial<Record<Group, number>> = {
  * longer needs and settles on the one the next section is about.
  */
 const STATES: readonly PoseState[] = [
-  { width: 2.4, rotation: [0.16, -0.45, 0], focus: [0, 0, 0], half: 2.9, explode: 0, zoom: 0.98, show: ALL },
-  { width: 2.2, rotation: [0.3, -0.55, 0], focus: [0, 0, -0.35], half: 2.0, explode: 0.45, show: { movement: 1, crown: 1, propBooks: 1 } },
-  { width: 2.6, rotation: [0.12, -0.3, 0], focus: [0, 0, 0.2], half: 2.0, explode: 0.3, show: { dial: 1, hands: 1, crown: 1, propReel: 1 } },
-  { width: 5.8, rotation: [0.2, -0.95, 0.05], focus: [0, 0, 0], half: 4.1, explode: 1, show: { ...ALL, propGame: 1 } },
-  { width: 3.4, rotation: [0.04, Math.PI + 0.12, 0], focus: [0, 0, -0.4], half: 2.0, explode: 0.12, show: { caseBack: 1, caseBand: 1, crown: 1, propGlobe: 1 } },
-  { width: 3.4, rotation: [0.12, -1.05, 0], focus: [0.4, 0, 0], half: 3.3, explode: 0.1, show: { ...ALL, propPetals: 1 } },
+  { anchor: [0, 0, 0.1], width: 2.4, rotation: [0.16, -0.45, 0], focus: [0, 0, 0], half: 2.9, explode: 0, zoom: 0.98, show: ALL },
+  { anchor: [0, 0.1, -0.55], width: 2.4, rotation: [0.22, -0.9, 0.04], focus: [0, 0, -0.6], half: 2.8, explode: 0.85, show: { ...ALL, propBooks: 1 } },
+  { anchor: [0, 0, 0.25], width: 2.6, rotation: [0.12, -0.4, 0], focus: [0, 0, 0.25], half: 2.4, explode: 0.55, show: { ...ALL, propReel: 1 } },
+  { anchor: [0, 0, -0.1], width: 5.8, rotation: [0.2, -0.95, 0.05], focus: [0, 0, 0], half: 4.1, explode: 1, show: { ...ALL, propGame: 1 } },
+  { anchor: [0, 0, -0.9], width: 3.4, rotation: [0.04, Math.PI + 0.12, 0], focus: [0, 0, -0.8], half: 2.4, explode: 0.3, show: { ...ALL, propGlobe: 1 } },
+  { anchor: [1.045, 0.32, -0.255], width: 3.0, rotation: [0.1, -1.15, 0], focus: [0.9, 0.15, -0.2], half: 2.6, explode: 0.1, show: { ...ALL, propPetals: 1 } },
 ];
 
 const damp = (current: number, target: number, rate: number, dt: number) =>
@@ -315,7 +324,7 @@ export async function createWatchScene({
   logoUrl,
   sides,
   heroAnchor = 0.64,
-  onCrown,
+  onAnchor,
 }: WatchSceneOptions): Promise<WatchScene> {
   // Geometry is built in a worker while the renderer and textures are set up here.
   const piecesPromise = loadWatchPieces();
@@ -655,6 +664,10 @@ export async function createWatchScene({
 
   await tick();
 
+  /** An invisible marker moved onto the part each section talks about. */
+  const anchorNode = new Transform();
+  anchorNode.setParent(watch);
+
   // --- state ---------------------------------------------------------------
   const lastIndex = STATES.length - 1;
 
@@ -762,7 +775,8 @@ export async function createWatchScene({
     rotator.position.y = baseY + ry * Math.sin(theta) + Math.sin(t * 0.0009) * 0.03;
     glassPhase.value = 0.2 + 0.4 * explode + shownX * 0.25 + Math.sin(t * 0.0004) * 0.05;
     fitCamera(half);
-    lastHalf = half;
+    const anchor = lerp3(from.anchor, to.anchor, ease);
+    anchorNode.position.set(anchor[0], anchor[1], anchor[2]);
 
     // Local time, with a sweeping seconds hand.
     const now = new Date();
@@ -790,19 +804,22 @@ export async function createWatchScene({
     for (const g of gears) g.mesh.rotation.z += g.speed * dt * spin;
   };
 
-  const crownPoint = new Vec3();
-  let lastHalf = 3;
-  /** Tell the page where the crown is, so a real button can sit on top of it. */
-  const reportCrown = () => {
-    if (!onCrown) return;
-    const m = crownMesh.worldMatrix;
-    crownPoint.set(m[12], m[13], m[14]);
-    camera.project(crownPoint);
-    const pxPerUnit = height / (2 * lastHalf);
-    onCrown({
-      x: (crownPoint.x * 0.5 + 0.5) * width,
-      y: (1 - (crownPoint.y * 0.5 + 0.5)) * height,
-      radius: Math.max(0.22 * pxPerUnit, 24),
+  const anchorPoint = new Vec3();
+  const centrePoint = new Vec3();
+  /** Tell the page where the highlighted part is, so a text callout can be tied to it. */
+  const reportAnchor = () => {
+    if (!onAnchor) return;
+    const m = anchorNode.worldMatrix;
+    anchorPoint.set(m[12], m[13], m[14]);
+    camera.project(anchorPoint);
+    const r = rotator.worldMatrix;
+    centrePoint.set(r[12], r[13], r[14]);
+    camera.project(centrePoint);
+    onAnchor({
+      x: (anchorPoint.x * 0.5 + 0.5) * width,
+      y: (1 - (anchorPoint.y * 0.5 + 0.5)) * height,
+      centreX: (centrePoint.x * 0.5 + 0.5) * width,
+      position: shownPosition,
     });
   };
 
@@ -819,7 +836,7 @@ export async function createWatchScene({
       lastRender = now;
       applyPose(now, dt);
       renderer.render({ scene, camera });
-      reportCrown();
+      reportAnchor();
       if (!idle) {
         frameAverage = frameAverage * 0.9 + Math.min(frameMs, 100) * 0.1;
         slowFrames = frameAverage > 26 ? slowFrames + 1 : 0;

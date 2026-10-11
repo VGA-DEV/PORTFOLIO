@@ -1,7 +1,7 @@
 import { Hero } from '@/components/Hero';
 import { Section } from '@/components/Section';
+import { CrownHud } from '@/components/CrownHud';
 import { WatchBackdrop } from '@/components/WatchBackdrop';
-import { WheelScroll } from '@/components/WheelScroll';
 import { getProfile, getStack } from '@/i18n/content';
 import { getDictionary, getLocale } from '@/i18n/dictionaries';
 
@@ -20,8 +20,18 @@ export default async function HomePage() {
 
   return (
     <>
-      <WatchBackdrop logoUrl='/images/logo-vga-dev.webp' crown={dict.crown} />
-      <WheelScroll />
+      <WatchBackdrop
+        logoUrl='/images/logo-vga-dev.webp'
+        notes={[
+          '',
+          dict.notes.projects.text,
+          dict.notes.experience.text,
+          dict.notes.stack.text,
+          dict.notes.evolution.text,
+          dict.notes.contact.text,
+        ]}
+      />
+      <CrownHud label={dict.crown.label} hint={dict.crown.hint} />
       <Hero
         name={dict.hero.name}
         role={dict.hero.role}
@@ -31,7 +41,6 @@ export default async function HomePage() {
       <Section
         id='projects'
         title={dict.projects.title}
-        note={dict.notes.projects}
         intro={dict.projects.intro}
         side='right'
       >
@@ -71,7 +80,6 @@ export default async function HomePage() {
       <Section
         id='experience'
         title={dict.experience.title}
-        note={dict.notes.experience}
         intro={dict.experience.intro}
         side='left'
       >
@@ -94,7 +102,7 @@ export default async function HomePage() {
         </ol>
       </Section>
 
-      <Section id='stack' title={dict.stack.title} note={dict.notes.stack} side='right'>
+      <Section id='stack' title={dict.stack.title} side='right'>
         <div className='stack'>
           {stack.map((group) => (
             <div key={group.id} className='stack__group'>
@@ -117,7 +125,6 @@ export default async function HomePage() {
       <Section
         id='evolution'
         title={dict.evolution.title}
-        note={dict.notes.evolution}
         intro={dict.evolution.intro}
         side='left'
       >
@@ -139,7 +146,6 @@ export default async function HomePage() {
       <Section
         id='contact'
         title={dict.contact.title}
-        note={dict.notes.contact}
         intro={dict.contact.intro}
         side='right'
         tone='stage'

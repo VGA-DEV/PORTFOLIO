@@ -5,8 +5,6 @@ type SectionProps = {
   id: string;
   title: string;
   intro?: string;
-  /** Why this section is told through one piece of the watch. */
-  note?: { part: string; text: string };
   /** Which side of the screen the text sits on; the watch takes the other. */
   side?: 'left' | 'right';
   /** `stage` is the dark variant that bookends the page. */
@@ -18,7 +16,6 @@ export function Section({
   id,
   title,
   intro,
-  note,
   side = 'left',
   tone = 'paper',
   children,
@@ -40,9 +37,6 @@ export function Section({
             </h2>
             <DecoRule className='section__rule' />
           </header>
-          {note ? (
-            <p className='section__note'>{note.text}</p>
-          ) : null}
           {intro ? <p className='section__intro'>{intro}</p> : null}
           {children}
         </div>
