@@ -12,5 +12,7 @@ export function dwellProgress(dwell: HTMLElement, viewport: number) {
   if (rect.height === 0) return -1;
   // A little dead zone at the start: a section a few pixels short of the screen is
   // already held at the top of the page, and must not start moving on its own.
-  return clamp01(((viewport - rect.top) / rect.height - 0.04) / 0.96);
+  // And one at the end, so landing a few pixels short of the end (a link to the next
+  // section, say) still finishes the move instead of leaving the sweep's edge showing.
+  return clamp01(((viewport - rect.top) / rect.height - 0.04) / 0.92);
 }
