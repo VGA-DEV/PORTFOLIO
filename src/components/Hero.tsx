@@ -18,7 +18,7 @@ export function Hero({ name, role, intro }: HeroProps) {
       data-side='left'
     >
       <div className='plate' aria-hidden='true' />
-      <div className='hero__stage'>
+      <div className='pin hero__stage'>
         <div className='container hero__grid'>
           <div className='hero__text'>
             <h1 id='hero-title' className='hero__name'>
@@ -33,6 +33,7 @@ export function Hero({ name, role, intro }: HeroProps) {
           </HeroWatch>
         </div>
       </div>
+      <div className='dwell' data-gap aria-hidden='true' />
     </section>
   );
 }

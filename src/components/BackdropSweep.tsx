@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { gapProgress } from '@/lib/transition';
 
 const REDUCED_QUERY = '(prefers-reduced-motion: reduce)';
 /** How long one sweep takes, in seconds, whatever the speed of the scroll. */
@@ -23,7 +22,7 @@ export function BackdropSweep() {
     if (!root || window.matchMedia(REDUCED_QUERY).matches) return;
     const html = document.documentElement;
     const sections = Array.from(document.querySelectorAll<HTMLElement>('[data-watch-section]'));
-    const gaps = Array.from(document.querySelectorAll<HTMLElement>('[data-gap]'));
+    const pins = Array.from(document.querySelectorAll<HTMLElement>('.pin'));
 
     // One layer per section, read from the page itself so the two never disagree.
     const nodes = sections.map((el, i) => {
@@ -74,11 +73,10 @@ export function BackdropSweep() {
     const aim = (instant: boolean) => {
       const viewport = window.innerHeight;
       for (let i = 1; i < sections.length; i++) {
-        // Section i is swept in once the move through the gap before it is half done,
-        // with a little slack either side so hovering around the line does not flip it.
-        const progress = gaps[i - 1] ? gapProgress(gaps[i - 1], viewport) : 0;
-        if (progress > 0.5) goal[i] = 1;
-        else if (progress < 0.4) goal[i] = 0;
+        const top = sections[i].getBoundingClientRect().top;
+        // A little slack either side, so hovering around the line does not flip it.
+        if (top < viewport * 0.6) goal[i] = 1;
+        else if (top > viewport * 0.72) goal[i] = 0;
       }
       // Only the layer on top is ever seen moving: the ones under it settle at once,
       // so a quick scroll through several sections never piles animations up.
@@ -105,13 +103,29 @@ export function BackdropSweep() {
       }
     };
 
+    // A section's content is held when its bottom reaches the bottom of the screen,
+    // whether it is shorter than the screen or taller.
+    const setPins = () => {
+      const viewport = window.innerHeight;
+      pins.forEach((pin) => {
+        pin.style.top = `${Math.round(viewport - pin.offsetHeight)}px`;
+      });
+    };
+    setPins();
+    const resizeObserver = new ResizeObserver(setPins);
+    pins.forEach((pin) => resizeObserver.observe(pin));
+
     aim(true);
     const onScroll = () => aim(false);
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll, { passive: true });
+    window.addEventListener('resize', setPins, { passive: true });
     return () => {
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onScroll);
+      window.removeEventListener('resize', setPins);
+      resizeObserver.disconnect();
+      pins.forEach((pin) => pin.style.removeProperty('top'));
       cancelAnimationFrame(frame);
       nodes.forEach((node) => node.remove());
       delete html.dataset.sweep;

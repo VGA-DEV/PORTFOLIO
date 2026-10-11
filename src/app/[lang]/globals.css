@@ -490,7 +490,7 @@ html[data-watch='flat'] .hero__watch .watch__frame {
 
 /* Content above the canvas, section backgrounds below it. */
 .hero__grid,
-.section > .container {
+.section__pin > .container {
   position: relative;
   z-index: 2;
 }
@@ -511,7 +511,7 @@ html[data-watch='flat'] .hero__watch .watch__frame {
     margin-left: auto;
   }
 
-  .section {
+  .section__pin {
     display: grid;
     align-content: center;
     min-height: calc(100svh - var(--header-h));
@@ -521,6 +521,9 @@ html[data-watch='flat'] .hero__watch .watch__frame {
 /* Sections */
 .section {
   position: relative;
+}
+
+.section__pin {
   padding-block: var(--space-5);
 }
 
@@ -549,7 +552,7 @@ html[data-watch='flat'] .hero__watch .watch__frame {
   );
 }
 
-.section > .container {
+.section__pin > .container {
   position: relative;
 }
 
@@ -1184,19 +1187,25 @@ html[data-sweep] .plate {
   opacity: 1;
 }
 
-/* The stretch of scroll between sections, where only the watch and the background move. */
-.gap {
+/* Extra scroll at the end of a section. The content is held in place meanwhile, so
+   nothing seems to scroll while the watch moves on; it is only there when the sweep is. */
+.dwell {
   display: none;
   pointer-events: none;
 }
 
-html[data-sweep] .gap {
+html[data-sweep] .dwell {
   display: block;
   height: clamp(12rem, 45svh, 30rem);
 }
 
+html[data-sweep] .pin {
+  position: sticky;
+  z-index: 2;
+}
+
 @media (min-width: 62rem) and (pointer: fine) {
-  html[data-sweep] .gap {
+  html[data-sweep] .dwell {
     height: clamp(18rem, 62svh, 44rem);
   }
 }

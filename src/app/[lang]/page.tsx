@@ -1,5 +1,4 @@
 import { Hero } from '@/components/Hero';
-import { TransitionGap } from '@/components/TransitionGap';
 import { Section } from '@/components/Section';
 import { BackdropSweep } from '@/components/BackdropSweep';
 import { WatchBackdrop } from '@/components/WatchBackdrop';
@@ -40,8 +39,6 @@ export default async function HomePage() {
         intro={dict.hero.intro}
       />
 
-      <TransitionGap />
-
       <Section
         id='projects'
         title={dict.projects.title}
@@ -81,8 +78,6 @@ export default async function HomePage() {
         </ol>
       </Section>
 
-      <TransitionGap />
-
       <Section
         id='experience'
         tone='mist'
@@ -109,8 +104,6 @@ export default async function HomePage() {
         </ol>
       </Section>
 
-      <TransitionGap />
-
       <Section id='stack' title={dict.stack.title} side='right'>
         <div className='stack'>
           {stack.map((group) => (
@@ -130,8 +123,6 @@ export default async function HomePage() {
           ))}
         </div>
       </Section>
-
-      <TransitionGap />
 
       <Section
         id='evolution'
@@ -155,14 +146,13 @@ export default async function HomePage() {
         </ol>
       </Section>
 
-      <TransitionGap />
-
       <Section
         id='contact'
         title={dict.contact.title}
         intro={dict.contact.intro}
         side='right'
         tone='stage'
+        dwell={false}
       >
         <ul className='contact-links'>
           <li>

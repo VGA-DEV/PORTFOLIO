@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { gapProgress } from '@/lib/transition';
+import { dwellProgress } from '@/lib/transition';
 import type { AnchorInfo, WatchScene } from '@/lib/watch/scene';
 
 type WatchBackdropProps = {
@@ -420,11 +420,11 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       const update = () => {
         frame = 0;
         const viewport = window.innerHeight;
-        // Each move to the next section is paced by the transition gap before it.
+        // Each move to the next section is paced by the dwell that ends the section before it.
         let position = 0;
         for (let i = 1; i < sections.length; i++) {
           const gap = gaps[i - 1];
-          const progress = gap ? gapProgress(gap, viewport) : -1;
+          const progress = gap ? dwellProgress(gap, viewport) : -1;
           if (progress >= 0) {
             position += progress;
           } else {
