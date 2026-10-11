@@ -17,6 +17,7 @@ export function Hero({ name, role, intro }: HeroProps) {
       data-watch-section
       data-side='left'
     >
+      <div className='plate' aria-hidden='true' />
       <div className='hero__stage'>
         <div className='container hero__grid'>
           <div className='hero__text'>

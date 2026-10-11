@@ -25,8 +25,15 @@ export function WheelScroll() {
 
     const sections = Array.from(document.querySelectorAll<HTMLElement>('[data-watch-section]'));
     const targets = sections
-      .map((section) => ({ section, content: section.querySelector<HTMLElement>('.container') }))
-      .filter((entry): entry is { section: HTMLElement; content: HTMLElement } => entry.content !== null);
+      .map((section) => ({
+        section,
+        content: section.querySelector<HTMLElement>('.container'),
+        plate: section.querySelector<HTMLElement>(':scope > .plate'),
+      }))
+      .filter(
+        (entry): entry is { section: HTMLElement; content: HTMLElement; plate: HTMLElement | null } =>
+          entry.content !== null,
+      );
 
     let frame = 0;
 
@@ -36,7 +43,7 @@ export function WheelScroll() {
       // A gentler swing on narrow screens, where text is wide.
       const gain = window.innerWidth < 992 ? 0.6 : 1;
 
-      for (const { section, content } of targets) {
+      for (const { section, content, plate } of targets) {
         const rect = section.getBoundingClientRect();
         const entering = rect.top - vh * 0.3; // > 0 while the section is still below its place
         const leaving = rect.bottom - vh * 0.7; // < 0 once its end has passed the reading line
@@ -51,12 +58,21 @@ export function WheelScroll() {
           content.style.transform = '';
           content.style.transformOrigin = '';
           content.style.opacity = '';
+          if (plate) {
+            plate.style.transform = '';
+            plate.style.transformOrigin = '';
+          }
           continue;
         }
         const pivotY = vh * PIVOT_Y - (rect.top + content.offsetTop);
         content.style.transformOrigin = `50% ${pivotY.toFixed(1)}px`;
         content.style.transform = `rotate(${angle.toFixed(4)}rad)`;
         content.style.opacity = String(1 - Math.min(Math.abs(angle) * 0.8, 0.8));
+        // The background turns with the content, around the very same pivot.
+        if (plate) {
+          plate.style.transformOrigin = `50% ${(vh * PIVOT_Y - rect.top).toFixed(1)}px`;
+          plate.style.transform = `rotate(${angle.toFixed(4)}rad)`;
+        }
       }
     };
 
@@ -71,10 +87,14 @@ export function WheelScroll() {
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onScroll);
       cancelAnimationFrame(frame);
-      for (const { content } of targets) {
+      for (const { content, plate } of targets) {
         content.style.transform = '';
         content.style.transformOrigin = '';
         content.style.opacity = '';
+        if (plate) {
+          plate.style.transform = '';
+          plate.style.transformOrigin = '';
+        }
       }
     };
   }, []);

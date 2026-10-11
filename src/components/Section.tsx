@@ -31,6 +31,7 @@ export function Section({
       data-watch-section
       data-side={side}
     >
+      <div className='plate' aria-hidden='true' />
       <div className='container'>
         <div className='section__body'>
           <header className='section__head'>

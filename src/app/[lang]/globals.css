@@ -52,7 +52,7 @@ html {
   scroll-behavior: smooth;
   scroll-padding-top: calc(var(--header-h) + 1rem);
   scrollbar-color: var(--color-purple) var(--color-stage);
-  background: var(--color-stage);
+  background: #08030c;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -71,7 +71,6 @@ html {
 body {
   margin: 0;
   overflow-x: clip;
-  background: var(--color-paper);
   color: var(--color-ink);
   font-family: var(--font-sans-stack);
   font-size: 1.0625rem;
@@ -290,11 +289,32 @@ code {
 /* Hero: the dark stage. */
 .hero {
   position: relative;
+  color: var(--color-stage-ink);
+}
+
+/* Each section's background is its own plate, so it can turn with the wheel while
+   the 3D canvas stays above it and the content above the canvas. */
+.plate {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: clip;
+  pointer-events: none;
+}
+
+.hero .plate {
   background:
     radial-gradient(56% 64% at 72% 46%, rgb(88 17 159 / 0.34), transparent 72%),
     radial-gradient(40% 40% at 8% 100%, rgb(214 189 138 / 0.07), transparent 70%),
     var(--color-stage);
-  color: var(--color-stage-ink);
+}
+
+.section--paper .plate {
+  background: var(--color-paper);
+}
+
+.section--stage .plate {
+  background: var(--color-stage);
 }
 
 .hero__stage {
@@ -488,12 +508,11 @@ html[data-watch='flat'] .hero__watch .watch__frame {
 /* Sections */
 .section {
   position: relative;
-  overflow: clip;
   padding-block: var(--space-5);
 }
 
 /* Art Deco fan: rays from the top-right corner, pure CSS. */
-.section::before {
+.plate::before {
   content: '';
   position: absolute;
   top: 0;
@@ -509,7 +528,7 @@ html[data-watch='flat'] .hero__watch .watch__frame {
   pointer-events: none;
 }
 
-.section--stage::before {
+.section--stage .plate::before {
   background: repeating-conic-gradient(
     from 180deg at 100% 0,
     rgb(214 189 138 / 0.34) 0 0.55deg,
@@ -559,7 +578,6 @@ html[data-watch='flat'] .hero__watch .watch__frame {
 }
 
 .section--stage {
-  background: var(--color-stage);
   color: var(--color-stage-ink);
 }
 
