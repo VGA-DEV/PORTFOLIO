@@ -9,8 +9,8 @@ import {
   paintDial,
   paintEngraving,
 } from './dial';
-import { blossom, gear, hand, lathe, merge, translateFlat } from './geometry';
-import { loft, roundedTrapezoid, strap, tonneauOutline, type SmoothMesh } from './smooth';
+import { GEAR_SPECS, loadWatchPieces, OUTLINE_POINTS, type Piece } from './build';
+import { tonneauOutline } from './smooth';
 
 type Rgb = readonly [number, number, number];
 type V3 = readonly [number, number, number];
@@ -222,7 +222,7 @@ const STATES: readonly PoseState[] = [
   { rotation: [0.12, -0.3, 0], focus: [0, 0, 0.2], half: 2.0, explode: 0.3, show: { dial: 1, hands: 1 } },
   { rotation: [0.2, -0.95, 0.05], focus: [0, 0, 0], half: 4.1, explode: 1, show: ALL },
   { rotation: [0.04, Math.PI + 0.12, 0], focus: [0, 0, -0.4], half: 2.0, explode: 0.12, show: { caseBack: 1, caseBand: 1 } },
-  { rotation: [0.15, -1.15, 0], focus: [0.95, 0.3, -0.1], half: 2.2, explode: 0.15, show: { crown: 1, caseBand: 1, lugs: 1, strap: 1, bezel: 1 } },
+  { rotation: [0.12, -1.05, 0], focus: [0.4, 0, 0], half: 3.3, explode: 0.1, show: ALL },
 ];
 
 const damp = (current: number, target: number, rate: number, dt: number) =>
@@ -231,25 +231,77 @@ const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const smooth = (t: number) => t * t * (3 - 2 * t);
 const lerp3 = (a: V3, b: V3, t: number): V3 => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
 
-type MeshData = Float32Array | SmoothMesh;
-
-const translate = (mesh: SmoothMesh, dx: number, dy: number, dz: number): SmoothMesh => {
-  const position = new Float32Array(mesh.position);
-  for (let i = 0; i < position.length; i += 3) {
-    position[i] += dx;
-    position[i + 1] += dy;
-    position[i + 2] += dz;
+/**
+ * A program whose compile is started without waiting for the result, so the GPU
+ * driver can compile every shader in parallel while the page stays responsive.
+ * Call `finish()` once `KHR_parallel_shader_compile` reports completion.
+ */
+class DeferredProgram extends Program {
+  override setShaders({ vertex, fragment }: { vertex?: string; fragment?: string }) {
+    const gl = this.gl;
+    if (vertex) {
+      gl.shaderSource(this.vertexShader, vertex);
+      gl.compileShader(this.vertexShader);
+    }
+    if (fragment) {
+      gl.shaderSource(this.fragmentShader, fragment);
+      gl.compileShader(this.fragmentShader);
+    }
+    gl.linkProgram(this.program);
   }
-  return { ...mesh, position };
-};
 
-const mergeSmooth = (...parts: SmoothMesh[]): SmoothMesh => ({
-  position: merge(...parts.map((p) => p.position)),
-  normal: merge(...parts.map((p) => p.normal)),
-  uv: merge(...parts.map((p) => p.uv)),
-});
+  /** Read back the result and look up uniform and attribute locations, as OGL does. */
+  finish() {
+    const gl = this.gl;
+    if (!gl.getProgramParameter(this.program, gl.LINK_STATUS)) {
+      console.warn(gl.getProgramInfoLog(this.program));
+      return;
+    }
+    const self = this as unknown as {
+      uniformLocations: Map<unknown, unknown>;
+      attributeLocations: Map<unknown, number>;
+      attributeOrder: string;
+    };
+    self.uniformLocations = new Map();
+    const uniformCount = gl.getProgramParameter(this.program, gl.ACTIVE_UNIFORMS);
+    for (let i = 0; i < uniformCount; i++) {
+      const uniform = gl.getActiveUniform(this.program, i) as
+        | (WebGLActiveInfo & { uniformName: string; nameComponents: string[] })
+        | null;
+      if (!uniform) continue;
+      self.uniformLocations.set(uniform, gl.getUniformLocation(this.program, uniform.name));
+      const split = uniform.name.match(/(\w+)/g) ?? [uniform.name];
+      uniform.uniformName = split[0];
+      uniform.nameComponents = split.slice(1);
+    }
+    self.attributeLocations = new Map();
+    const order: string[] = [];
+    const attributeCount = gl.getProgramParameter(this.program, gl.ACTIVE_ATTRIBUTES);
+    for (let i = 0; i < attributeCount; i++) {
+      const attribute = gl.getActiveAttrib(this.program, i);
+      if (!attribute) continue;
+      const location = gl.getAttribLocation(this.program, attribute.name);
+      if (location === -1) continue;
+      order[location] = attribute.name;
+      self.attributeLocations.set(attribute, location);
+    }
+    self.attributeOrder = order.join('');
+  }
+}
 
-export function createWatchScene({ canvas, still, logoUrl, sides, heroAnchor = 0.64 }: WatchSceneOptions): WatchScene {
+/** Let the browser breathe between heavy steps, so setup never blocks scrolling or input. */
+const tick = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
+
+export async function createWatchScene({
+  canvas,
+  still,
+  logoUrl,
+  sides,
+  heroAnchor = 0.64,
+}: WatchSceneOptions): Promise<WatchScene> {
+  // Geometry is built in a worker while the renderer and textures are set up here.
+  const piecesPromise = loadWatchPieces();
+
   const renderer = new Renderer({
     canvas,
     alpha: true,
@@ -270,7 +322,7 @@ export function createWatchScene({ canvas, still, logoUrl, sides, heroAnchor = 0
   const watch = new Transform();
   watch.setParent(rotator);
 
-  const outline = tonneauOutline(160);
+  const outline = tonneauOutline(OUTLINE_POINTS);
 
   const fontFamily =
     getComputedStyle(document.documentElement).getPropertyValue('--font-sans').trim() ||
@@ -311,23 +363,52 @@ export function createWatchScene({ canvas, still, logoUrl, sides, heroAnchor = 0
     transparent?: boolean;
     sprocket?: number;
   };
-  const program = (m: Material, flat: boolean) =>
-    new Program(gl, {
-      vertex: vertexSource(flat),
-      fragment: fragmentSource(m.mode, flat),
-      cullFace: false,
-      transparent: m.transparent ?? false,
-      depthWrite: !m.transparent,
-      uniforms: {
-        uAlbedo: { value: [...m.albedo] },
-        uF0: { value: [...m.f0] },
-        uRough: { value: m.rough },
-        uPhase: glassPhase,
-        uSprocket: { value: m.sprocket ?? 0 },
-        ...(m.mode === 2 ? { tDial: { value: dialTexture } } : {}),
-        ...(m.mode === 4 ? { tBack: { value: backTexture } } : {}),
-      },
+  // One program per kind of surface (and flat or smooth normals), shared by every
+  // mesh. All of them start compiling at once and are awaited without blocking.
+  const programs = new Map<string, DeferredProgram>();
+  const programFor = (mode: Material['mode'], flat: boolean) => {
+    const key = `${mode}:${flat}`;
+    let created = programs.get(key);
+    if (!created) {
+      created = new DeferredProgram(gl, {
+        vertex: vertexSource(flat),
+        fragment: fragmentSource(mode, flat),
+        cullFace: false,
+        transparent: mode === 3,
+        depthWrite: mode !== 3,
+        uniforms: {
+          uAlbedo: { value: [0, 0, 0] },
+          uF0: { value: [0, 0, 0] },
+          uRough: { value: 0 },
+          uPhase: glassPhase,
+          uSprocket: { value: 0 },
+          ...(mode === 2 ? { tDial: { value: dialTexture } } : {}),
+          ...(mode === 4 ? { tBack: { value: backTexture } } : {}),
+        },
+      });
+      programs.set(key, created);
+    }
+    return created;
+  };
+  for (const [mode, flat] of [[0, false], [0, true], [1, false], [2, false], [3, false], [4, false]] as const) {
+    programFor(mode, flat);
+  }
+
+  /** A mesh sets its own colour and finish just before it is drawn. */
+  const makeMesh = (geometry: Geometry, m: Material, flat: boolean) => {
+    const program = programFor(m.mode, flat);
+    const mesh = new Mesh(gl, { geometry, program });
+    const albedo = [...m.albedo];
+    const f0 = [...m.f0];
+    const uniforms = program.uniforms as Record<string, { value: unknown }>;
+    mesh.onBeforeRender(() => {
+      uniforms.uAlbedo.value = albedo;
+      uniforms.uF0.value = f0;
+      uniforms.uRough.value = m.rough;
+      uniforms.uSprocket.value = m.sprocket ?? 0;
     });
+    return mesh;
+  };
 
   const gold = (rough: number): Material => ({ mode: 0, albedo: COLORS.gold, f0: COLORS.gold, rough });
   const steel = (color: Rgb, rough: number): Material => ({ mode: 0, albedo: color, f0: color, rough });
@@ -351,7 +432,7 @@ export function createWatchScene({ canvas, still, logoUrl, sides, heroAnchor = 0
 
   const addLayer = (
     group: Group,
-    data: MeshData,
+    data: Piece,
     material: Material,
     offset: [number, number, number],
     base: [number, number, number] = [0, 0, 0],
@@ -364,116 +445,100 @@ export function createWatchScene({ canvas, still, logoUrl, sides, heroAnchor = 0
           normal: { size: 3, data: data.normal },
           uv: { size: 2, data: data.uv },
         };
-    const mesh = new Mesh(gl, {
-      geometry: new Geometry(gl, attributes),
-      program: program(material, flat),
-    });
+    const mesh = makeMesh(new Geometry(gl, attributes), material, flat);
     mesh.position.set(...base);
     mesh.setParent(watch);
     register(mesh, group, base, offset);
     return mesh;
   };
 
+  const pieces = await piecesPromise;
+
+  // Wait for the parallel shader compile (if the browser supports it), then read the results.
+  const parallel = gl.getExtension('KHR_parallel_shader_compile');
+  const allCompiled = () =>
+    !parallel ||
+    [...programs.values()].every((p) => gl.getProgramParameter(p.program, parallel.COMPLETION_STATUS_KHR));
+  while (!allCompiled()) await new Promise<void>((resolve) => setTimeout(resolve, 16));
+  for (const p of programs.values()) p.finish();
+
   // --- case ---------------------------------------------------------------
   addLayer(
     'caseBack',
-    loft(outline, [[0, -0.43], [0.95, -0.43], [0.985, -0.4], [0.985, -0.34], [0, -0.34]]),
+    pieces.caseBack,
     { mode: 4, albedo: COLORS.gold, f0: COLORS.gold, rough: 0.28 },
     [0, 0, -1.6],
   );
 
   addLayer(
     'caseBand',
-    loft(
-      outline,
-      [[0.985, -0.34], [1.0, -0.31], [1.0, -0.03], [0.985, 0.0], [0.93, 0.0], [0.93, -0.3], [0.94, -0.34]],
-      { closed: true },
-    ),
+    pieces.caseBand,
     gold(0.34),
     [0, 0, -0.95],
   );
 
   // End pieces: straight-sided trapezoids with rounded corners that carry the strap.
-  const plateUp = roundedTrapezoid(1.34, 1.16, 0.62, 0.17);
-  const plateDown = [...plateUp].reverse().map(([x, y]) => [x, -y] as const);
-  const plateProfile = [[0, -0.31], [0.92, -0.31], [1.0, -0.27], [1.0, -0.07], [0.92, -0.03], [0, -0.03]] as const;
-  addLayer(
-    'lugs',
-    mergeSmooth(
-      translate(loft(plateUp, plateProfile), 0, 1.26, 0),
-      translate(loft(plateDown, plateProfile), 0, -1.26, 0),
-    ),
-    gold(0.2),
-    [0, 0, -0.95],
-  );
+  addLayer('lugs', pieces.lugs, gold(0.2), [0, 0, -0.95]);
 
   // Bezel: a polished chamfer with film-sprocket notches on the flat top.
   addLayer(
     'bezel',
-    loft(
-      outline,
-      [[1.0, 0.0], [1.0, 0.05], [0.975, 0.1], [0.915, 0.115], [0.9, 0.095], [0.9, 0.0]],
-      { closed: true },
-    ),
+    pieces.bezel,
     { ...gold(0.12), sprocket: 1 },
     [0, 0, 1.15],
   );
 
   const crown = addLayer(
     'crown',
-    lathe([[0, 0], [0.12, 0], [0.145, 0.03], [0.145, 0.2], [0.115, 0.24], [0, 0.24]], 26, 0),
+    pieces.crown,
     gold(0.28),
     [0.75, 0, -0.95],
     [0.97, 0.32, -0.16],
   );
   crown.rotation.y = Math.PI / 2;
 
+  await tick();
+
   // --- strap --------------------------------------------------------------
   const leather: Material = { mode: 1, albedo: COLORS.leather, f0: [0.04, 0.04, 0.04], rough: 0.7 };
-  const strapOptions = { start: 1.5, lengthUnits: 1.8, widthStart: 1.12, widthEnd: 0.94, thickness: 0.16, bend: 0.55, z: -0.14 };
-  addLayer('strap', strap({ direction: 1, ...strapOptions }), leather, [0, 0.6, -0.95]);
-  addLayer('strap', strap({ direction: -1, ...strapOptions }), leather, [0, -0.6, -0.95]);
+  addLayer('strap', pieces.strapUp, leather, [0, 0.6, -0.95]);
+  addLayer('strap', pieces.strapDown, leather, [0, -0.6, -0.95]);
+
+  await tick();
 
   // --- dial ---------------------------------------------------------------
   addLayer(
     'dial',
-    loft(outline, [[0, -0.03], [0.9, -0.03], [0.9, 0.0], [0, 0.0]]),
+    pieces.dial,
     { mode: 2, albedo: COLORS.lavender, f0: [0.04, 0.04, 0.04], rough: 0.1 },
     [0, 0, 0.35],
   );
 
+  await tick();
+
   // --- movement -----------------------------------------------------------
   addLayer(
     'movement',
-    loft(outline, [[0, -0.31], [0.84, -0.31], [0.84, -0.27], [0, -0.27]]),
+    pieces.plate,
     steel(COLORS.rhodium, 0.3),
     [0, 0, -0.5],
   );
 
   // Three meshing gears in a V: two on top, the larger one at the point.
-  const gearSpecs = [
-    { x: -0.42, y: 0.38, teeth: 14, out: 0.32, hub: 0.07, spokes: 3, material: steel(COLORS.violet, 0.25), speed: 0.5 },
-    { x: 0.42, y: 0.38, teeth: 14, out: 0.32, hub: 0.07, spokes: 3, material: steel(COLORS.lavender, 0.25), speed: 0.5 },
-    { x: 0.0, y: -0.26, teeth: 18, out: 0.42, hub: 0.09, spokes: 4, material: gold(0.2), speed: -0.39 },
-  ];
-  const gears = gearSpecs.map((spec, index) => {
+  const gearMaterials = [steel(COLORS.violet, 0.25), steel(COLORS.lavender, 0.25), gold(0.2)];
+  const gearSpeeds = [0.5, 0.5, -0.39];
+  const gears = GEAR_SPECS.map((spec, index) => {
     const mesh = addLayer(
       'movement',
-      gear({
-        teeth: spec.teeth,
-        outerRadius: spec.out,
-        rootRadius: spec.out * 0.84,
-        rimRadius: spec.out * 0.7,
-        hubRadius: spec.hub,
-        spokes: spec.spokes,
-        thickness: 0.05,
-      }),
-      spec.material,
+      pieces.gears[index],
+      gearMaterials[index],
       [0, 0, -0.3 + index * 0.04],
       [spec.x, spec.y, -0.23],
     );
-    return { mesh, speed: spec.speed };
+    return { mesh, speed: gearSpeeds[index] };
   });
+
+  await tick();
 
   // --- hands --------------------------------------------------------------
   const handGroup = new Transform();
@@ -481,49 +546,46 @@ export function createWatchScene({ canvas, still, logoUrl, sides, heroAnchor = 0
   handGroup.position.set(0, 0, 0.06);
   register(handGroup, 'hands', [0, 0, 0.06], [0, 0, 0.8]);
 
-  const makeHand = (geometry: Float32Array, material: Material, z: number) => {
+  const makeHand = (geometry: Piece, material: Material, z: number) => {
     const pivot = new Transform();
     pivot.setParent(handGroup);
     pivot.position.z = z;
-    const mesh = new Mesh(gl, {
-      geometry: new Geometry(gl, { position: { size: 3, data: geometry } }),
-      program: program(material, true),
-    });
+    const mesh = makeMesh(
+      new Geometry(gl, { position: { size: 3, data: geometry as Float32Array } }),
+      material,
+      true,
+    );
     mesh.setParent(pivot);
     return pivot;
   };
 
   const blued = steel(COLORS.bluedSteel, 0.1);
-  const hourHand = makeHand(hand(0.5, 0.07, 0.12, -0.012, 0.012), blued, 0.0);
-  const minuteHand = makeHand(hand(0.78, 0.045, 0.16, -0.012, 0.012), blued, 0.03);
-  const secondHand = makeHand(
-    merge(
-      hand(0.74, 0.012, 0.13, -0.006, 0.006),
-      translateFlat(blossom(0.045, -0.006, 0.006), 0, -0.13, 0),
-    ),
-    steel(COLORS.roseGold, 0.18),
-    0.06,
-  );
+  const hourHand = makeHand(pieces.hourHand, blued, 0.0);
+  const minuteHand = makeHand(pieces.minuteHand, blued, 0.03);
+  const secondHand = makeHand(pieces.secondHand, steel(COLORS.roseGold, 0.18), 0.06);
 
   // A gold cap holds the three hands to the movement.
-  const capMesh = new Mesh(gl, {
-    geometry: new Geometry(gl, {
-      position: { size: 3, data: lathe([[0, 0], [0.075, 0], [0.06, 0.04], [0, 0.05]], 20, 0) },
-    }),
-    program: program(gold(0.12), true),
-  });
+  const capMesh = makeMesh(
+    new Geometry(gl, { position: { size: 3, data: pieces.cap as Float32Array } }),
+    gold(0.12),
+    true,
+  );
   capMesh.position.z = 0.085;
   capMesh.setParent(handGroup);
+
+  await tick();
 
   // --- sapphire crystal, drawn last ----------------------------------------
   const crystal = addLayer(
     'crystal',
-    loft(outline, [[0.92, 0.0], [0.91, 0.05], [0.66, 0.078], [0.32, 0.09], [0, 0.094]]),
+    pieces.crystal,
     { mode: 3, albedo: [1, 1, 1], f0: [0.04, 0.04, 0.04], rough: 0.02, transparent: true },
     [0, 0, 1.75],
     [0, 0, 0.04],
   );
   crystal.renderOrder = 10;
+
+  await tick();
 
   // --- state ---------------------------------------------------------------
   const lastIndex = STATES.length - 1;
@@ -558,8 +620,15 @@ export function createWatchScene({ canvas, still, logoUrl, sides, heroAnchor = 0
   };
 
   // Frame rate cap on phones, to spare the battery.
-  const minFrameMs = window.matchMedia('(pointer: coarse)').matches ? 33 : 0;
+  // Full rate while anything moves; half rate while the scene only ticks the seconds hand.
   let lastRender = 0;
+  let activeUntil = 0;
+  const wake = () => {
+    activeUntil = performance.now() + 1500;
+  };
+  // If the device cannot keep up, trade resolution for smoothness instead of frames.
+  let frameAverage = 16;
+  let slowFrames = 0;
 
   const resize = () => {
     const parent = canvas.parentElement;
@@ -643,15 +712,29 @@ export function createWatchScene({ canvas, still, logoUrl, sides, heroAnchor = 0
     shownPosition = damp(shownPosition, position, 6, dt);
     shownX = damp(shownX, pointerX, 4, dt);
     shownY = damp(shownY, pointerY, 4, dt);
-    if (now - lastRender >= minFrameMs) {
+    if (Math.abs(shownPosition - position) > 0.002) wake();
+    const idle = now > activeUntil;
+    if (now - lastRender >= (idle ? 33 : 0)) {
+      const frameMs = now - lastRender;
       lastRender = now;
       applyPose(now, dt);
       renderer.render({ scene, camera });
+      if (!idle) {
+        frameAverage = frameAverage * 0.9 + Math.min(frameMs, 100) * 0.1;
+        slowFrames = frameAverage > 26 ? slowFrames + 1 : 0;
+        if (slowFrames > 40 && renderer.dpr > 0.75) {
+          renderer.dpr = Math.max(0.75, renderer.dpr - 0.25);
+          resize();
+          slowFrames = 0;
+          frameAverage = 16;
+        }
+      }
     }
     if (running) raf = requestAnimationFrame(frame);
   };
 
   const onPointer = (event: PointerEvent) => {
+    wake();
     pointerX = (event.clientX / window.innerWidth - 0.5) * 2;
     pointerY = (event.clientY / window.innerHeight - 0.5) * 2;
   };
@@ -672,12 +755,23 @@ export function createWatchScene({ canvas, still, logoUrl, sides, heroAnchor = 0
   };
 
   resize();
+  fitCamera(3);
+
+  // Compile the shaders a few at a time, so no single task is long.
+  for (const group of new Set(layers.map((layer) => layer.group))) {
+    for (const layer of layers) layer.node.visible = layer.group === group;
+    renderer.render({ scene, camera });
+    await tick();
+  }
+  for (const layer of layers) layer.node.visible = true;
+
   if (still) redrawStill();
   else window.addEventListener('pointermove', onPointer, { passive: true });
 
   return {
     setPosition: (value) => {
       position = Math.min(Math.max(value, 0), lastIndex);
+      wake();
       if (still) {
         shownPosition = position;
         redrawStill();

@@ -63,6 +63,9 @@ export default async function RootLayout({ children }: LayoutProps<'/[lang]'>) {
   return (
     <html lang={locale} className={`${display.variable} ${sans.variable}`}>
       <body>
+        <noscript>
+          <style>{'.hero__watch .dial,.hero__watch .watch__frame{opacity:1!important}'}</style>
+        </noscript>
         <a className='skip-link' href='#main'>
           {dict.a11y.skipToContent}
         </a>

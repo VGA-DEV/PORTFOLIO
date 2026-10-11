@@ -50,7 +50,6 @@ export function WatchBackdrop({ logoUrl }: WatchBackdropProps) {
     let startTimer = 0;
     let scene: WatchScene | null = null;
     let teardown: (() => void) | null = null;
-    const triggers: (() => void)[] = [];
 
     const stop = () => {
       window.clearTimeout(startTimer);
@@ -67,6 +66,7 @@ export function WatchBackdrop({ logoUrl }: WatchBackdropProps) {
       try {
         sceneModule = await import('@/lib/watch/scene');
       } catch {
+        root.dataset.watch = 'flat';
         return;
       }
       if (!alive || scene) return;
@@ -85,7 +85,7 @@ export function WatchBackdrop({ logoUrl }: WatchBackdropProps) {
       }
 
       try {
-        scene = sceneModule.createWatchScene({
+        scene = await sceneModule.createWatchScene({
           canvas,
           still: false,
           logoUrl: logoRef.current,
@@ -93,7 +93,13 @@ export function WatchBackdrop({ logoUrl }: WatchBackdropProps) {
           heroAnchor,
         });
       } catch {
-        return; // No WebGL2: the flat SVG watch stays as the complete visual.
+        root.dataset.watch = 'flat'; // No WebGL2: the flat watch is the whole visual.
+        return;
+      }
+      if (!alive) {
+        scene.dispose();
+        scene = null;
+        return;
       }
       root.dataset.watch = '3d';
       const cleanups: (() => void)[] = [];
@@ -142,26 +148,15 @@ export function WatchBackdrop({ logoUrl }: WatchBackdropProps) {
       teardown = () => cleanups.forEach((fn) => fn());
     };
 
-    // Never compete with the first paint. Desktop: right after the load event.
-    // Phones: on the first touch or scroll, or after a few seconds, so the flat
-    // watch (the LCP) is never slowed down.
+    // The flat watch is shown only when the 3D cannot run on this device.
     const schedule = () => {
-      if (!alive || reduced.matches || deviceIsTooWeak() || scene) return;
-      window.clearTimeout(startTimer);
-      if (!narrow.matches) {
-        startTimer = window.setTimeout(() => void start(), 600);
+      if (!alive || scene) return;
+      if (reduced.matches || deviceIsTooWeak()) {
+        root.dataset.watch = 'flat';
         return;
       }
-      const go = () => {
-        triggers.splice(0).forEach((fn) => fn());
-        window.clearTimeout(startTimer);
-        void start();
-      };
-      for (const type of ['scroll', 'touchstart', 'pointerdown'] as const) {
-        window.addEventListener(type, go, { once: true, passive: true });
-        triggers.push(() => window.removeEventListener(type, go));
-      }
-      startTimer = window.setTimeout(go, 4000);
+      window.clearTimeout(startTimer);
+      startTimer = window.setTimeout(() => void start(), 150);
     };
 
     if (document.readyState === 'complete') schedule();
@@ -170,7 +165,6 @@ export function WatchBackdrop({ logoUrl }: WatchBackdropProps) {
     return () => {
       alive = false;
       window.removeEventListener('load', schedule);
-      triggers.splice(0).forEach((fn) => fn());
       stop();
     };
   }, []);

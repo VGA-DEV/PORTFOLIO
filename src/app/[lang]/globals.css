@@ -436,9 +436,15 @@ html[data-watch='3d'] .watch-bg {
   opacity: var(--watch-opacity, 1);
 }
 
-html[data-watch='3d'] .hero__watch .dial,
-html[data-watch='3d'] .hero__watch .watch__frame {
+/* The flat watch only appears when the 3D cannot run (or without JavaScript). */
+.hero__watch .dial,
+.hero__watch .watch__frame {
   opacity: 0;
+}
+
+html[data-watch='flat'] .hero__watch .dial,
+html[data-watch='flat'] .hero__watch .watch__frame {
+  opacity: 1;
 }
 
 .watch-bg__canvas {
@@ -454,7 +460,7 @@ html[data-watch='3d'] .hero__watch .watch__frame {
   z-index: 2;
 }
 
-.site-footer {
+.site-footer__inner {
   position: relative;
   z-index: 2;
 }
