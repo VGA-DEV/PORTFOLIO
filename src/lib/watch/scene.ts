@@ -170,6 +170,8 @@ export type AnchorInfo = {
   x: number;
   y: number;
   centreX: number;
+  /** The crown of the watch on screen, in pixels, so a real button can sit over it. */
+  crown: { x: number; y: number; radius: number };
   /** Continuous position along the page, 0 = hero. */
   position: number;
 };
@@ -806,6 +808,8 @@ export async function createWatchScene({
 
   const anchorPoint = new Vec3();
   const centrePoint = new Vec3();
+  const crownPoint = new Vec3();
+  const crownEdge = new Vec3();
   /** Tell the page where the highlighted part is, so a text callout can be tied to it. */
   const reportAnchor = () => {
     if (!onAnchor) return;
@@ -815,7 +819,23 @@ export async function createWatchScene({
     const r = rotator.worldMatrix;
     centrePoint.set(r[12], r[13], r[14]);
     camera.project(centrePoint);
+    const c = crownMesh.worldMatrix;
+    crownPoint.set(c[12], c[13], c[14]);
+    // A point 0.22 units to the side of the crown tells how big it looks on screen.
+    const side = camera.worldMatrix;
+    crownEdge.set(c[12] + side[0] * 0.22, c[13] + side[1] * 0.22, c[14] + side[2] * 0.22);
+    camera.project(crownPoint);
+    camera.project(crownEdge);
+    const crownRadius = Math.hypot(
+      (crownEdge.x - crownPoint.x) * 0.5 * width,
+      (crownEdge.y - crownPoint.y) * 0.5 * height,
+    );
     onAnchor({
+      crown: {
+        x: (crownPoint.x * 0.5 + 0.5) * width,
+        y: (1 - (crownPoint.y * 0.5 + 0.5)) * height,
+        radius: Math.max(crownRadius, 24),
+      },
       x: (anchorPoint.x * 0.5 + 0.5) * width,
       y: (1 - (anchorPoint.y * 0.5 + 0.5)) * height,
       centreX: (centrePoint.x * 0.5 + 0.5) * width,

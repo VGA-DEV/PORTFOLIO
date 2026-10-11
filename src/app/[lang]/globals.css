@@ -826,194 +826,118 @@ html[data-watch='flat'] .hero__watch .watch__frame {
   margin: 0;
 }
 
-/* The crown of the watch whose glass is the browser window: on the right edge, its
-   knurling turns with the scroll, and a scale of marks shows the section. */
-.crown-hud {
+/* The crown of the 3D watch is the control: a real button laid over it. A ring around
+   it fills as the page is read, a bezel of ticks turns with the scroll, and until the
+   visitor uses it the crown gives a pull now and then. */
+.crown-control {
   position: fixed;
-  top: 50%;
-  right: 0;
+  top: 0;
+  left: 0;
   z-index: 6;
-  display: flex;
-  align-items: center;
-  transform: translateY(-50%);
-  --turn: 0px;
-  --progress: 0;
-}
-
-.crown-hud__scale {
-  position: absolute;
-  right: 62px;
-  top: 50%;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 46svh;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  transform: translateY(-50%);
-  pointer-events: none;
-}
-
-.crown-hud__scale::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 1px;
-  height: 100%;
-  background: rgb(214 189 138 / 0.28);
-}
-
-.crown-hud__scale::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 1px;
-  height: calc(var(--progress) * 100%);
-  background: var(--color-champagne);
-}
-
-.crown-hud__mark {
-  align-self: flex-end;
-  width: 9px;
-  height: 2px;
-  background: rgb(214 189 138 / 0.5);
-  transition: width 0.4s var(--ease-out), background-color 0.4s var(--ease-out);
-}
-
-.crown-hud__mark.is-active {
-  width: 22px;
-  background: var(--color-champagne);
-}
-
-.crown-hud__crown {
-  position: relative;
-  width: 44px;
-  height: 100px;
-  margin-right: -12px;
+  display: none;
   padding: 0;
   border: 0;
-  border-radius: 12px 0 0 12px;
-  /* Knurling: the stripes slide with the scroll, as if the crown were turning. */
-  background:
-    linear-gradient(90deg, rgb(0 0 0 / 0.4), transparent 38%, rgb(255 255 255 / 0.28) 70%, rgb(0 0 0 / 0.25)),
-    repeating-linear-gradient(180deg, #8a5e1a 0 3px, #f1dca2 3px 6px);
-  background-position: 0 0, 0 var(--turn);
-  box-shadow: -3px 0 10px rgb(0 0 0 / 0.4);
+  border-radius: 50%;
+  background: transparent;
   cursor: grab;
   touch-action: none;
-  transition: transform 0.35s var(--ease-out);
+  --progress: 0;
+  --turn: 0deg;
 }
 
-.crown-hud__crown:hover,
-.crown-hud__crown:focus-visible {
-  transform: translateX(-9px);
+html[data-watch='3d'] .crown-control[data-ready='true'] {
+  display: block;
 }
 
-.crown-hud.is-held .crown-hud__crown {
-  transform: translateX(-16px);
+.crown-control[data-held] {
   cursor: grabbing;
 }
 
-.crown-hud__stem {
+.crown-control__progress {
   position: absolute;
-  top: 50%;
-  right: 100%;
-  width: 10px;
-  height: 46%;
-  background: linear-gradient(180deg, #6a4510, #c68a2c 50%, #6a4510);
-  transform: translateY(-50%);
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+  overflow: visible;
 }
 
-.crown-hud__grip {
+.crown-control__track,
+.crown-control__fill {
+  fill: none;
+  stroke-linecap: round;
+}
+
+.crown-control__track {
+  stroke: rgb(214 189 138 / 0.45);
+  stroke-width: 1.4;
+}
+
+.crown-control__fill {
+  stroke: var(--color-champagne);
+  stroke-width: 3;
+  stroke-dasharray: 1;
+  stroke-dashoffset: calc(1 - var(--progress));
+  filter: drop-shadow(0 0 2px rgb(18 8 24 / 0.7));
+}
+
+.crown-control__ticks {
   position: absolute;
-  inset: -6px;
-  border: 1px solid var(--color-champagne);
-  border-radius: 16px 0 0 16px;
-  opacity: 0;
-  pointer-events: none;
+  inset: 12%;
+  border-radius: 50%;
+  background: repeating-conic-gradient(rgb(214 189 138 / 0.85) 0 1.2deg, transparent 1.2deg 15deg);
+  -webkit-mask-image: radial-gradient(circle, transparent 66%, #000 68%, #000 100%);
+  mask-image: radial-gradient(circle, transparent 66%, #000 68%, #000 100%);
+  transform: rotate(var(--turn));
+  filter: drop-shadow(0 0 2px rgb(18 8 24 / 0.7));
+  transition: transform 0.25s linear;
 }
 
-/* Until the visitor scrolls, the crown invites a pull now and then. */
-.crown-hud:not([data-used]) .crown-hud__crown {
-  animation: crown-nudge 4.5s var(--ease-out) 1.5s infinite;
+.crown-control[data-held] .crown-control__ticks,
+.crown-control:hover .crown-control__ticks,
+.crown-control:focus-visible .crown-control__ticks {
+  inset: 6%;
 }
 
-.crown-hud:not([data-used]) .crown-hud__grip {
-  animation: crown-ring 4.5s var(--ease-out) 1.5s infinite;
+.crown-control:not([data-used]) .crown-control__ticks {
+  animation: crown-wind 4.5s var(--ease-out) 1.5s infinite;
 }
 
-.crown-hud__hint {
+.crown-control__hint {
   position: absolute;
-  top: 50%;
-  right: calc(100% + 18px);
+  bottom: calc(100% + 0.1rem);
+  left: 50%;
   color: var(--color-champagne);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.2em;
+  text-shadow: 0 0 6px rgb(18 8 24 / 0.9);
   text-transform: uppercase;
   white-space: nowrap;
-  transform: translateY(-50%);
+  transform: translateX(-50%);
   opacity: 0;
   transition: opacity 0.3s var(--ease-out);
 }
 
-.crown-hud:not([data-used]) .crown-hud__hint,
-.crown-hud__crown:hover .crown-hud__hint,
-.crown-hud__crown:focus-visible .crown-hud__hint {
+.crown-control:not([data-used]) .crown-control__hint,
+.crown-control:hover .crown-control__hint,
+.crown-control:focus-visible .crown-control__hint {
   opacity: 1;
 }
 
-@keyframes crown-nudge {
+@keyframes crown-wind {
   0%,
   55%,
   100% {
-    transform: translateX(0);
+    transform: rotate(var(--turn));
   }
-  65% {
-    transform: translateX(-12px);
-  }
-  78% {
-    transform: translateX(0);
-  }
-  86% {
-    transform: translateX(-6px);
+  75% {
+    transform: rotate(calc(var(--turn) + 70deg));
   }
 }
 
-@keyframes crown-ring {
-  0%,
-  55%,
-  100% {
-    opacity: 0;
-    transform: scale(0.96);
-  }
-  70% {
-    opacity: 0.9;
-    transform: scale(1.04);
-  }
-}
-
-@media (max-width: 61.99rem) {
-  .crown-hud__crown {
-    width: 34px;
-    height: 76px;
-  }
-
-  /* On a phone the scale would cross the text, so only the crown stays. */
-  .crown-hud__scale {
-    display: none;
-  }
-
-  .crown-hud__hint {
-    display: none;
-  }
-}
-
-/* The text callout: a line from the highlighted part to a box, drawn once the
-   watch rests on that part. */
+/* The text callout: a bent line from the highlighted part to a note, drawn once the
+   watch rests on that part. It takes the colours of the section it appears in. */
 .callout {
   display: none;
   position: fixed;
@@ -1023,6 +947,16 @@ html[data-watch='flat'] .hero__watch .watch__frame {
   --settle: 0;
   --box-x: 50%;
   --box-y: 78%;
+  --box-w: 24rem;
+  --callout-line: var(--color-champagne);
+  --callout-ink: var(--color-stage-ink);
+  --callout-bg: rgb(18 8 24 / 0.72);
+}
+
+.callout[data-tone='paper'] {
+  --callout-line: var(--color-champagne-deep);
+  --callout-ink: var(--color-ink);
+  --callout-bg: rgb(243 244 252 / 0.8);
 }
 
 html[data-watch='3d'] .callout {
@@ -1039,20 +973,20 @@ html[data-watch='3d'] .callout {
   width: 100%;
   height: 100%;
   overflow: visible;
-  filter: drop-shadow(0 0 2px rgb(18 8 24 / 0.7));
 }
 
 .callout__line polyline {
   fill: none;
-  stroke: var(--color-champagne);
-  stroke-width: 1.2;
+  stroke: var(--callout-line);
+  stroke-width: 1.6;
   stroke-dasharray: 1;
   stroke-dashoffset: calc(1 - var(--settle));
   stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .callout__line circle {
-  fill: var(--color-champagne);
+  fill: var(--callout-line);
   opacity: var(--settle);
 }
 
@@ -1060,75 +994,21 @@ html[data-watch='3d'] .callout {
   position: absolute;
   left: var(--box-x);
   top: var(--box-y);
-  width: min(24rem, 86vw);
+  width: var(--box-w);
   margin: 0;
-  padding: 1rem 1.25rem;
-  background: rgb(18 8 24 / 0.9);
-  border: 1px solid rgb(214 189 138 / 0.65);
-  box-shadow:
-    inset 0 0 0 3px rgb(18 8 24 / 0.9),
-    inset 0 0 0 4px rgb(214 189 138 / 0.3);
-  color: var(--color-stage-ink);
+  padding: 0.7rem 0.15rem 0.2rem;
+  background: var(--callout-bg);
+  color: var(--callout-ink);
   font-size: 0.92rem;
   line-height: 1.55;
   opacity: var(--settle);
   text-wrap: pretty;
-  transform: translate(-50%, calc((1 - var(--settle)) * 0.8rem));
+  transform: translateY(calc((1 - var(--settle)) * 0.6rem));
 }
 
 @media (max-width: 61.99rem) {
   .callout__box {
-    width: min(21rem, 92vw);
-    padding: 0.6rem 0.9rem;
     font-size: 0.78rem;
     line-height: 1.45;
   }
-}
-
-/* A giant dial behind everything, turning with the scroll. Fixed, so it adds no length. */
-.dial-bg {
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.dial-bg__turn {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: max(130vmax, 60rem);
-  aspect-ratio: 1;
-  margin: calc(max(130vmax, 60rem) / -2) 0 0 calc(max(130vmax, 60rem) / -2);
-  will-change: transform;
-}
-
-.dial-bg svg {
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  color: #b79d62;
-}
-
-.dial-bg__ring,
-.dial-bg__tick {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 0.003;
-  opacity: 0.3;
-}
-
-.dial-bg__tick--long {
-  stroke-width: 0.008;
-  opacity: 0.4;
-}
-
-.dial-bg__numeral {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 0.0025;
-  opacity: 0.38;
-  font-family: var(--font-display-stack);
-  font-size: 0.1px;
 }
