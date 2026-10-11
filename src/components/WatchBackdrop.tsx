@@ -25,8 +25,8 @@ const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
 /** Every time the watch settles on a section the note draws a fresh look: where it likes to sit and how its line bends. */
 const rollLook = () => ({
-  fx: 0.08 + Math.random() * 0.84,
-  fy: 0.14 + Math.random() * 0.76,
+  /** Which side of the watch the note likes to sit on, as an angle round it. */
+  phi: Math.random() * Math.PI * 2,
   hookAngle: ((35 + Math.random() * 45) * Math.PI) / 180,
   sideAngle: ((25 + Math.random() * 35) * Math.PI) / 180,
   curved: Math.random() < 0.4,
@@ -52,15 +52,23 @@ function deviceIsTooWeak() {
   return false;
 }
 
-/** The boxes of the text on screen, so notes and the crown can keep clear of them. */
+/** The line boxes of the text on screen, a little padded, so notes and the crown can keep clear of them. */
 function scanText(): Rect[] {
   const vh = window.innerHeight;
+  const pad = 6;
   const out: Rect[] = [];
+  const range = document.createRange();
   document
     .querySelectorAll<HTMLElement>('[data-watch-section] :is(h1, h2, h3, p, li, dt, dd)')
     .forEach((el) => {
-      const r = el.getBoundingClientRect();
-      if (r.width > 0 && r.bottom > 0 && r.top < vh) out.push({ l: r.left, t: r.top, r: r.right, b: r.bottom });
+      const box = el.getBoundingClientRect();
+      if (box.bottom < 0 || box.top > vh) return;
+      range.selectNodeContents(el);
+      for (const r of range.getClientRects()) {
+        if (r.width > 0 && r.height > 0 && r.bottom > 0 && r.top < vh) {
+          out.push({ l: r.left - pad, t: r.top - pad, r: r.right + pad, b: r.bottom + pad });
+        }
+      }
     });
   return out;
 }
@@ -124,9 +132,12 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       if (crownRect) cost += overlap(box, crownRect) * 3;
       const dx = (box.l + box.r) / 2 - a.x;
       const dy = (box.t + box.b) / 2 - a.y;
-      const wx = (box.l + box.r) / 2 - look.fx * window.innerWidth;
-      const wy = (box.t + box.b) / 2 - look.fy * window.innerHeight;
-      return cost + Math.hypot(dx, dy) * 6 + Math.hypot(wx, wy) * 45;
+      // Stay close to the watch, on the side this look prefers.
+      const gapX = Math.max(0, box.l - model.r, model.l - box.r);
+      const gapY = Math.max(0, box.t - model.b, model.t - box.b);
+      const wx = (box.l + box.r) / 2 - (a.model.x + Math.cos(look.phi) * (a.model.halfW + (box.r - box.l) / 2 + 20));
+      const wy = (box.t + box.b) / 2 - (a.model.y + Math.sin(look.phi) * (a.model.halfH + (box.b - box.t) / 2 + 20));
+      return cost + Math.hypot(dx, dy) * 6 + Math.hypot(gapX, gapY) * 45 + Math.hypot(wx, wy) * 22;
     };
 
     /** Look for the freest background around, and keep the choice unless a clearly better one appears. */
@@ -179,16 +190,21 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       };
 
       if (rethink) {
-        const free = size * size * 0.12;
+        const free = size * size * 0.02;
+        const reach = size * 3;
+        const stillGood =
+          crownGoal !== null &&
+          Math.hypot(crownGoal.x - at.x, crownGoal.y - at.y) < reach &&
+          spotCost(crownGoal) <= free;
         if (spotCost(at) <= free) {
           crownGoal = null;
-        } else {
+        } else if (!stillGood) {
           let best = { p: at, cost: Infinity };
-          for (const radius of [size * 1.1, size * 2, size * 3.2]) {
-            for (let k = 0; k < 14; k++) {
-              const angle = (k / 14) * Math.PI * 2;
+          for (const radius of [size * 0.9, size * 1.5, size * 2.2, size * 3, size * 4]) {
+            for (let k = 0; k < 20; k++) {
+              const angle = (k / 20) * Math.PI * 2;
               const p = fit(at.x + Math.cos(angle) * radius, at.y + Math.sin(angle) * radius);
-              const cost = spotCost(p) + Math.hypot(p.x - at.x, p.y - at.y) * 40;
+              const cost = spotCost(p) * 4 + Math.hypot(p.x - at.x, p.y - at.y) * 12;
               if (cost < best.cost) best = { p, cost };
             }
           }
