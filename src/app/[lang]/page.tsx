@@ -1,6 +1,7 @@
 import { Hero } from '@/components/Hero';
 import { Section } from '@/components/Section';
 import { CrownHud } from '@/components/CrownHud';
+import { DialBackdrop } from '@/components/DialBackdrop';
 import { WatchBackdrop } from '@/components/WatchBackdrop';
 import { getProfile, getStack } from '@/i18n/content';
 import { getDictionary, getLocale } from '@/i18n/dictionaries';
@@ -20,6 +21,7 @@ export default async function HomePage() {
 
   return (
     <>
+      <DialBackdrop />
       <WatchBackdrop
         logoUrl='/images/logo-vga-dev.webp'
         notes={[

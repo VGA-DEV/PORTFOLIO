@@ -611,7 +611,7 @@ export async function createWatchScene({
     return node;
   };
 
-  // Books on a shelf rise between the gears.
+  // A stack of books rises between the gears.
   const booksNode = propGroup('propBooks', [0, -0.93, -0.26], [0, 0, -0.2]);
   flatMesh(pieces.shelf, gold(0.2)).setParent(booksNode);
   flatMesh(pieces.books, steel(COLORS.violet, 0.3)).setParent(booksNode);

@@ -62,24 +62,32 @@ const mergeSmooth = (...parts: SmoothMesh[]): SmoothMesh => ({
   uv: merge(...parts.map((p) => p.uv)),
 });
 
-/** A bookshelf: two boards, two sides and a row of books of different sizes. */
-function buildShelf() {
-  const shelf = merge(
-    box(0, 0, 0, 1.5, 0.045, 0.26),
-    box(0, 0.36, 0, 1.5, 0.045, 0.26),
-    box(-0.74, 0.18, 0, 0.045, 0.36, 0.26),
-    box(0.74, 0.18, 0, 0.045, 0.36, 0.26),
-  );
-  const widths = [0.08, 0.11, 0.07, 0.1, 0.09, 0.12, 0.075, 0.1, 0.085];
-  const heights = [0.27, 0.3, 0.24, 0.29, 0.25, 0.3, 0.26, 0.28, 0.23];
-  const parts: Float32Array[] = [];
-  let x = -0.66;
-  widths.forEach((w, i) => {
-    const lean = i === widths.length - 1 ? -0.2 : 0;
-    parts.push(box(x + w / 2, 0.0225 + heights[i] / 2, 0, w, heights[i], 0.2, lean));
-    x += w + 0.012;
+/** A stack of four books, covers in gold and page blocks apart, with a ribbon bookmark. */
+function buildBookStack() {
+  const specs = [
+    { w: 0.8, h: 0.12, d: 0.52, dx: 0.0, tilt: 0 },
+    { w: 0.66, h: 0.1, d: 0.46, dx: 0.05, tilt: 0.02 },
+    { w: 0.72, h: 0.13, d: 0.5, dx: -0.04, tilt: -0.03 },
+    { w: 0.5, h: 0.09, d: 0.4, dx: 0.03, tilt: 0.05 },
+  ];
+  const covers: Float32Array[] = [];
+  const pages: Float32Array[] = [];
+  let y = 0;
+  specs.forEach(({ w, h, d, dx, tilt }) => {
+    const cy = y + h / 2;
+    const cx = dx;
+    const board = 0.016;
+    pages.push(box(cx + 0.012, cy, 0, w - 0.05, h - board * 2, d - 0.03, tilt));
+    covers.push(
+      box(cx, cy + (h - board) / 2, 0, w, board, d, tilt),
+      box(cx, cy - (h - board) / 2, 0, w, board, d, tilt),
+      box(cx - w / 2 + 0.016, cy, 0, 0.032, h, d, tilt),
+    );
+    y += h + 0.004;
   });
-  return { shelf, books: merge(...parts) };
+  // The ribbon hangs from the top book over its front edge.
+  covers.push(box(0.2, y - 0.07, specs[specs.length - 1].d / 2 + 0.004, 0.026, 0.2, 0.008));
+  return { shelf: merge(...covers), books: merge(...pages) };
 }
 
 /** A film reel with its strip trailing off to one side. */
@@ -148,7 +156,7 @@ function buildGlobe() {
 }
 
 export function buildWatchPieces(): WatchPieces {
-  const { shelf, books } = buildShelf();
+  const { shelf, books } = buildBookStack();
   const { reel, film } = buildReel();
   const { globe, globeRing, plane } = buildGlobe();
   const outline = tonneauOutline(OUTLINE_POINTS);
