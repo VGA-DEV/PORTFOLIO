@@ -18,11 +18,7 @@
   "hero": {
     "name": "Víctor Manuel Gómez Álvarez",
     "role": "Full Stack Developer · Madrid",
-    "intro": "I build web applications with C# and .NET on the backend and React on the frontend.",
-    "cta": {
-      "projects": "See projects",
-      "contact": "Contact"
-    }
+    "intro": "I build web applications with C# and .NET on the backend and React on the frontend."
   },
   "projects": {
     "title": "Projects",
@@ -140,5 +136,9 @@
       "part": "Crown",
       "text": "The crown is how you wind a watch. It is also where you can write to me."
     }
+  },
+  "crown": {
+    "label": "Wind the crown: go to the next section",
+    "hint": "Turn the crown"
   }
 }

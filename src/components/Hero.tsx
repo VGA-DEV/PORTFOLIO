@@ -6,10 +6,9 @@ type HeroProps = {
   name: string;
   role: string;
   intro: string;
-  cta: { projects: string; contact: string };
 };
 
-export function Hero({ name, role, intro, cta }: HeroProps) {
+export function Hero({ name, role, intro }: HeroProps) {
   return (
     <section
       aria-labelledby='hero-title'
@@ -26,14 +25,6 @@ export function Hero({ name, role, intro, cta }: HeroProps) {
             </h1>
             <p className='hero__role'>{role}</p>
             <p className='hero__intro'>{intro}</p>
-            <p className='hero__actions'>
-              <a className='button button--solid' href='#projects'>
-                {cta.projects}
-              </a>
-              <a className='button' href='#contact'>
-                {cta.contact}
-              </a>
-            </p>
           </div>
           <HeroWatch>
             <DialArt />

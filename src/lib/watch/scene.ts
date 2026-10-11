@@ -1,4 +1,4 @@
-import { Camera, Geometry, Mesh, Program, Renderer, Texture, Transform } from 'ogl';
+import { Camera, Geometry, Mesh, Program, Renderer, Texture, Transform, Vec3 } from 'ogl';
 import {
   BACK_HALF_X,
   BACK_HALF_Y,
@@ -165,7 +165,11 @@ void main() {
 }
 `;
 
+export type CrownPosition = { x: number; y: number; radius: number };
+
 export type WatchScene = {
+  /** Turn the crown, in radians; the visitor winds it by dragging. */
+  spinCrown: (radians: number) => void;
   /** Continuous position along the page: 0 = hero, 1 = projects, and so on. */
   setPosition: (value: number) => void;
   setRunning: (running: boolean) => void;
@@ -181,6 +185,8 @@ export type WatchSceneOptions = {
   logoUrl: string;
   /** Per section: +1 puts the watch on the right of the screen, -1 on the left. */
   sides: readonly number[];
+  /** Called after every rendered frame with where the crown is on screen. */
+  onCrown?: (crown: CrownPosition) => void;
   /** Portrait screens: where the hero watch sits, as a fraction of the screen height from the top. */
   heroAnchor?: number;
 };
@@ -195,15 +201,24 @@ type Group =
   | 'caseBack'
   | 'lugs'
   | 'strap'
-  | 'crown';
+  | 'crown'
+  | 'propBooks'
+  | 'propReel'
+  | 'propGame'
+  | 'propGlobe'
+  | 'propPetals';
 
 type PoseState = {
+  /** Widest extent of what is on show, in scene units. */
+  width: number;
   rotation: V3;
   focus: V3;
   /** Half the visible height, in scene units. */
   half: number;
   /** 0 assembled, 1 fully taken apart. */
   explode: number;
+  /** Portrait screens: how much of the width the view spans (bigger = smaller watch). */
+  zoom?: number;
   show: Partial<Record<Group, number>>;
 };
 
@@ -217,17 +232,19 @@ const ALL: Partial<Record<Group, number>> = {
  * longer needs and settles on the one the next section is about.
  */
 const STATES: readonly PoseState[] = [
-  { rotation: [0.16, -0.45, 0], focus: [0, 0, 0], half: 2.9, explode: 0, show: ALL },
-  { rotation: [0.3, -0.55, 0], focus: [0, 0, -0.35], half: 2.0, explode: 0.45, show: { movement: 1 } },
-  { rotation: [0.12, -0.3, 0], focus: [0, 0, 0.2], half: 2.0, explode: 0.3, show: { dial: 1, hands: 1 } },
-  { rotation: [0.2, -0.95, 0.05], focus: [0, 0, 0], half: 4.1, explode: 1, show: ALL },
-  { rotation: [0.04, Math.PI + 0.12, 0], focus: [0, 0, -0.4], half: 2.0, explode: 0.12, show: { caseBack: 1, caseBand: 1 } },
-  { rotation: [0.12, -1.05, 0], focus: [0.4, 0, 0], half: 3.3, explode: 0.1, show: ALL },
+  { width: 2.4, rotation: [0.16, -0.45, 0], focus: [0, 0, 0], half: 2.9, explode: 0, zoom: 0.98, show: ALL },
+  { width: 2.2, rotation: [0.3, -0.55, 0], focus: [0, 0, -0.35], half: 2.0, explode: 0.45, show: { movement: 1, crown: 1, propBooks: 1 } },
+  { width: 2.6, rotation: [0.12, -0.3, 0], focus: [0, 0, 0.2], half: 2.0, explode: 0.3, show: { dial: 1, hands: 1, crown: 1, propReel: 1 } },
+  { width: 5.8, rotation: [0.2, -0.95, 0.05], focus: [0, 0, 0], half: 4.1, explode: 1, show: { ...ALL, propGame: 1 } },
+  { width: 3.4, rotation: [0.04, Math.PI + 0.12, 0], focus: [0, 0, -0.4], half: 2.0, explode: 0.12, show: { caseBack: 1, caseBand: 1, crown: 1, propGlobe: 1 } },
+  { width: 3.4, rotation: [0.12, -1.05, 0], focus: [0.4, 0, 0], half: 3.3, explode: 0.1, show: { ...ALL, propPetals: 1 } },
 ];
 
 const damp = (current: number, target: number, rate: number, dt: number) =>
   current + (target - current) * (1 - Math.exp(-rate * dt));
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+/** Ease out with a small overshoot, so the miniatures spring up. */
+const popIn = (x: number) => 1 + 2.7 * (x - 1) ** 3 + 1.7 * (x - 1) ** 2;
 const smooth = (t: number) => t * t * (3 - 2 * t);
 const lerp3 = (a: V3, b: V3, t: number): V3 => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
 
@@ -298,6 +315,7 @@ export async function createWatchScene({
   logoUrl,
   sides,
   heroAnchor = 0.64,
+  onCrown,
 }: WatchSceneOptions): Promise<WatchScene> {
   // Geometry is built in a worker while the renderer and textures are set up here.
   const piecesPromise = loadWatchPieces();
@@ -488,14 +506,14 @@ export async function createWatchScene({
     [0, 0, 1.15],
   );
 
-  const crown = addLayer(
+  const crownMesh = addLayer(
     'crown',
     pieces.crown,
     gold(0.28),
     [0.75, 0, -0.95],
     [0.97, 0.32, -0.16],
   );
-  crown.rotation.y = Math.PI / 2;
+  crownMesh.rotation.y = Math.PI / 2;
 
   await tick();
 
@@ -572,6 +590,56 @@ export async function createWatchScene({
   );
   capMesh.position.z = 0.085;
   capMesh.setParent(handGroup);
+
+  // --- miniatures: one small object per interest -----------------------------
+  const flatMesh = (piece: Piece, material: Material) =>
+    makeMesh(new Geometry(gl, { position: { size: 3, data: piece as Float32Array } }), material, true);
+  const propGroup = (group: Group, base: [number, number, number], offset: [number, number, number] = [0, 0, 0]) => {
+    const node = new Transform();
+    node.setParent(watch);
+    node.position.set(...base);
+    register(node, group, base, offset);
+    return node;
+  };
+
+  // Books on a shelf rise between the gears.
+  const booksNode = propGroup('propBooks', [0, -0.93, -0.26], [0, 0, -0.2]);
+  flatMesh(pieces.shelf, gold(0.2)).setParent(booksNode);
+  flatMesh(pieces.books, steel(COLORS.violet, 0.3)).setParent(booksNode);
+
+  // A film reel, with its strip, beside the dial.
+  const reelNode = propGroup('propReel', [0.98, -1.0, 0.2], [0, 0, 0.3]);
+  const reelMesh = flatMesh(pieces.reel, gold(0.18));
+  reelMesh.setParent(reelNode);
+  reelMesh.scale.set(1.3, 1.3, 1.3);
+  const filmMesh = flatMesh(pieces.film, steel(COLORS.violet, 0.3));
+  filmMesh.setParent(reelNode);
+  filmMesh.scale.set(1.3, 1.3, 1.3);
+
+  // A pixel space-invader floats among the loose parts.
+  const gameNode = propGroup('propGame', [-1.25, 1.1, 0.1]);
+  const invaderMesh = flatMesh(pieces.invader, gold(0.18));
+  invaderMesh.setParent(gameNode);
+  invaderMesh.scale.set(1.7, 1.7, 1.7);
+
+  // A globe with a paper plane circling it, next to the case back.
+  const globeNode = propGroup('propGlobe', [-1.3, 0.55, -0.5]);
+  globeNode.rotation.x = -1.2;
+  flatMesh(pieces.globe, gold(0.2)).setParent(globeNode);
+  flatMesh(pieces.globeRing, steel(COLORS.rhodium, 0.25)).setParent(globeNode);
+  const planePivot = new Transform();
+  planePivot.setParent(globeNode);
+  const planeMesh = flatMesh(pieces.plane, steel(COLORS.roseGold, 0.2));
+  planeMesh.position.set(0.58, 0, 0);
+  planeMesh.setParent(planePivot);
+
+  // Blossom petals drift down past the crown.
+  const petalsNode = propGroup('propPetals', [1.05, 0.3, 0.1]);
+  const petals = Array.from({ length: 9 }, (_, i) => {
+    const mesh = flatMesh(pieces.petal, steel(COLORS.roseGold, 0.25));
+    mesh.setParent(petalsNode);
+    return { mesh, phase: i / 9, x: Math.cos(i * 2.4) * 0.55, z: Math.sin(i * 1.7) * 0.6, spin: 0.6 + (i % 3) * 0.4 };
+  });
 
   await tick();
 
@@ -653,7 +721,12 @@ export async function createWatchScene({
     const rotation = lerp3(from.rotation, to.rotation, ease);
     const focus = lerp3(from.focus, to.focus, ease);
     const portrait = width < height;
-    const half = (lerp(from.half, to.half, ease) + 1.1 * burst) * (portrait ? 0.72 : 1);
+    const aspect = width / height;
+    // On wider-than-tall screens the watch has half the width to itself: zoom out if it would not fit.
+    const widest = lerp(from.width, to.width, ease);
+    const fitHalf = portrait ? 0 : widest / (0.8 * aspect);
+    const half = (Math.max(lerp(from.half, to.half, ease), fitHalf) + 1.1 * burst) *
+      (portrait ? lerp(from.zoom ?? 0.72, to.zoom ?? 0.72, ease) : 1);
     const explode = lerp(from.explode, to.explode, ease) + 0.9 * burst;
     // Pieces leave late in the move, once they have flown apart.
     const fade = smooth(Math.min(Math.max((u - 0.3) / 0.5, 0), 1));
@@ -662,7 +735,7 @@ export async function createWatchScene({
       const visibleFrom = from.show[layer.group] ?? 0;
       const visibleTo = to.show[layer.group] ?? 0;
       const vis = lerp(visibleFrom, visibleTo, fade);
-      const scale = vis <= 0.001 ? 0 : Math.pow(vis, 0.7);
+      const scale = vis <= 0.001 ? 0 : layer.group.startsWith('prop') ? popIn(vis) : Math.pow(vis, 0.7);
       layer.node.visible = scale > 0.01;
       layer.node.scale.set(scale, scale, scale);
       layer.node.position.set(
@@ -679,7 +752,6 @@ export async function createWatchScene({
 
     // Orbit: opposite the section's text, and round the screen between sections.
     const theta = lerp(angles[a] ?? 0, angles[b] ?? 0, ease);
-    const aspect = width / height;
     const viewW = portrait ? half : half * aspect;
     const viewH = portrait ? half / aspect : half;
     const rx = (portrait ? 0.16 : 0.46) * viewW;
@@ -690,6 +762,7 @@ export async function createWatchScene({
     rotator.position.y = baseY + ry * Math.sin(theta) + Math.sin(t * 0.0009) * 0.03;
     glassPhase.value = 0.2 + 0.4 * explode + shownX * 0.25 + Math.sin(t * 0.0004) * 0.05;
     fitCamera(half);
+    lastHalf = half;
 
     // Local time, with a sweeping seconds hand.
     const now = new Date();
@@ -702,8 +775,35 @@ export async function createWatchScene({
     minuteHand.rotation.z = -(minutes / 60) * tau - tau * ease;
     hourHand.rotation.z = -(hours / 12) * tau - (tau / 12) * ease;
 
+    // The miniatures are alive: a turning reel, a bobbing invader, a circling plane, falling petals.
+    reelMesh.rotation.z -= 0.9 * dt;
+    invaderMesh.position.y = Math.sin(t * 0.0018) * 0.05;
+    invaderMesh.rotation.y = Math.sin(t * 0.0009) * 0.5;
+    planePivot.rotation.z += 0.9 * dt;
+    for (const petal of petals) {
+      const fall = (t * 0.00008 * petal.spin + petal.phase) % 1;
+      petal.mesh.position.set(petal.x, 0.9 - fall * 1.8, petal.z);
+      petal.mesh.rotation.set(t * 0.001 * petal.spin, t * 0.0013, fall * 6);
+    }
+
     const spin = 1 + 5 * burst + (a === 1 && u < 0.5 ? 1.5 : 0);
     for (const g of gears) g.mesh.rotation.z += g.speed * dt * spin;
+  };
+
+  const crownPoint = new Vec3();
+  let lastHalf = 3;
+  /** Tell the page where the crown is, so a real button can sit on top of it. */
+  const reportCrown = () => {
+    if (!onCrown) return;
+    const m = crownMesh.worldMatrix;
+    crownPoint.set(m[12], m[13], m[14]);
+    camera.project(crownPoint);
+    const pxPerUnit = height / (2 * lastHalf);
+    onCrown({
+      x: (crownPoint.x * 0.5 + 0.5) * width,
+      y: (1 - (crownPoint.y * 0.5 + 0.5)) * height,
+      radius: Math.max(0.22 * pxPerUnit, 24),
+    });
   };
 
   const frame = (now: number) => {
@@ -719,6 +819,7 @@ export async function createWatchScene({
       lastRender = now;
       applyPose(now, dt);
       renderer.render({ scene, camera });
+      reportCrown();
       if (!idle) {
         frameAverage = frameAverage * 0.9 + Math.min(frameMs, 100) * 0.1;
         slowFrames = frameAverage > 26 ? slowFrames + 1 : 0;
@@ -776,6 +877,10 @@ export async function createWatchScene({
         shownPosition = position;
         redrawStill();
       }
+    },
+    spinCrown: (radians) => {
+      crownMesh.rotation.z += radians;
+      wake();
     },
     setRunning,
     resize: () => {

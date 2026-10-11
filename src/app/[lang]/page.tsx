@@ -1,6 +1,7 @@
 import { Hero } from '@/components/Hero';
 import { Section } from '@/components/Section';
 import { WatchBackdrop } from '@/components/WatchBackdrop';
+import { WheelScroll } from '@/components/WheelScroll';
 import { getProfile, getStack } from '@/i18n/content';
 import { getDictionary, getLocale } from '@/i18n/dictionaries';
 
@@ -19,12 +20,12 @@ export default async function HomePage() {
 
   return (
     <>
-      <WatchBackdrop logoUrl='/images/logo-vga-dev.webp' />
+      <WatchBackdrop logoUrl='/images/logo-vga-dev.webp' crown={dict.crown} />
+      <WheelScroll />
       <Hero
         name={dict.hero.name}
         role={dict.hero.role}
         intro={dict.hero.intro}
-        cta={dict.hero.cta}
       />
 
       <Section

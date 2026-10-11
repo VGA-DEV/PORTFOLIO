@@ -18,11 +18,7 @@
   "hero": {
     "name": "Víctor Manuel Gómez Álvarez",
     "role": "Desarrollador Full Stack · Madrid",
-    "intro": "Desarrollo aplicaciones web con C# y .NET en el backend y React en el frontend.",
-    "cta": {
-      "projects": "Ver proyectos",
-      "contact": "Contacto"
-    }
+    "intro": "Desarrollo aplicaciones web con C# y .NET en el backend y React en el frontend."
   },
   "projects": {
     "title": "Proyectos",
@@ -140,5 +136,9 @@
       "part": "Corona",
       "text": "La corona es por donde se da cuerda a un reloj. También es por donde puedes escribirme."
     }
+  },
+  "crown": {
+    "label": "Dar cuerda: ir a la siguiente sección",
+    "hint": "Gira la corona"
   }
 }

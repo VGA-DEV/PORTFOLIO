@@ -1,4 +1,4 @@
-import { blossom, gear, hand, lathe, merge, translateFlat } from './geometry';
+import { blossom, box, extrudeStar, gear, hand, lathe, merge, translateFlat } from './geometry';
 import { loft, roundedTrapezoid, strap, tonneauOutline, type SmoothMesh } from './smooth';
 
 /**
@@ -27,13 +27,23 @@ export type WatchPieces = {
   secondHand: Piece;
   cap: Piece;
   crystal: Piece;
+  /** Small gold miniatures, one per interest ("complications"). */
+  shelf: Piece;
+  books: Piece;
+  reel: Piece;
+  film: Piece;
+  invader: Piece;
+  globe: Piece;
+  globeRing: Piece;
+  plane: Piece;
+  petal: Piece;
 };
 
 /** The gears in a V, as the scene also needs their size to place them. */
 export const GEAR_SPECS = [
-  { x: -0.42, y: 0.38, teeth: 14, out: 0.32, hub: 0.07, spokes: 3 },
-  { x: 0.42, y: 0.38, teeth: 14, out: 0.32, hub: 0.07, spokes: 3 },
-  { x: 0.0, y: -0.26, teeth: 18, out: 0.42, hub: 0.09, spokes: 4 },
+  { x: -0.42, y: 0.48, teeth: 14, out: 0.32, hub: 0.07, spokes: 3 },
+  { x: 0.42, y: 0.48, teeth: 14, out: 0.32, hub: 0.07, spokes: 3 },
+  { x: 0.0, y: -0.16, teeth: 18, out: 0.42, hub: 0.09, spokes: 4 },
 ] as const;
 
 const translate = (mesh: SmoothMesh, dx: number, dy: number, dz: number): SmoothMesh => {
@@ -52,7 +62,95 @@ const mergeSmooth = (...parts: SmoothMesh[]): SmoothMesh => ({
   uv: merge(...parts.map((p) => p.uv)),
 });
 
+/** A bookshelf: two boards, two sides and a row of books of different sizes. */
+function buildShelf() {
+  const shelf = merge(
+    box(0, 0, 0, 1.5, 0.045, 0.26),
+    box(0, 0.36, 0, 1.5, 0.045, 0.26),
+    box(-0.74, 0.18, 0, 0.045, 0.36, 0.26),
+    box(0.74, 0.18, 0, 0.045, 0.36, 0.26),
+  );
+  const widths = [0.08, 0.11, 0.07, 0.1, 0.09, 0.12, 0.075, 0.1, 0.085];
+  const heights = [0.27, 0.3, 0.24, 0.29, 0.25, 0.3, 0.26, 0.28, 0.23];
+  const parts: Float32Array[] = [];
+  let x = -0.66;
+  widths.forEach((w, i) => {
+    const lean = i === widths.length - 1 ? -0.2 : 0;
+    parts.push(box(x + w / 2, 0.0225 + heights[i] / 2, 0, w, heights[i], 0.2, lean));
+    x += w + 0.012;
+  });
+  return { shelf, books: merge(...parts) };
+}
+
+/** A film reel with its strip trailing off to one side. */
+function buildReel() {
+  const spokes = [0, Math.PI / 3, (2 * Math.PI) / 3].map((a) => box(0, 0, 0, 0.5, 0.045, 0.03, a));
+  const reel = merge(
+    lathe([[0.1, -0.035], [0.26, -0.035], [0.26, 0.035], [0.1, 0.035]], 28, 0),
+    lathe([[0, -0.045], [0.1, -0.045], [0.1, 0.045], [0, 0.045]], 16, 0),
+    ...spokes,
+  );
+  const strips: Float32Array[] = [];
+  for (let i = 0; i < 14; i++) {
+    const x = 0.28 + i * 0.1;
+    const y = -0.24 - i * i * 0.0105;
+    const slope = -Math.atan(2 * i * 0.0105 / 0.1);
+    strips.push(box(x, y, 0, 0.11, 0.16, 0.012, slope));
+  }
+  return { reel, film: merge(...strips) };
+}
+
+/** A small pixel space-invader built from cubes. */
+function buildInvader() {
+  const rows = [
+    '..#.....#..',
+    '...#...#...',
+    '..#######..',
+    '.##.###.##.',
+    '###########',
+    '#.#######.#',
+    '#.#.....#.#',
+    '...##.##...',
+  ];
+  const size = 0.05;
+  const cubes: Float32Array[] = [];
+  rows.forEach((row, r) => {
+    [...row].forEach((cell, c) => {
+      if (cell === '#') cubes.push(box((c - 5) * size * 1.08, (3.5 - r) * size * 1.08, 0, size, size, size));
+    });
+  });
+  return merge(...cubes);
+}
+
+/** A faceted globe with an equator ring and a paper plane to orbit it. */
+function buildGlobe() {
+  const radius = 0.3;
+  const steps = 7;
+  const profile = Array.from({ length: steps + 1 }, (_, i) => {
+    const a = (i / steps) * Math.PI;
+    return [Math.sin(a) * radius, Math.cos(a) * radius] as const;
+  });
+  const plane = extrudeStar(
+    [
+      [0, 0.12],
+      [0.08, -0.07],
+      [0, -0.035],
+      [-0.08, -0.07],
+    ],
+    -0.008,
+    0.008,
+  );
+  return {
+    globe: lathe(profile, 14, 0),
+    globeRing: lathe([[0.37, -0.014], [0.42, -0.014], [0.42, 0.014], [0.37, 0.014]], 40, 0),
+    plane,
+  };
+}
+
 export function buildWatchPieces(): WatchPieces {
+  const { shelf, books } = buildShelf();
+  const { reel, film } = buildReel();
+  const { globe, globeRing, plane } = buildGlobe();
   const outline = tonneauOutline(OUTLINE_POINTS);
 
   // End pieces: straight-sided trapezoids with rounded corners that carry the strap.
@@ -102,6 +200,15 @@ export function buildWatchPieces(): WatchPieces {
     ),
     cap: lathe([[0, 0], [0.075, 0], [0.06, 0.04], [0, 0.05]], 20, 0),
     crystal: loft(outline, [[0.92, 0.0], [0.91, 0.05], [0.66, 0.078], [0.32, 0.09], [0, 0.094]]),
+    shelf,
+    books,
+    reel,
+    film,
+    invader: buildInvader(),
+    globe,
+    globeRing,
+    plane,
+    petal: blossom(0.13, -0.006, 0.006),
   };
 }
 
