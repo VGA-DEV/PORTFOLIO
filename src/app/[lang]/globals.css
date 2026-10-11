@@ -424,42 +424,44 @@ code {
 /* The 3D watch: a full-screen canvas behind the content, so it lives in the page
    backgrounds instead of in a box. Section backgrounds sit under it; text above. */
 .watch-bg {
-  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.9s var(--ease-out);
 }
 
+html[data-watch='3d'] .watch-bg {
+  opacity: var(--watch-opacity, 1);
+}
+
+html[data-watch='3d'] .hero__watch .dial,
+html[data-watch='3d'] .hero__watch .watch__frame {
+  opacity: 0;
+}
+
+.watch-bg__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Content above the canvas, section backgrounds below it. */
+.hero__grid,
+.section > .container {
+  position: relative;
+  z-index: 2;
+}
+
+.site-footer {
+  position: relative;
+  z-index: 2;
+}
+
+/* Wide screens with a precise pointer: the text takes one half of the screen and
+   the watch the other, and each section fills one screen. */
 @media (min-width: 62rem) and (pointer: fine) {
-  .watch-bg {
-    display: block;
-    position: fixed;
-    inset: 0;
-    z-index: 1;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.9s var(--ease-out);
-  }
-
-  html[data-watch='3d'] .watch-bg {
-    opacity: 1;
-  }
-
-  html[data-watch='3d'] .hero__watch .dial,
-  html[data-watch='3d'] .hero__watch .watch__frame {
-    opacity: 0;
-  }
-
-  .watch-bg__canvas {
-    display: block;
-    width: 100%;
-    height: 100%;
-  }
-
-  .hero__grid,
-  .section > .container {
-    position: relative;
-    z-index: 2;
-  }
-
-  /* Each section's text takes one half of the screen; the watch takes the other. */
   .section__body {
     width: min(100%, 36rem);
   }
@@ -468,7 +470,6 @@ code {
     margin-left: auto;
   }
 
-  /* One screen per section, so the watch has time to settle on its piece. */
   .section {
     display: grid;
     align-content: center;

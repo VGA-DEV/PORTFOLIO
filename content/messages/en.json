@@ -119,12 +119,6 @@
     "rights": "Víctor Manuel Gómez Álvarez",
     "logoAlt": "{VGA_DEV} logo"
   },
-  "watch": {
-    "engraving": [
-      "REVISION 2",
-      "v1 Angular → v2 Next.js"
-    ]
-  },
   "notes": {
     "projects": {
       "part": "Movement",

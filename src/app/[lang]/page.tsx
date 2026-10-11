@@ -19,7 +19,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <WatchBackdrop engraving={dict.watch.engraving} logoUrl='/images/logo-vga-dev.webp' />
+      <WatchBackdrop logoUrl='/images/logo-vga-dev.webp' />
       <Hero
         name={dict.hero.name}
         role={dict.hero.role}

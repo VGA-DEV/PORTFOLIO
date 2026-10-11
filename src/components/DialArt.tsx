@@ -139,7 +139,7 @@ export function DialArt() {
         })}
       </g>
 
-      <image href='/images/logo-vga-dev.webp' x={CX - 32} y={CY + 0.33 * UNIT - 19.5} width='64' height='39' opacity='0.9' />
+      <image href='/images/logo-vga-dev.webp' x={CX - 19} y={CY + 0.3 * UNIT - 11.5} width='38' height='23' opacity='0.85' />
 
       <g className='dial__hand dial__hand--hour'>
         <polygon points={`${CX - 7},${CY} ${CX},${CY - 0.5 * UNIT} ${CX + 7},${CY} ${CX},${CY + 14}`} fill='#1c2278' />

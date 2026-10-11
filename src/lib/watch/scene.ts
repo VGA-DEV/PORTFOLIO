@@ -177,12 +177,12 @@ export type WatchSceneOptions = {
   canvas: HTMLCanvasElement;
   /** Render a single still frame instead of animating. */
   still: boolean;
-  /** Lines engraved on the case back. */
-  engraving: readonly string[];
   /** Black {VGA_DEV} logo painted on the dial and the case back. */
   logoUrl: string;
   /** Per section: +1 puts the watch on the right of the screen, -1 on the left. */
   sides: readonly number[];
+  /** Portrait screens: where the hero watch sits, as a fraction of the screen height from the top. */
+  heroAnchor?: number;
 };
 
 type Group =
@@ -249,13 +249,13 @@ const mergeSmooth = (...parts: SmoothMesh[]): SmoothMesh => ({
   uv: merge(...parts.map((p) => p.uv)),
 });
 
-export function createWatchScene({ canvas, still, engraving, logoUrl, sides }: WatchSceneOptions): WatchScene {
+export function createWatchScene({ canvas, still, logoUrl, sides, heroAnchor = 0.64 }: WatchSceneOptions): WatchScene {
   const renderer = new Renderer({
     canvas,
     alpha: true,
     premultipliedAlpha: true,
     antialias: true,
-    dpr: Math.min(window.devicePixelRatio || 1, 1.5),
+    dpr: Math.min(window.devicePixelRatio || 1, window.matchMedia('(pointer: coarse)').matches ? 1.25 : 1.5),
     webgl: 2,
   });
   const { gl } = renderer;
@@ -286,7 +286,7 @@ export function createWatchScene({ canvas, still, engraving, logoUrl, sides }: W
   const dialCanvas = createDialCanvas();
   const backCanvas = createEngravingCanvas();
   paintDial(dialCanvas, outline, fontFamily, null);
-  paintEngraving(backCanvas, outline, fontFamily, engraving, null);
+  paintEngraving(backCanvas, outline, null);
   const dialTexture = texture(dialCanvas);
   const backTexture = texture(backCanvas);
 
@@ -294,7 +294,7 @@ export function createWatchScene({ canvas, still, engraving, logoUrl, sides }: W
   const logo = new Image();
   logo.onload = () => {
     paintDial(dialCanvas, outline, fontFamily, logo);
-    paintEngraving(backCanvas, outline, fontFamily, engraving, logo);
+    paintEngraving(backCanvas, outline, logo);
     dialTexture.needsUpdate = true;
     backTexture.needsUpdate = true;
     if (still) redrawStill();
@@ -527,6 +527,17 @@ export function createWatchScene({ canvas, still, engraving, logoUrl, sides }: W
 
   // --- state ---------------------------------------------------------------
   const lastIndex = STATES.length - 1;
+
+  // The watch travels round the screen like the tip of a clock hand: each change of
+  // side is half a turn clockwise (through the bottom, then through the top).
+  const angles: number[] = [];
+  for (let i = 0; i <= lastIndex; i++) {
+    const side = sides[i] ?? 1;
+    if (i === 0) angles.push(side > 0 ? 0 : Math.PI);
+    else angles.push(angles[i - 1] - ((sides[i - 1] ?? 1) === side ? 0 : Math.PI));
+  }
+  // Portrait screens: vertical place of the watch per section, from the top (0) to the bottom (1).
+  const portraitRows = [heroAnchor, 0.6, 0.6, 0.55, 0.6, 0.6];
   let position = 0;
   let shownPosition = 0;
   let pointerX = 0;
@@ -545,6 +556,10 @@ export function createWatchScene({ canvas, still, engraving, logoUrl, sides }: W
     camera.position.set(0, 0, Math.max(half / (tan * aspect), half / tan));
     camera.lookAt([0, 0, 0]);
   };
+
+  // Frame rate cap on phones, to spare the battery.
+  const minFrameMs = window.matchMedia('(pointer: coarse)').matches ? 33 : 0;
+  let lastRender = 0;
 
   const resize = () => {
     const parent = canvas.parentElement;
@@ -568,7 +583,8 @@ export function createWatchScene({ canvas, still, engraving, logoUrl, sides }: W
 
     const rotation = lerp3(from.rotation, to.rotation, ease);
     const focus = lerp3(from.focus, to.focus, ease);
-    const half = lerp(from.half, to.half, ease) + 1.1 * burst;
+    const portrait = width < height;
+    const half = (lerp(from.half, to.half, ease) + 1.1 * burst) * (portrait ? 0.72 : 1);
     const explode = lerp(from.explode, to.explode, ease) + 0.9 * burst;
     // Pieces leave late in the move, once they have flown apart.
     const fade = smooth(Math.min(Math.max((u - 0.3) / 0.5, 0), 1));
@@ -589,13 +605,20 @@ export function createWatchScene({ canvas, still, engraving, logoUrl, sides }: W
 
     watch.position.set(-focus[0], -focus[1], -focus[2]);
     rotator.rotation.x = rotation[0] + burst * 0.15 - shownY * 0.12;
-    rotator.rotation.y = rotation[1] - burst * 0.6 + shownX * 0.18;
-    // Each jump turns the watch once around, clockwise, like a hand sweeping the dial.
-    rotator.rotation.z = rotation[2] - Math.PI * 2 * ease;
-    // Left or right of the screen, opposite the section's text; it crosses the middle mid-jump.
-    const side = lerp(sides[a] ?? 1, sides[b] ?? 1, ease);
-    rotator.position.x = side * 0.46 * half * (width / height);
-    rotator.position.y = Math.sin(t * 0.0009) * 0.03;
+    rotator.rotation.y = rotation[1] - burst * 0.25 + shownX * 0.18;
+    rotator.rotation.z = rotation[2];
+
+    // Orbit: opposite the section's text, and round the screen between sections.
+    const theta = lerp(angles[a] ?? 0, angles[b] ?? 0, ease);
+    const aspect = width / height;
+    const viewW = portrait ? half : half * aspect;
+    const viewH = portrait ? half / aspect : half;
+    const rx = (portrait ? 0.16 : 0.46) * viewW;
+    const ry = (portrait ? 0.08 : 0.28) * viewH;
+    const row = lerp(portraitRows[a] ?? 0.6, portraitRows[b] ?? 0.6, ease);
+    const baseY = portrait ? (0.5 - row) * 2 * viewH : 0;
+    rotator.position.x = rx * Math.cos(theta);
+    rotator.position.y = baseY + ry * Math.sin(theta) + Math.sin(t * 0.0009) * 0.03;
     glassPhase.value = 0.2 + 0.4 * explode + shownX * 0.25 + Math.sin(t * 0.0004) * 0.05;
     fitCamera(half);
 
@@ -620,8 +643,11 @@ export function createWatchScene({ canvas, still, engraving, logoUrl, sides }: W
     shownPosition = damp(shownPosition, position, 6, dt);
     shownX = damp(shownX, pointerX, 4, dt);
     shownY = damp(shownY, pointerY, 4, dt);
-    applyPose(now, dt);
-    renderer.render({ scene, camera });
+    if (now - lastRender >= minFrameMs) {
+      lastRender = now;
+      applyPose(now, dt);
+      renderer.render({ scene, camera });
+    }
     if (running) raf = requestAnimationFrame(frame);
   };
 

@@ -28,23 +28,6 @@ function drawLogo(
   ctx.restore();
 }
 
-/** Shrink a line of text until it fits `maxWidth`. */
-function fitText(
-  ctx: CanvasRenderingContext2D,
-  text: string,
-  fontFamily: string,
-  size: number,
-  maxWidth: number,
-  weight = 600,
-) {
-  let current = size;
-  ctx.font = `${weight} ${current}px ${fontFamily}`;
-  while (ctx.measureText(text).width > maxWidth && current > 12) {
-    current -= 2;
-    ctx.font = `${weight} ${current}px ${fontFamily}`;
-  }
-}
-
 export function createDialCanvas() {
   const width = 1024;
   const pxPerUnit = width / 2 / DIAL_HALF_X;
@@ -134,9 +117,9 @@ export function paintDial(
     ctx.fillText(numeral, X, Y);
   });
 
-  // The logo, in the lower half, opposite the 12.
-  const [lx, ly] = px(0, -0.33);
-  drawLogo(ctx, logo, lx, ly, 0.5 * pxPerUnit, 0.9);
+  // The logo, small, in the lower half and opposite the 12.
+  const [lx, ly] = px(0, -0.3);
+  drawLogo(ctx, logo, lx, ly, 0.3 * pxPerUnit, 0.85);
 }
 
 export function createEngravingCanvas() {
@@ -150,14 +133,11 @@ export function createEngravingCanvas() {
 
 /**
  * Engraving mask for the case back: white is polished metal, black is cut.
- * Guilloché rings around a clear plate holding the logo and two lines of text,
- * all kept inside the plate.
+ * Guilloché rings around a clear plate that holds only the logo.
  */
 export function paintEngraving(
   canvas: HTMLCanvasElement,
   outline: readonly Vec2[],
-  fontFamily: string,
-  lines: readonly string[],
   logo: HTMLImageElement | null,
 ) {
   const { width, height } = canvas;
@@ -190,7 +170,7 @@ export function paintEngraving(
   }
 
   // Clear plate with a cut border.
-  const plate = 0.66;
+  const plate = 0.62;
   trace(plate);
   ctx.fillStyle = '#ffffff';
   ctx.fill();
@@ -202,16 +182,5 @@ export function paintEngraving(
   ctx.lineWidth = 2;
   ctx.stroke();
 
-  // Everything sits on the centre line and inside the plate's width.
-  const maxWidth = 2 * (plate - 0.1) * pxPerUnit * (1 - CASE.taper * 0.2);
-  drawLogo(ctx, logo, cx, cy - 0.3 * pxPerUnit, Math.min(0.78 * pxPerUnit, maxWidth));
-
-  ctx.fillStyle = '#000000';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  const rows = [0.08, 0.3];
-  lines.slice(0, 2).forEach((line, i) => {
-    fitText(ctx, line, fontFamily, i === 0 ? 70 : 52, maxWidth);
-    ctx.fillText(line, cx, cy + rows[i] * pxPerUnit);
-  });
+  drawLogo(ctx, logo, cx, cy, 0.8 * pxPerUnit);
 }
