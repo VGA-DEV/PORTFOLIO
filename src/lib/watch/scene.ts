@@ -687,6 +687,7 @@ export async function createWatchScene({
   const portraitRows = [heroAnchor, 0.6, 0.6, 0.55, 0.6, 0.6];
   let position = 0;
   let shownPosition = 0;
+  let positionVelocity = 0;
   let pointerX = 0;
   let pointerY = 0;
   let shownX = 0;
@@ -858,10 +859,16 @@ export async function createWatchScene({
   const frame = (now: number) => {
     const dt = Math.min(Math.max((now - lastTime) / 1000, 0.001), 0.25);
     lastTime = now;
-    shownPosition = damp(shownPosition, position, 10, dt);
+    // A critically damped spring: the move starts gently, glides and settles without overshoot.
+    const omega = 7;
+    for (let left = dt; left > 0; left -= 1 / 120) {
+      const h = Math.min(left, 1 / 120);
+      positionVelocity += (omega * omega * (position - shownPosition) - 2 * omega * positionVelocity) * h;
+      shownPosition += positionVelocity * h;
+    }
     shownX = damp(shownX, pointerX, 4, dt);
     shownY = damp(shownY, pointerY, 4, dt);
-    if (Math.abs(shownPosition - position) > 0.002) wake();
+    if (Math.abs(shownPosition - position) > 0.002 || Math.abs(positionVelocity) > 0.002) wake();
     const idle = now > activeUntil;
     if (now - lastRender >= (idle ? 33 : 0)) {
       const frameMs = now - lastRender;
@@ -924,6 +931,7 @@ export async function createWatchScene({
       wake();
       if (still) {
         shownPosition = position;
+        positionVelocity = 0;
         redrawStill();
       }
     },

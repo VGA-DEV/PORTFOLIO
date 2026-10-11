@@ -132,6 +132,8 @@ export function BackdropSweep() {
         pin.style.top = `${Math.round(Math.min(viewport - pin.offsetHeight, header))}px`;
       });
       html.style.setProperty('--overlap', `${viewport - header}px`);
+      // Links to a section land with it exactly where the end of the dwell puts it.
+      html.style.scrollPaddingTop = `${header}px`;
       update();
     };
     setPins();
@@ -159,6 +161,7 @@ export function BackdropSweep() {
         el.style.removeProperty('transform');
       });
       html.style.removeProperty('--overlap');
+      html.style.removeProperty('scroll-padding-top');
       nodes.forEach((node) => node.remove());
       delete html.dataset.sweep;
     };
