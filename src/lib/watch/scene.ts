@@ -172,6 +172,8 @@ export type AnchorInfo = {
   centreX: number;
   /** The crown of the watch on screen, in pixels, so a real button can sit over it. */
   crown: { x: number; y: number; radius: number };
+  /** Rough box of the watch case on screen, in pixels, for keeping notes clear of it. */
+  model: { x: number; y: number; halfW: number; halfH: number };
   /** Continuous position along the page, 0 = hero. */
   position: number;
 };
@@ -691,6 +693,8 @@ export async function createWatchScene({
   let shownY = 0;
   let width = 1;
   let height = 1;
+  /** How wide the watch is across the current pose, in scene units. */
+  let modelUnits = 2.4;
   let raf = 0;
   let lastTime = 0;
   let running = false;
@@ -739,6 +743,7 @@ export async function createWatchScene({
     const aspect = width / height;
     // On wider-than-tall screens the watch has half the width to itself: zoom out if it would not fit.
     const widest = lerp(from.width, to.width, ease);
+    modelUnits = widest;
     const fitHalf = portrait ? 0 : widest / (0.8 * aspect);
     const half = (Math.max(lerp(from.half, to.half, ease), fitHalf) + 1.1 * burst) *
       (portrait ? lerp(from.zoom ?? 0.72, to.zoom ?? 0.72, ease) : 1);
@@ -830,7 +835,14 @@ export async function createWatchScene({
       (crownEdge.x - crownPoint.x) * 0.5 * width,
       (crownEdge.y - crownPoint.y) * 0.5 * height,
     );
+    const pxPerUnit = Math.max(crownRadius / 0.22, 1);
     onAnchor({
+      model: {
+        x: (centrePoint.x * 0.5 + 0.5) * width,
+        y: (1 - (centrePoint.y * 0.5 + 0.5)) * height,
+        halfW: (modelUnits / 2) * pxPerUnit,
+        halfH: 1.4 * pxPerUnit,
+      },
       crown: {
         x: (crownPoint.x * 0.5 + 0.5) * width,
         y: (1 - (crownPoint.y * 0.5 + 0.5)) * height,

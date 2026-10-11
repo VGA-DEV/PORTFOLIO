@@ -15,9 +15,18 @@ type WatchBackdropProps = {
 const REDUCED_QUERY = '(prefers-reduced-motion: reduce)';
 /** Below this width the page is a single column and the watch sits behind the text. */
 const NARROW_QUERY = '(max-width: 61.99rem)';
+/** Notes and the crown re-think where to sit this often, in milliseconds. */
+const RETHINK_MS = 140;
+const HEADER = 84;
+const MARGIN = 14;
 
 const clamp01 = (n: number) => Math.min(Math.max(n, 0), 1);
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+
+type Rect = { l: number; t: number; r: number; b: number };
+
+const overlap = (a: Rect, b: Rect) =>
+  Math.max(0, Math.min(a.r, b.r) - Math.max(a.l, b.l)) * Math.max(0, Math.min(a.b, b.b) - Math.max(a.t, b.t));
 
 type Navigator3D = Navigator & {
   connection?: { saveData?: boolean };
@@ -33,11 +42,25 @@ function deviceIsTooWeak() {
   return false;
 }
 
+/** The boxes of the text on screen, so notes and the crown can keep clear of them. */
+function scanText(): Rect[] {
+  const vh = window.innerHeight;
+  const out: Rect[] = [];
+  document
+    .querySelectorAll<HTMLElement>('[data-watch-section] :is(h1, h2, h3, p, li, dt, dd)')
+    .forEach((el) => {
+      const r = el.getBoundingClientRect();
+      if (r.width > 0 && r.bottom > 0 && r.top < vh) out.push({ l: r.left, t: r.top, r: r.right, b: r.bottom });
+    });
+  return out;
+}
+
 /**
  * A full-screen canvas fixed behind the page content. Its scene is the watch, which
- * moves to the piece each section is about as the page scrolls. A text callout, tied
- * to that piece by a bent line, explains why. The crown of the 3D watch is the page
- * control. On phones the watch sits fainter behind the text.
+ * moves to the piece each section is about as the page scrolls. A note, tied to that
+ * piece by a line, explains why; it looks for free background to sit on, away from the
+ * text and from the watch. The crown of the 3D watch is the page control; when the
+ * watch puts it under the text, the control steps aside and stays tied to the crown.
  */
 export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -45,10 +68,11 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
   const calloutRef = useRef<HTMLDivElement>(null);
   const boxRef = useRef<HTMLParagraphElement>(null);
   const lineRef = useRef<SVGPolylineElement>(null);
+  const tetherRef = useRef<SVGLineElement>(null);
   const dotRef = useRef<SVGCircleElement>(null);
   const crownRef = useRef<HTMLButtonElement>(null);
   const sceneHandle = useRef<WatchScene | null>(null);
-  const drag = useRef({ active: false, moved: 0, lastY: 0 });
+  const drag = useRef({ active: false, moved: 0, lastY: 0, over: 0 });
   const [index, setIndex] = useState(0);
   const indexRef = useRef(0);
 
@@ -65,33 +89,139 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
     let scene: WatchScene | null = null;
     let teardown: (() => void) | null = null;
     let lastScrollY = window.scrollY;
-    let sides: number[] = [];
     let sectionEls: HTMLElement[] = [];
-    let measured = { key: '', height: 0 };
 
-    /** Keep the real button exactly over the 3D crown. */
-    const placeCrown = (c: AnchorInfo['crown']) => {
+    let text: Rect[] = [];
+    let lastScan = -1e9;
+    let measured = { key: '', w: 0, h: 0 };
+    let target = { x: 0, y: 0, key: '' };
+    let shown: { x: number; y: number } | null = null;
+    let crownGoal: { x: number; y: number } | null = null;
+    let crownShown: { x: number; y: number } | null = null;
+    let crownSize = 52;
+
+    /** How bad a place is for a note: overlap with text, the watch and the crown, and distance. */
+    const boxCost = (box: Rect, a: AnchorInfo, crownRect: Rect | null) => {
+      const model: Rect = {
+        l: a.model.x - a.model.halfW,
+        r: a.model.x + a.model.halfW,
+        t: a.model.y - a.model.halfH,
+        b: a.model.y + a.model.halfH,
+      };
+      let cost = overlap(box, model) * 1.6;
+      for (const r of text) cost += overlap(box, r);
+      if (crownRect) cost += overlap(box, crownRect) * 3;
+      const dx = (box.l + box.r) / 2 - a.x;
+      const dy = (box.t + box.b) / 2 - a.y;
+      return cost + Math.hypot(dx, dy) * 30;
+    };
+
+    /** Look for the freest background around, and keep the choice unless a clearly better one appears. */
+    const thinkNote = (a: AnchorInfo, w: number, h: number, crownRect: Rect | null) => {
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      if (narrow.matches) {
+        target = { x: (vw - w) / 2, y: vh - h - 18, key: 'phone' };
+        return;
+      }
+      let best = { x: target.x, y: target.y, cost: Infinity, key: target.key };
+      const xs = 8;
+      const ys = 9;
+      for (let i = 0; i <= xs; i++) {
+        for (let j = 0; j <= ys; j++) {
+          const x = MARGIN + ((vw - 2 * MARGIN - w) * i) / xs;
+          const y = HEADER + ((vh - HEADER - MARGIN - h) * j) / ys;
+          const cost = boxCost({ l: x, t: y, r: x + w, b: y + h }, a, crownRect);
+          if (cost < best.cost) best = { x, y, cost, key: `${i}:${j}` };
+        }
+      }
+      const current = boxCost({ l: target.x, t: target.y, r: target.x + w, b: target.y + h }, a, crownRect);
+      if (target.key === '' || best.cost < current * 0.7 - 500) target = { x: best.x, y: best.y, key: best.key };
+    };
+
+    /** Move the real button over the 3D crown, or just beside it when the text covers it. */
+    const placeCrown = (a: AnchorInfo, rethink: boolean, boxRect: Rect | null) => {
       const button = crownRef.current;
       if (!button) return;
-      const size = Math.max(c.radius * 3.4, 64);
-      const x = Math.min(Math.max(c.x, size / 2), window.innerWidth - size / 2);
-      const y = Math.min(Math.max(c.y, 76 + size / 2), window.innerHeight - size / 2);
-      button.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) translate(-50%, -50%)`;
+      const size = Math.max(a.crown.radius * 2.6, 52);
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const fit = (x: number, y: number) => ({
+        x: Math.min(Math.max(x, size / 2 + 4), vw - size / 2 - 4),
+        y: Math.min(Math.max(y, HEADER + size / 2), vh - size / 2 - 4),
+      });
+      const at = fit(a.crown.x, a.crown.y);
+      const rectAt = (p: { x: number; y: number }): Rect => ({
+        l: p.x - size / 2,
+        r: p.x + size / 2,
+        t: p.y - size / 2,
+        b: p.y + size / 2,
+      });
+      const spotCost = (p: { x: number; y: number }) => {
+        const rect = rectAt(p);
+        let cost = 0;
+        for (const r of text) cost += overlap(rect, r);
+        if (boxRect) cost += overlap(rect, boxRect) * 3;
+        return cost;
+      };
+
+      if (rethink) {
+        const free = size * size * 0.12;
+        if (spotCost(at) <= free) {
+          crownGoal = null;
+        } else {
+          let best = { p: at, cost: Infinity };
+          for (const radius of [size * 1.1, size * 2, size * 3.2]) {
+            for (let k = 0; k < 14; k++) {
+              const angle = (k / 14) * Math.PI * 2;
+              const p = fit(at.x + Math.cos(angle) * radius, at.y + Math.sin(angle) * radius);
+              const cost = spotCost(p) + Math.hypot(p.x - at.x, p.y - at.y) * 40;
+              if (cost < best.cost) best = { p, cost };
+            }
+          }
+          crownGoal = best.p;
+        }
+      }
+
+      const goal = crownGoal ?? at;
+      crownShown = crownShown
+        ? { x: lerp(crownShown.x, goal.x, 0.3), y: lerp(crownShown.y, goal.y, 0.3) }
+        : goal;
+      crownSize = size;
+      const p = crownShown;
+      button.style.transform = `translate(${p.x.toFixed(1)}px, ${p.y.toFixed(1)}px) translate(-50%, -50%)`;
       button.style.width = button.style.height = `${size.toFixed(1)}px`;
       button.dataset.ready = 'true';
+
+      // A thin thread ties the stepped-aside control back to the crown it belongs to.
+      const tether = tetherRef.current;
+      if (tether) {
+        const far = Math.hypot(p.x - a.crown.x, p.y - a.crown.y) > size * 0.8;
+        tether.style.opacity = far ? '1' : '0';
+        tether.setAttribute('x1', p.x.toFixed(1));
+        tether.setAttribute('y1', p.y.toFixed(1));
+        tether.setAttribute('x2', a.crown.x.toFixed(1));
+        tether.setAttribute('y2', a.crown.y.toFixed(1));
+      }
     };
 
     /**
-     * Tie the text to the part: a dot on the part, a diagonal down to a knee, then a
-     * rule that runs outward along the top of the text, like a note on a technical drawing.
+     * Tie the note to the part. Above or below it the line leaves the part at 60 degrees
+     * and turns at the knee to run along the note's edge; to one side it leaves at 45
+     * degrees and meets the note's edge, which then carries the rule.
      */
     const placeCallout = (a: AnchorInfo) => {
-      placeCrown(a.crown);
       const callout = calloutRef.current;
-      const text = boxRef.current;
+      const box = boxRef.current;
       const line = lineRef.current;
       const dot = dotRef.current;
-      if (!callout || !text || !line || !dot) return;
+      if (!callout || !box || !line || !dot) return;
+      const now = performance.now();
+      const rethink = now - lastScan > RETHINK_MS;
+      if (rethink) {
+        text = scanText();
+        lastScan = now;
+      }
 
       const nearest = Math.round(a.position);
       if (nearest !== indexRef.current) {
@@ -99,50 +229,74 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
         setIndex(nearest);
         const el = sectionEls[nearest];
         callout.dataset.tone = el && el.classList.contains('section--paper') ? 'paper' : 'stage';
+        measured = { key: '', w: 0, h: 0 };
       }
-      // Visible only while the watch rests on a piece, not during the jump between two.
       const settle = clamp01(1.6 - Math.abs(a.position - nearest) * 4);
       const vw = window.innerWidth;
-      const vh = window.innerHeight;
       const phone = narrow.matches;
-      const margin = 14;
-      // On wide screens the note stays on the watch's side, clear of the text column.
-      let lo = margin;
-      let hi = vw - margin;
-      if (!phone) {
-        if ((sides[nearest] ?? 1) > 0) lo = vw * 0.58;
-        else hi = vw * 0.42;
-      }
-      const width = Math.min(phone ? 21 * 16 : 24 * 16, hi - lo);
+      const w = Math.min(phone ? 20 * 16 : 22 * 16, vw - 2 * MARGIN);
 
-      // Measure the text only when its width or words change, not every frame.
-      const key = `${nearest}|${Math.round(width)}`;
+      const key = `${nearest}|${Math.round(w)}`;
       if (measured.key !== key) {
-        callout.style.setProperty('--box-w', `${width.toFixed(0)}px`);
-        measured = { key, height: text.offsetHeight };
+        callout.style.setProperty('--box-w', `${w.toFixed(0)}px`);
+        measured = { key, w, h: box.offsetHeight };
       }
-      const top = phone ? vh - measured.height - 18 : Math.min(vh * 0.72, vh - measured.height - 24);
-      const drop = Math.max(top - a.y, 40);
-      // The line leaves the part at 60 degrees and turns 120 at the knee, to run
-      // along the top of the note the other way.
-      const run = drop / Math.tan(Math.PI / 3);
-      let along = a.x - run + width <= hi ? 1 : -1;
-      if (along < 0 && a.x + run - width < lo) along = 1;
-      const kneeX =
-        along > 0
-          ? Math.min(Math.max(a.x - run, lo), hi - width)
-          : Math.max(Math.min(a.x + run, hi), lo + width);
-      const farX = kneeX + along * width;
+      const h = measured.h;
 
-      callout.style.setProperty('--box-x', `${Math.min(kneeX, farX).toFixed(1)}px`);
-      callout.style.setProperty('--box-y', `${top.toFixed(1)}px`);
+      const crownRect: Rect | null = crownShown
+        ? {
+            l: crownShown.x - crownSize / 2,
+            r: crownShown.x + crownSize / 2,
+            t: crownShown.y - crownSize / 2,
+            b: crownShown.y + crownSize / 2,
+          }
+        : null;
+      if (rethink || target.key === '') thinkNote(a, w, h, crownRect);
+      shown = shown && Math.abs(shown.x - target.x) + Math.abs(shown.y - target.y) < 1200
+        ? { x: lerp(shown.x, target.x, 0.18), y: lerp(shown.y, target.y, 0.18) }
+        : { x: target.x, y: target.y };
+
+      const L = shown.x;
+      const T = shown.y;
+      const R = L + w;
+      const B = T + h;
+      const bcx = (L + R) / 2;
+      const bcy = (T + B) / 2;
+      const f = (n: number) => n.toFixed(1);
+      let points: string;
+      let edge: 'top' | 'bottom' | 'left' | 'right';
+
+      if (bcx - w / 2 > a.x + 24 || bcx + w / 2 < a.x - 24) {
+        const dirx = bcx > a.x ? 1 : -1;
+        const edgeX = dirx > 0 ? L : R;
+        const attachY = T + 14;
+        const dy = attachY - a.y;
+        let kneeX = a.x + dirx * Math.abs(dy);
+        if (dirx * (edgeX - kneeX) < 10) kneeX = edgeX - dirx * 10;
+        points = `${f(a.x)},${f(a.y)} ${f(kneeX)},${f(attachY)} ${f(edgeX)},${f(attachY)} ${f(edgeX)},${f(B)}`;
+        edge = dirx > 0 ? 'left' : 'right';
+      } else {
+        const below = bcy > a.y;
+        const edgeY = below ? T : B;
+        const dy = Math.max(Math.abs(edgeY - a.y), 24);
+        const angleTo = (end: number) => Math.atan2(dy, Math.max(Math.abs(a.x - end), 1));
+        const ideal = Math.PI / 3;
+        const kneeAtLeft = Math.abs(angleTo(L) - ideal) < Math.abs(angleTo(R) - ideal);
+        const kneeX = kneeAtLeft ? L : R;
+        const farX = kneeAtLeft ? R : L;
+        points = `${f(a.x)},${f(a.y)} ${f(kneeX)},${f(edgeY)} ${f(farX)},${f(edgeY)}`;
+        edge = below ? 'top' : 'bottom';
+      }
+
+      callout.dataset.edge = edge;
+      callout.style.setProperty('--box-x', `${f(L)}px`);
+      callout.style.setProperty('--box-y', `${f(T)}px`);
       callout.style.setProperty('--settle', settle.toFixed(3));
-      line.setAttribute(
-        'points',
-        `${a.x.toFixed(1)},${a.y.toFixed(1)} ${kneeX.toFixed(1)},${top.toFixed(1)} ${farX.toFixed(1)},${top.toFixed(1)}`,
-      );
-      dot.setAttribute('cx', a.x.toFixed(1));
-      dot.setAttribute('cy', a.y.toFixed(1));
+      line.setAttribute('points', points);
+      dot.setAttribute('cx', f(a.x));
+      dot.setAttribute('cy', f(a.y));
+
+      placeCrown(a, rethink, { l: L, t: T, r: R, b: B });
     };
 
     const stop = () => {
@@ -170,7 +324,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       const sections = Array.from(document.querySelectorAll<HTMLElement>('[data-watch-section]'));
       sectionEls = sections;
       // Text on the left puts the watch on the right, and the other way round.
-      sides = sections.map((el) => (el.dataset.side === 'right' ? -1 : 1));
+      const sides = sections.map((el) => (el.dataset.side === 'right' ? -1 : 1));
 
       // Phones: the hero watch takes the place of the flat one under the hero text.
       const spacer = document.querySelector<HTMLElement>('.hero__watch');
@@ -252,7 +406,8 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       cleanups.push(() => document.removeEventListener('visibilitychange', sync));
 
       const resizeObserver = new ResizeObserver(() => {
-        measured = { key: '', height: 0 };
+        measured = { key: '', w: 0, h: 0 };
+        target = { x: 0, y: 0, key: '' };
         current.resize();
       });
       resizeObserver.observe(canvas);
@@ -294,12 +449,27 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
     sceneHandle.current?.spinCrown(Math.PI * 2);
   };
 
+  /** Winding past either end of the page carries on round to the other end, like a crown does. */
+  const wind = (dy: number) => {
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    const before = window.scrollY;
+    window.scrollBy({ top: dy * 2.4, behavior: 'instant' });
+    const moved = Math.abs(window.scrollY - before) > 0.5;
+    const state = drag.current;
+    state.over = moved ? 0 : state.over + dy;
+    if (Math.abs(state.over) > 140) {
+      const forward = state.over > 0;
+      state.over = 0;
+      window.scrollTo({ top: forward ? 0 : max, behavior: 'smooth' });
+    }
+  };
+
   return (
     <>
       <div className='watch-bg' aria-hidden='true'>
         <canvas className='watch-bg__canvas' ref={canvasRef} />
       </div>
-      <div className='callout' ref={calloutRef} data-tone='stage' data-empty={note ? undefined : 'true'}>
+      <div className='callout' ref={calloutRef} data-tone='stage' data-edge='top' data-empty={note ? undefined : 'true'}>
         <svg className='callout__line' aria-hidden='true' focusable='false'>
           <polyline ref={lineRef} pathLength='1' />
           <circle ref={dotRef} r='3.5' />
@@ -308,6 +478,9 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
           {note}
         </p>
       </div>
+      <svg className='crown-tether' aria-hidden='true' focusable='false'>
+        <line ref={tetherRef} />
+      </svg>
       <button
         type='button'
         className='crown-control'
@@ -315,7 +488,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
         aria-label={crown.label}
         onPointerDown={(event) => {
           event.currentTarget.setPointerCapture(event.pointerId);
-          drag.current = { active: true, moved: 0, lastY: event.clientY };
+          drag.current = { active: true, moved: 0, lastY: event.clientY, over: 0 };
           event.currentTarget.dataset.held = 'true';
         }}
         onPointerMove={(event) => {
@@ -324,7 +497,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
           drag.current.lastY = event.clientY;
           drag.current.moved += Math.abs(dy);
           if (drag.current.moved > 4) {
-            window.scrollBy({ top: dy * 2.4, behavior: 'instant' });
+            wind(dy);
             sceneHandle.current?.spinCrown(dy * 0.05);
           }
         }}

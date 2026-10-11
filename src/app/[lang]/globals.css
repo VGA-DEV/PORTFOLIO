@@ -841,8 +841,16 @@ html[data-watch='flat'] .hero__watch .watch__frame {
   background: transparent;
   cursor: grab;
   touch-action: none;
+  opacity: 0.45;
+  transition: opacity 0.25s var(--ease-out);
   --progress: 0;
   --turn: 0deg;
+}
+
+.crown-control:hover,
+.crown-control:focus-visible,
+.crown-control[data-held] {
+  opacity: 1;
 }
 
 html[data-watch='3d'] .crown-control[data-ready='true'] {
@@ -1011,4 +1019,134 @@ html[data-watch='3d'] .callout {
     font-size: 0.78rem;
     line-height: 1.45;
   }
+}
+
+/* Which edge of the note carries the rule decides where its padding goes. */
+.callout[data-edge='bottom'] .callout__box {
+  padding: 0.2rem 0.15rem 0.7rem;
+}
+
+.callout[data-edge='left'] .callout__box {
+  padding: 0.15rem 0.2rem 0.15rem 0.9rem;
+}
+
+.callout[data-edge='right'] .callout__box {
+  padding: 0.15rem 0.9rem 0.15rem 0.2rem;
+  text-align: right;
+}
+
+/* When the crown steps aside from the text, a thread ties it back to the crown. */
+.crown-tether {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+html[data-watch='3d'] .crown-tether {
+  display: block;
+}
+
+.crown-tether line {
+  stroke: var(--color-champagne);
+  stroke-width: 1;
+  stroke-dasharray: 3 4;
+  opacity: 0;
+  transition: opacity 0.3s var(--ease-out);
+  filter: drop-shadow(0 0 2px rgb(18 8 24 / 0.7));
+}
+
+/* Section backgrounds, fixed behind the page and swept in like a clock hand. */
+html[data-sweep] .plate {
+  display: none;
+}
+
+.sweep {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.sweep__layer {
+  position: absolute;
+  inset: 0;
+  --sweep: 0deg;
+}
+
+.sweep__layer[data-state='hidden'] {
+  display: none;
+}
+
+.sweep__fill {
+  position: absolute;
+  inset: 0;
+  background: var(--color-paper);
+}
+
+.sweep__layer[data-tone='stage'] .sweep__fill {
+  background: var(--color-stage);
+}
+
+.sweep__layer[data-hero] .sweep__fill {
+  background:
+    radial-gradient(56% 64% at 72% 46%, rgb(88 17 159 / 0.34), transparent 72%),
+    radial-gradient(40% 40% at 8% 100%, rgb(214 189 138 / 0.07), transparent 70%),
+    var(--color-stage);
+}
+
+.sweep__layer[data-state='sweeping'] .sweep__fill {
+  -webkit-mask-image: conic-gradient(from 180deg at 50% 50%, #000 calc(var(--sweep) - 1deg), transparent var(--sweep));
+  mask-image: conic-gradient(from 180deg at 50% 50%, #000 calc(var(--sweep) - 1deg), transparent var(--sweep));
+}
+
+/* Art Deco fan in the corner on the watch's side, behind the model. */
+.sweep__fill::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: min(34rem, 80vw);
+  aspect-ratio: 1;
+  pointer-events: none;
+}
+
+.sweep__layer[data-side='left'] .sweep__fill::before {
+  right: 0;
+  background: repeating-conic-gradient(from 180deg at 100% 0, rgb(143 122 80 / 0.55) 0 0.55deg, transparent 0.5deg 6deg);
+  mask-image: radial-gradient(circle at 100% 0, #000 0, transparent 68%);
+}
+
+.sweep__layer[data-side='right'] .sweep__fill::before {
+  left: 0;
+  background: repeating-conic-gradient(from 90deg at 0 0, rgb(143 122 80 / 0.55) 0 0.55deg, transparent 0.5deg 6deg);
+  mask-image: radial-gradient(circle at 0 0, #000 0, transparent 68%);
+}
+
+.sweep__layer[data-tone='stage'][data-side='left'] .sweep__fill::before {
+  background: repeating-conic-gradient(from 180deg at 100% 0, rgb(214 189 138 / 0.34) 0 0.55deg, transparent 0.55deg 6deg);
+}
+
+.sweep__layer[data-tone='stage'][data-side='right'] .sweep__fill::before {
+  background: repeating-conic-gradient(from 90deg at 0 0, rgb(214 189 138 / 0.34) 0 0.55deg, transparent 0.55deg 6deg);
+}
+
+/* The hand itself, a thin wedge at the sweeping edge. */
+.sweep__edge {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: conic-gradient(
+    from 180deg at 50% 50%,
+    transparent calc(var(--sweep) - 0.6deg),
+    rgb(214 189 138 / 0.7) calc(var(--sweep) - 0.6deg) var(--sweep),
+    transparent var(--sweep)
+  );
+}
+
+.sweep__layer[data-state='sweeping'] .sweep__edge {
+  opacity: 1;
 }
