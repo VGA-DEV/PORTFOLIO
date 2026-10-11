@@ -452,7 +452,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
         target = { x: 0, y: 0, key: '' };
         current.resize();
       });
-      resizeObserver.observe(canvas);
+      resizeObserver.observe(canvas.parentElement ?? canvas);
       cleanups.push(() => resizeObserver.disconnect());
 
       teardown = () => cleanups.forEach((fn) => fn());

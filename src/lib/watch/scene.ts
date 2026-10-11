@@ -523,7 +523,7 @@ export async function createWatchScene({
     'crown',
     pieces.crown,
     gold(0.28),
-    [0.75, 0, -0.95],
+    [0, 0, -0.95],
     [0.97, 0.32, -0.16],
   );
   crownMesh.rotation.y = Math.PI / 2;
