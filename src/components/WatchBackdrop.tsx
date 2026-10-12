@@ -15,8 +15,8 @@ type WatchBackdropProps = {
 };
 
 const REDUCED_QUERY = '(prefers-reduced-motion: reduce)';
-/** Below this width the page is a single column and the watch sits behind the text. */
-const NARROW_QUERY = '(max-width: 61.99rem)';
+/** Anything but the two-column layout (text beside the watch): the page is one column and the watch sits behind the text. */
+const NARROW_QUERY = 'not all and (min-width: 62rem) and (pointer: fine)';
 /** Notes and the crown re-think where to sit this often, in milliseconds. */
 const RETHINK_MS = 140;
 const HEADER = 84;
@@ -404,24 +404,13 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       // Text on the left puts the watch on the right, and the other way round.
       const sides = sections.map((el) => (el.dataset.side === 'right' ? -1 : 1));
 
-      // Phones: the hero watch takes the place of the flat one under the hero text.
-      const spacer = document.querySelector<HTMLElement>('.hero__watch');
-      let heroAnchor = 0.64;
-      if (spacer) {
-        const rect = spacer.getBoundingClientRect();
-        const centre = rect.top + window.scrollY + rect.height / 2;
-        heroAnchor = Math.min(Math.max(centre / window.innerHeight, 0.4), 0.8);
-        // A landscape window has little height: keep the watch clear of the bottom edge.
-        if (window.innerWidth > window.innerHeight) heroAnchor = Math.min(heroAnchor, 0.64);
-      }
-
       try {
         scene = await sceneModule.createWatchScene({
           canvas,
           still: false,
           logoUrl: logoRef.current,
           sides,
-          heroAnchor,
+          isWide: () => !narrow.matches,
           onAnchor: placeCallout,
         });
       } catch {

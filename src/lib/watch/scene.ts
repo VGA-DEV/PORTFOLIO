@@ -198,8 +198,11 @@ export type WatchSceneOptions = {
   sides: readonly number[];
   /** Called after every rendered frame with where the highlighted part is on screen. */
   onAnchor?: (anchor: AnchorInfo) => void;
-  /** Portrait screens: where the hero watch sits, as a fraction of the screen height from the top. */
-  heroAnchor?: number;
+  /**
+   * Whether the page is in its two-column layout (text on one side, the watch on the other).
+   * Otherwise the text fills the width and the watch is fitted to a stage measured from the screen.
+   */
+  isWide?: () => boolean;
 };
 
 type Group =
@@ -327,7 +330,7 @@ export async function createWatchScene({
   still,
   logoUrl,
   sides,
-  heroAnchor = 0.64,
+  isWide,
   onAnchor,
 }: WatchSceneOptions): Promise<WatchScene> {
   // Geometry is built in a worker while the renderer and textures are set up here.
@@ -684,7 +687,8 @@ export async function createWatchScene({
     else angles.push(angles[i - 1] - ((sides[i - 1] ?? 1) === side ? 0 : Math.PI));
   }
   // Portrait screens: vertical place of the watch per section, from the top (0) to the bottom (1).
-  const portraitRows = [heroAnchor, 0.6, 0.6, 0.55, 0.6, 0.6];
+  /** One column: the height of the watch's centre, as a fraction of the screen, in each section. */
+  const stackRows = [0.72, 0.5, 0.5, 0.48, 0.5, 0.5];
   let position = 0;
   let shownPosition = 0;
   let positionVelocity = 0;
@@ -700,11 +704,10 @@ export async function createWatchScene({
   let lastTime = 0;
   let running = false;
 
-  const fitCamera = (half: number, portrait = width < height) => {
+  /** `half` is always half the height in view, in scene units. */
+  const fitCamera = (half: number) => {
     const tan = Math.tan((camera.fov * Math.PI) / 360);
-    const aspect = width / height;
-    // Composed as on a phone, `half` is half the width in view; otherwise half the height.
-    camera.position.set(0, 0, portrait ? half / (tan * aspect) : half / tan);
+    camera.position.set(0, 0, half / tan);
     camera.lookAt([0, 0, 0]);
   };
 
@@ -741,25 +744,28 @@ export async function createWatchScene({
 
     const rotation = lerp3(from.rotation, to.rotation, ease);
     const focus = lerp3(from.focus, to.focus, ease);
-    const portrait = width < height;
-    // Below 62rem the page is one column of text even on a landscape window, so the watch is
-    // placed as on a phone (behind and below the text, not beside it) at landscape scale.
-    const stacked = portrait || width < 992;
+    const wide = isWide ? isWide() : width >= 992;
     const aspect = width / height;
-    // On wider-than-tall screens the watch has half the width to itself: zoom out if it would not fit.
     const widest = lerp(from.width, to.width, ease);
     modelUnits = widest;
-    // The content column is a fixed 36rem, so on narrower windows the strip left for the watch
-    // shrinks: centre the watch in that strip, and zoom out if the model would still not fit it.
-    const container = Math.min(1120, width - 32);
-    const strip = width >= 992 ? Math.min(Math.max(((width + container) / 2 - 576) / width, 0.34), 0.5) : 0.5;
-    const centre = Math.min(Math.max(strip / 2, 0.17), 0.27);
-    const halfShare = Math.max(strip / 2 - 0.03, 0.12);
-    const fitHalf = portrait ? 0 : Math.max(widest / (0.8 * aspect), widest / (4 * halfShare * aspect));
-    const half = (Math.max(lerp(from.half, to.half, ease), fitHalf) + 1.1 * burst) *
-      // On a phone the watch fills the width; on a tablet held upright that would be enormous,
-      // so past phone widths the view grows with the screen and the watch keeps a similar size.
-      (portrait ? lerp(from.zoom ?? 0.72, to.zoom ?? 0.72, ease) * Math.max(1, width / 480) : stacked ? 1.5 : 1);
+    let half: number;
+    let centre = 0.27;
+    if (wide) {
+      // Two columns: the content column is a fixed 36rem, so on narrower windows the strip left
+      // for the watch shrinks. Centre the watch in that strip and zoom out if the model would
+      // still not fit it.
+      const container = Math.min(1120, width - 32);
+      const strip = Math.min(Math.max(((width + container) / 2 - 576) / width, 0.34), 0.5);
+      centre = Math.min(Math.max(strip / 2, 0.17), 0.27);
+      const halfShare = Math.max(strip / 2 - 0.03, 0.12);
+      const fitHalf = Math.max(widest / (0.8 * aspect), widest / (4 * halfShare * aspect));
+      half = Math.max(lerp(from.half, to.half, ease), fitHalf) + 1.1 * burst;
+    } else {
+      // One column: a stage measured from the screen itself, the same rule on every device. The
+      // watch is never wider than 75% of the width nor taller than 36% of the height.
+      const unit = Math.min((0.75 * width) / widest, (0.36 * height) / 2.8);
+      half = height / (2 * unit) + 1.1 * burst;
+    }
     const explode = lerp(from.explode, to.explode, ease) + 0.9 * burst;
     // Pieces leave late in the move, once they have flown apart.
     const fade = smooth(Math.min(Math.max((u - 0.3) / 0.5, 0), 1));
@@ -785,16 +791,16 @@ export async function createWatchScene({
 
     // Orbit: opposite the section's text, and round the screen between sections.
     const theta = lerp(angles[a] ?? 0, angles[b] ?? 0, ease);
-    const viewW = portrait ? half : half * aspect;
-    const viewH = portrait ? half / aspect : half;
-    const rx = (stacked ? 0.16 : (1 - 2 * centre)) * viewW;
-    const ry = (stacked ? 0.2 : 0.55) * viewH;
-    const row = lerp(portraitRows[a] ?? 0.6, portraitRows[b] ?? 0.6, ease);
-    const baseY = stacked ? (0.5 - row) * 2 * viewH : 0;
+    const viewW = half * aspect;
+    const viewH = half;
+    const rx = (wide ? 1 - 2 * centre : 0.1) * viewW;
+    const ry = (wide ? 0.55 : 0.06) * viewH;
+    const row = lerp(stackRows[a] ?? 0.5, stackRows[b] ?? 0.5, ease);
+    const baseY = wide ? 0 : (0.5 - row) * 2 * viewH;
     rotator.position.x = rx * Math.cos(theta);
     rotator.position.y = baseY + ry * Math.sin(theta) + Math.sin(t * 0.0009) * 0.03;
     glassPhase.value = 0.2 + 0.4 * explode + shownX * 0.25 + Math.sin(t * 0.0004) * 0.05;
-    fitCamera(half, portrait);
+    fitCamera(half);
     const anchor = lerp3(from.anchor, to.anchor, ease);
     anchorNode.position.set(anchor[0], anchor[1], anchor[2]);
 
