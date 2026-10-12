@@ -16,3 +16,17 @@ export function dwellProgress(dwell: HTMLElement, viewport: number) {
   // section, say) still finishes the move instead of leaving the sweep's edge showing.
   return clamp01(((viewport - rect.top) / rect.height - 0.04) / 0.92);
 }
+
+const smooth = (t: number) => t * t * (3 - 2 * t);
+
+/**
+ * The change of section works row by row, top to bottom, so something is always on
+ * screen: each row of the section that is going leaves, and a little later the same row
+ * of the one that is coming arrives in its place. `r` is the row's place from 0 (first)
+ * to 1 (last).
+ */
+export const leaveProgress = (p: number, r: number) => smooth(clamp01((p - (0.04 + 0.5 * r)) / 0.18));
+export const arriveProgress = (p: number, r: number) => smooth(clamp01((p - (0.18 + 0.5 * r)) / 0.18));
+
+/** Progress at which the note's text, and the watch, change over: between the last rows' leaving and arriving. */
+export const SWAP_AT = 0.7;

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { dwellProgress } from '@/lib/transition';
+import { SWAP_AT, arriveProgress, dwellProgress, leaveProgress } from '@/lib/transition';
 import type { AnchorInfo, WatchScene } from '@/lib/watch/scene';
 
 type WatchBackdropProps = {
@@ -432,7 +432,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
           if (progress >= 0) {
             // The watch moves on quickly, once the held content has faded, rather than
             // following the scroll: it is the background that stretches with it.
-            const t = clamp01((progress - 0.55) / 0.1);
+            const t = clamp01((progress - (SWAP_AT - 0.08)) / 0.1);
             position += t * t * (3 - 2 * t);
           } else {
             const top = sections[i].getBoundingClientRect().top;
@@ -444,12 +444,11 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
         // and arrives as the last piece of the next one, so the two feel the same.
         const progress = gaps.map((gap) => dwellProgress(gap, viewport));
         if (progress.every((p) => p >= 0)) {
-          const index = progress.filter((p) => p > 0.6).length;
+          const index = progress.filter((p) => p > SWAP_AT).length;
           const own = progress[index] ?? 0;
           const before = index > 0 ? progress[index - 1] : 1;
-          const smooth = (t: number) => t * t * (3 - 2 * t);
-          const out = smooth(clamp01((own - 0.3) / 0.28));
-          const inn = smooth(clamp01((before - 0.8) / 0.12));
+          const out = leaveProgress(own, 1);
+          const inn = arriveProgress(before, 1);
           noteState = { index, alpha: (1 - out) * inn, shift: -34 * out + 46 * (1 - inn) };
         } else {
           noteState = null;

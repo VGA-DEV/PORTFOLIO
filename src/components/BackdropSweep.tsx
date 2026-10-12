@@ -1,12 +1,9 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { dwellProgress } from '@/lib/transition';
+import { arriveProgress, dwellProgress, leaveProgress } from '@/lib/transition';
 
 const REDUCED_QUERY = '(prefers-reduced-motion: reduce)';
-
-const clamp01 = (n: number) => Math.min(Math.max(n, 0), 1);
-const smooth = (t: number) => t * t * (3 - 2 * t);
 
 /** The pieces of a section that come and go one after another: its heading, intro and each card or row. */
 function revealItems(pin: HTMLElement): HTMLElement[] {
@@ -99,7 +96,9 @@ export function BackdropSweep() {
         nodes[i].dataset.state = angle <= 0 ? 'hidden' : angle >= 360 ? 'full' : 'sweeping';
       }
 
-      // The content: leaving during the section's own dwell, arriving at the end of the one before.
+      // The content changes row by row, so there is always something on screen: each row
+      // of the section that is going rises and fades, and a little later the same row of
+      // the next one arrives in its place.
       pins.forEach((pin, k) => {
         const own = progress[k] ?? -1;
         const before = k > 0 ? (progress[k - 1] ?? -1) : 1;
@@ -107,14 +106,21 @@ export function BackdropSweep() {
         const n = list.length;
         list.forEach((el, idx) => {
           const r = n > 1 ? idx / (n - 1) : 0;
-          // Leaving: top to bottom, each piece rising and fading, over the first part of the dwell.
-          const out = own < 0 ? 0 : smooth(clamp01((own - (0.02 + 0.28 * r)) / 0.28));
-          // Arriving: top to bottom, each piece sliding up into place, over the last part of the one before.
-          const inn = before < 0 ? 1 : smooth(clamp01((before - (0.66 + 0.14 * r)) / 0.12));
+          const out = own < 0 ? 0 : leaveProgress(own, r);
+          const inn = before < 0 ? 1 : arriveProgress(before, r);
           setStyle(el, (1 - out) * inn, -34 * out + 46 * (1 - inn));
         });
-        // Out of sight, and out of reach, while it has not arrived or has left.
-        const visible = !(k > 0 && before >= 0 && before < 0.66) && !(own >= 0.6);
+        // The next section waits where it will end up, instead of coming up the screen
+        // with the scroll, so its rows land exactly over the ones that leave.
+        let lift = 0;
+        if (k > 0 && dwells[k - 1]) lift = Math.max(0, dwells[k - 1].getBoundingClientRect().bottom - viewport);
+        const transform = lift > 0.5 ? `translate3d(0, ${(-lift).toFixed(1)}px, 0)` : '';
+        if (lastStyle.get(pin) !== transform) {
+          lastStyle.set(pin, transform);
+          pin.style.transform = transform;
+        }
+        // Out of sight, and out of reach, until it starts to arrive and once it has gone.
+        const visible = !(k > 0 && before >= 0 && before < 0.17) && !(own >= 0.73);
         if (lastVisible.get(pin) !== visible) {
           lastVisible.set(pin, visible);
           pin.style.visibility = visible ? 'visible' : 'hidden';
@@ -155,6 +161,7 @@ export function BackdropSweep() {
       pins.forEach((pin) => {
         pin.style.removeProperty('top');
         pin.style.removeProperty('visibility');
+        pin.style.removeProperty('transform');
       });
       items.flat().forEach((el) => {
         el.style.removeProperty('opacity');
