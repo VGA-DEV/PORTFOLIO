@@ -953,7 +953,9 @@ export async function createWatchScene({
     if (now - lastRender >= (idle ? 33 : 0)) {
       const frameMs = now - lastRender;
       lastRender = now;
-      applyPose(now, dt);
+      // The animations advance by the time since the last drawing, not since the last screen
+      // tick: when idle, ticks are skipped to save power and must not slow them down.
+      applyPose(now, Math.min(Math.max(frameMs / 1000, 0.001), 0.25));
       renderer.render({ scene, camera });
       reportAnchor();
       if (!idle) {

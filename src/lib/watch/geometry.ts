@@ -144,6 +144,33 @@ export function tube(path: readonly Vec3[], radius: number, sides = 8, ref: Vec3
   return b.build();
 }
 
+/** A faceted ellipsoid: a rounded blob for cushions, bodies, lamps and the like. */
+export function ellipsoid(
+  cx: number,
+  cy: number,
+  cz: number,
+  rx: number,
+  ry: number,
+  rz: number,
+  rings = 6,
+  sides = 10,
+) {
+  const b = new TriangleBuilder();
+  const at = (i: number, k: number) => {
+    const phi = -Math.PI / 2 + (i / rings) * Math.PI;
+    const theta = (k / sides) * Math.PI * 2;
+    return [
+      cx + rx * Math.cos(phi) * Math.cos(theta),
+      cy + ry * Math.sin(phi),
+      cz + rz * Math.cos(phi) * Math.sin(theta),
+    ] as const;
+  };
+  for (let i = 0; i < rings; i++) {
+    for (let k = 0; k < sides; k++) b.quad(at(i, k), at(i, k + 1), at(i + 1, k + 1), at(i + 1, k));
+  }
+  return b.build();
+}
+
 /** Join several geometries into one draw call. */
 export function merge(...parts: Float32Array[]) {
   const total = parts.reduce((sum, p) => sum + p.length, 0);

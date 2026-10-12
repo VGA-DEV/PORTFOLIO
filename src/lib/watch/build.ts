@@ -1,4 +1,4 @@
-import { blossom, box, extrudeStar, gear, hand, lathe, merge, translateFlat, tube } from './geometry';
+import { blossom, box, ellipsoid, extrudeStar, gear, hand, lathe, merge, translateFlat, tube } from './geometry';
 import { loft, roundedTrapezoid, strap, tonneauOutline, type SmoothMesh } from './smooth';
 
 /**
@@ -76,10 +76,10 @@ let coasterCache: { points: TrackPoint[]; length: number } | null = null;
 
 export function coasterPath() {
   if (coasterCache) return coasterCache;
-  // A wide, rounded arch (like an upside-down U) rather than a pointed peak.
-  const keys: [number, number, number][] = Array.from({ length: 15 }, (_, i) => {
-    const x = -0.95 + (i / 14) * 1.9;
-    return [x, 0.58 * (1 - Math.abs(x / 1.0) ** 2.4), 0] as [number, number, number];
+  // A short, rounded arch (like an upside-down U) rather than a pointed peak.
+  const keys: [number, number, number][] = Array.from({ length: 13 }, (_, i) => {
+    const x = -0.72 + (i / 12) * 1.44;
+    return [x, 0.54 * (1 - Math.abs(x / 0.8) ** 2.4), 0] as [number, number, number];
   });
 
   const dense: [number, number, number][] = [];
@@ -161,29 +161,29 @@ function buildCoaster() {
   const ends = [points[0], points[points.length - 1]];
   for (const e of ends) parts.push(tube([[e.x, e.y - 0.085, -GAUGE - 0.04], [e.x, e.y - 0.085, GAUGE + 0.04]], 0.026, 8, [0, 1, 0]));
 
-  // The car, pointing along +x with its origin on the rails' line: axles and wheels, a floor,
-  // side panels, a slanted nose, two seats with backs and headrests, lap bars, a fin and a hitch.
+  // The car, pointing along +x with its origin on the rails' line. Everything is round: a
+  // cushioned body, a rounded nose, ellipsoid seats, arched bars, wheels with hubs and a curved
+  // bumper at each end.
   const wheel = (x: number, side: number) =>
-    tube([[x, 0.074, side * (GAUGE + 0.03)], [x, 0.074, side * (GAUGE - 0.03)]], 0.046, 10, [0, 1, 0]);
-  const seat = (x: number) => [
-    box(x, 0.182, 0, 0.09, 0.03, 0.2),
-    box(x, 0.215, -0.105, 0.09, 0.04, 0.016),
-    box(x, 0.215, 0.105, 0.09, 0.04, 0.016),
-    box(x - 0.045, 0.225, 0, 0.022, 0.1, 0.2, -0.16),
-    box(x - 0.058, 0.295, 0, 0.026, 0.045, 0.12, -0.16),
-    tube([[x + 0.05, 0.215, -0.085], [x + 0.05, 0.215, 0.085]], 0.012, 6, [0, 1, 0]),
-    tube([[x + 0.05, 0.215, -0.085], [x + 0.05, 0.18, -0.085]], 0.01, 6, [1, 0, 0]),
-    tube([[x + 0.05, 0.215, 0.085], [x + 0.05, 0.18, 0.085]], 0.01, 6, [1, 0, 0]),
-  ];
+    tube([[x, 0.074, side * (GAUGE + 0.03)], [x, 0.074, side * (GAUGE - 0.03)]], 0.046, 14, [0, 1, 0]);
   const hub = (x: number, side: number) =>
-    tube([[x, 0.074, side * (GAUGE + 0.03)], [x, 0.074, side * (GAUGE + 0.06)]], 0.022, 8, [0, 1, 0]);
-  const rivets = [-0.14, -0.084, -0.028, 0.028, 0.084, 0.14].flatMap((x) => [
-    box(x, 0.2, -0.153, 0.016, 0.016, 0.012),
-    box(x, 0.2, 0.153, 0.016, 0.016, 0.012),
-  ]);
+    tube([[x, 0.074, side * (GAUGE + 0.03)], [x, 0.074, side * (GAUGE + 0.06)]], 0.024, 10, [0, 1, 0]);
+  const arc = (x: number, y: number, bow: number, half: number, radius: number, lift = 0) =>
+    tube(
+      [-1, -0.5, 0, 0.5, 1].map((f) => [x + bow * (1 - f * f), y + lift * (1 - f * f), f * half] as const),
+      radius,
+      8,
+      [0, 1, 0],
+    );
+  const seat = (x: number) => [
+    ellipsoid(x, 0.205, 0, 0.055, 0.028, 0.1),
+    ellipsoid(x - 0.05, 0.262, 0, 0.022, 0.065, 0.1),
+    ellipsoid(x - 0.056, 0.332, 0, 0.022, 0.032, 0.06),
+    arc(x + 0.05, 0.215, 0, 0.088, 0.011, 0.03),
+  ];
   const car = merge(
-    tube([[-0.11, 0.074, -GAUGE - 0.03], [-0.11, 0.074, GAUGE + 0.03]], 0.014, 6, [0, 1, 0]),
-    tube([[0.11, 0.074, -GAUGE - 0.03], [0.11, 0.074, GAUGE + 0.03]], 0.014, 6, [0, 1, 0]),
+    tube([[-0.11, 0.074, -GAUGE - 0.03], [-0.11, 0.074, GAUGE + 0.03]], 0.014, 8, [0, 1, 0]),
+    tube([[0.11, 0.074, -GAUGE - 0.03], [0.11, 0.074, GAUGE + 0.03]], 0.014, 8, [0, 1, 0]),
     wheel(-0.11, -1),
     wheel(-0.11, 1),
     wheel(0.11, -1),
@@ -192,31 +192,35 @@ function buildCoaster() {
     hub(-0.11, 1),
     hub(0.11, -1),
     hub(0.11, 1),
-    // Fenders over the wheels.
-    box(-0.11, 0.128, -GAUGE, 0.14, 0.022, 0.07),
-    box(-0.11, 0.128, GAUGE, 0.14, 0.022, 0.07),
-    box(0.11, 0.128, -GAUGE, 0.14, 0.022, 0.07),
-    box(0.11, 0.128, GAUGE, 0.14, 0.022, 0.07),
-    // Floor, side panels with a top rim and a row of rivets, and the slanted nose.
-    box(0, 0.142, 0, 0.4, 0.034, 0.28),
-    box(0, 0.19, -0.14, 0.38, 0.07, 0.022),
-    box(0, 0.19, 0.14, 0.38, 0.07, 0.022),
-    box(0, 0.232, -0.146, 0.4, 0.016, 0.034),
-    box(0, 0.232, 0.146, 0.4, 0.016, 0.034),
-    ...rivets,
-    box(0.205, 0.172, 0, 0.13, 0.05, 0.26, 0.45),
-    // Front bumper, a lamp and a hood ornament; at the back a pair of fins and a bumper.
-    tube([[0.275, 0.14, -0.125], [0.275, 0.14, 0.125]], 0.018, 8, [0, 1, 0]),
-    tube([[0.255, 0.215, 0], [0.31, 0.215, 0]], 0.03, 10, [0, 1, 0]),
-    tube([[0.2, 0.235, 0], [0.2, 0.275, 0]], 0.014, 6, [1, 0, 0]),
-    box(-0.21, 0.205, -0.07, 0.04, 0.11, 0.03),
-    box(-0.21, 0.205, 0.07, 0.04, 0.11, 0.03),
-    tube([[-0.225, 0.14, -0.125], [-0.225, 0.14, 0.125]], 0.016, 8, [0, 1, 0]),
+    // Rounded fenders over the wheels.
+    ellipsoid(-0.11, 0.128, -GAUGE, 0.075, 0.024, 0.045),
+    ellipsoid(-0.11, 0.128, GAUGE, 0.075, 0.024, 0.045),
+    ellipsoid(0.11, 0.128, -GAUGE, 0.075, 0.024, 0.045),
+    ellipsoid(0.11, 0.128, GAUGE, 0.075, 0.024, 0.045),
+    // Body: a flat underside, the cushioned tub and a rounded nose that flows out of it.
+    ellipsoid(0, 0.142, 0, 0.27, 0.032, 0.15),
+    ellipsoid(-0.01, 0.185, 0, 0.23, 0.065, 0.155),
+    ellipsoid(0.2, 0.17, 0, 0.12, 0.055, 0.13),
+    // Rolled rims along the top of each side.
+    tube([[-0.2, 0.236, -0.14], [-0.1, 0.246, -0.15], [0, 0.248, -0.155], [0.1, 0.246, -0.15], [0.2, 0.236, -0.14]], 0.014, 8, [0, 1, 0]),
+    tube([[-0.2, 0.236, 0.14], [-0.1, 0.246, 0.15], [0, 0.248, 0.155], [0.1, 0.246, 0.15], [0.2, 0.236, 0.14]], 0.014, 8, [0, 1, 0]),
+    // Round studs along the sides.
+    ...[-0.13, -0.065, 0, 0.065, 0.13].flatMap((x) => [
+      ellipsoid(x, 0.195, -0.158, 0.011, 0.011, 0.008, 4, 8),
+      ellipsoid(x, 0.195, 0.158, 0.011, 0.011, 0.008, 4, 8),
+    ]),
+    // Front: a curved bumper, a round lamp and a little ball on the nose; back: two rounded fins
+    // and a curved bumper.
+    arc(0.275, 0.14, 0.02, 0.125, 0.018),
+    ellipsoid(0.29, 0.2, 0, 0.035, 0.032, 0.032),
+    ellipsoid(0.2, 0.24, 0, 0.02, 0.02, 0.02, 4, 8),
+    ellipsoid(-0.2, 0.225, -0.07, 0.035, 0.075, 0.02),
+    ellipsoid(-0.2, 0.225, 0.07, 0.035, 0.075, 0.02),
+    arc(-0.235, 0.14, -0.02, 0.125, 0.016),
     ...seat(-0.07),
     ...seat(0.085),
-    box(0.008, 0.215, 0, 0.012, 0.06, 0.2),
     // Hitch to the next car.
-    tube([[0.285, 0.15, 0], [0.37, 0.15, 0]], 0.013, 6, [0, 0, 1]),
+    tube([[0.285, 0.15, 0], [0.37, 0.15, 0]], 0.013, 8, [0, 0, 1]),
   );
   return { rails: merge(...parts), car };
 }
