@@ -150,6 +150,14 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       // Over the text is worse than over the watch: it hides what is being read.
       for (const r of text) cost += overlap(box, r) * 5;
       if (crownRect) cost += overlap(box, crownRect) * 3;
+      if (a.prop) {
+        cost += overlap(box, {
+          l: a.prop.x - a.prop.halfW,
+          r: a.prop.x + a.prop.halfW,
+          t: a.prop.y - a.prop.halfH,
+          b: a.prop.y + a.prop.halfH,
+        }) * 2.5;
+      }
       const dx = (box.l + box.r) / 2 - a.x;
       const dy = (box.t + box.b) / 2 - a.y;
       // Stay close to the watch, on the side this look prefers.
@@ -181,6 +189,12 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       }
       const current = boxCost({ l: target.x, t: target.y, r: target.x + w, b: target.y + h }, a, crownRect);
       if (target.key === '' || best.cost < current * 0.7 - 500) target = { x: best.x, y: best.y, key: best.key };
+      // The note may have grown since the spot was chosen: it must never hang off the screen.
+      target = {
+        ...target,
+        x: Math.min(Math.max(target.x, MARGIN), Math.max(vw - MARGIN - w, MARGIN)),
+        y: Math.min(Math.max(target.y, HEADER), Math.max(vh - MARGIN - h, HEADER)),
+      };
     };
 
     /** Move the real button over the 3D crown, or just beside it when the text covers it. */

@@ -28,8 +28,9 @@ export type WatchPieces = {
   cap: Piece;
   crystal: Piece;
   /** Small gold miniatures, one per interest ("complications"). */
-  shelf: Piece;
-  books: Piece;
+  rails: Piece;
+  frame: Piece;
+  car: Piece;
   reel: Piece;
   film: Piece;
   invader: Piece;
@@ -62,32 +63,117 @@ const mergeSmooth = (...parts: SmoothMesh[]): SmoothMesh => ({
   uv: merge(...parts.map((p) => p.uv)),
 });
 
-/** A stack of four books, covers in gold and page blocks apart, with a ribbon bookmark. */
-function buildBookStack() {
-  const specs = [
-    { w: 0.8, h: 0.12, d: 0.52, dx: 0.0, tilt: 0 },
-    { w: 0.66, h: 0.1, d: 0.46, dx: 0.05, tilt: 0.02 },
-    { w: 0.72, h: 0.13, d: 0.5, dx: -0.04, tilt: -0.03 },
-    { w: 0.5, h: 0.09, d: 0.4, dx: 0.03, tilt: 0.05 },
+type TrackPoint = { x: number; y: number; z: number; a: number; s: number };
+
+/**
+ * The roller coaster's route, seen from the side: a lift hill, a crest, a drop, one
+ * loop that shifts a little sideways so it does not cross itself, and a run-out.
+ * Built once from a few key points smoothed with a Catmull-Rom spline and resampled
+ * at an even spacing, so the rails and the little car follow exactly the same line.
+ */
+export const COASTER_STEP = 0.04;
+
+let coasterCache: { points: TrackPoint[]; length: number } | null = null;
+
+export function coasterPath() {
+  if (coasterCache) return coasterCache;
+  const keys: [number, number, number][] = [
+    [-1.0, 0.06, -0.07],
+    [-0.85, 0.06, -0.07],
+    [-0.55, 0.45, -0.07],
+    [-0.3, 0.74, -0.07],
+    [-0.1, 0.7, -0.07],
+    [0.1, 0.36, -0.07],
+    [0.2, 0.14, -0.07],
   ];
-  const covers: Float32Array[] = [];
-  const pages: Float32Array[] = [];
-  let y = 0;
-  specs.forEach(({ w, h, d, dx, tilt }) => {
-    const cy = y + h / 2;
-    const cx = dx;
-    const board = 0.016;
-    pages.push(box(cx + 0.012, cy, 0, w - 0.05, h - board * 2, d - 0.03, tilt));
-    covers.push(
-      box(cx, cy + (h - board) / 2, 0, w, board, d, tilt),
-      box(cx, cy - (h - board) / 2, 0, w, board, d, tilt),
-      box(cx - w / 2 + 0.016, cy, 0, 0.032, h, d, tilt),
-    );
-    y += h + 0.004;
+  // The loop: a circle whose centre drifts forward and across as it goes round.
+  const radius = 0.3;
+  const around = 28;
+  for (let i = 0; i <= around; i++) {
+    const t = (i / around) * Math.PI * 2;
+    keys.push([0.3 + radius * Math.sin(t) + 0.12 * (t / (Math.PI * 2)), 0.06 + radius * (1 - Math.cos(t)), -0.07 + 0.14 * (t / (Math.PI * 2))]);
+  }
+  keys.push([0.6, 0.06, 0.07], [0.85, 0.06, 0.07], [1.05, 0.06, 0.07]);
+
+  const dense: [number, number, number][] = [];
+  const at = (i: number) => keys[Math.min(Math.max(i, 0), keys.length - 1)];
+  for (let i = 0; i < keys.length - 1; i++) {
+    const [p0, p1, p2, p3] = [at(i - 1), at(i), at(i + 1), at(i + 2)];
+    for (let k = 0; k < 8; k++) {
+      const t = k / 8;
+      const t2 = t * t;
+      const t3 = t2 * t;
+      dense.push([0, 1, 2].map((c) =>
+        0.5 * (2 * p1[c] + (-p0[c] + p2[c]) * t + (2 * p0[c] - 5 * p1[c] + 4 * p2[c] - p3[c]) * t2 + (-p0[c] + 3 * p1[c] - 3 * p2[c] + p3[c]) * t3),
+      ) as [number, number, number]);
+    }
+  }
+  dense.push(keys[keys.length - 1]);
+
+  // An even spacing along the line, so the box segments and the car's pace are regular.
+  const points: TrackPoint[] = [];
+  let carry = 0;
+  let travelled = 0;
+  points.push({ x: dense[0][0], y: dense[0][1], z: dense[0][2], a: 0, s: 0 });
+  for (let i = 1; i < dense.length; i++) {
+    const [x0, y0, z0] = dense[i - 1];
+    const [x1, y1, z1] = dense[i];
+    const seg = Math.hypot(x1 - x0, y1 - y0, z1 - z0);
+    let used = 0;
+    while (carry + (seg - used) >= COASTER_STEP) {
+      used += COASTER_STEP - carry;
+      carry = 0;
+      travelled += COASTER_STEP;
+      const f = seg === 0 ? 0 : used / seg;
+      points.push({ x: x0 + (x1 - x0) * f, y: y0 + (y1 - y0) * f, z: z0 + (z1 - z0) * f, a: 0, s: travelled });
+    }
+    carry += seg - used;
+  }
+  points.forEach((p, i) => {
+    const next = points[Math.min(i + 1, points.length - 1)];
+    const prev = points[Math.max(i - 1, 0)];
+    p.a = Math.atan2(next.y - prev.y, next.x - prev.x);
   });
-  // The ribbon hangs from the top book over its front edge.
-  covers.push(box(0.2, y - 0.07, specs[specs.length - 1].d / 2 + 0.004, 0.026, 0.2, 0.008));
-  return { shelf: merge(...covers), books: merge(...pages) };
+  coasterCache = { points, length: points[points.length - 1].s };
+  return coasterCache;
+}
+
+/** The track point at a distance along the route. */
+export function coasterAt(s: number): TrackPoint {
+  const { points, length } = coasterPath();
+  const index = Math.min(Math.max(Math.floor(s / COASTER_STEP), 0), points.length - 2);
+  const a = points[index];
+  const b = points[index + 1];
+  const f = Math.min(Math.max((Math.min(Math.max(s, 0), length) - a.s) / COASTER_STEP, 0), 1);
+  return { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f, z: a.z + (b.z - a.z) * f, a: a.a + (b.a - a.a) * f, s };
+}
+
+/** A roller coaster: two gold rails, violet ties and posts, and a small car to ride them. */
+function buildCoaster() {
+  const { points } = coasterPath();
+  const rails: Float32Array[] = [];
+  const frame: Float32Array[] = [];
+  for (let i = 0; i < points.length - 1; i++) {
+    const p = points[i];
+    const q = points[i + 1];
+    const mx = (p.x + q.x) / 2;
+    const my = (p.y + q.y) / 2;
+    const mz = (p.z + q.z) / 2;
+    const angle = Math.atan2(q.y - p.y, q.x - p.x);
+    const length = Math.hypot(q.x - p.x, q.y - p.y) * 1.12;
+    rails.push(box(mx, my, mz - 0.045, length, 0.032, 0.03, angle), box(mx, my, mz + 0.045, length, 0.032, 0.03, angle));
+    if (i % 3 === 0) frame.push(box(mx, my - 0.022, mz, 0.024, 0.02, 0.12, angle));
+    // Posts hold the track up wherever it is not going round the loop.
+    const onLoop = mx > 0.2 && mx < 0.58 && mz > -0.06;
+    if (i % 6 === 3 && !onLoop && my > 0.14) frame.push(box(mx, (my - 0.03) / 2, mz, 0.034, my - 0.03, 0.034));
+  }
+  const car = merge(
+    box(0, 0.05, 0, 0.26, 0.06, 0.13),
+    box(-0.08, 0.1, 0, 0.06, 0.06, 0.11),
+    box(0.03, 0.1, 0, 0.06, 0.06, 0.11),
+    box(0.1, 0.085, 0, 0.04, 0.03, 0.11),
+  );
+  return { rails: merge(...rails), frame: merge(...frame), car };
 }
 
 /** A film reel with its strip trailing off to one side. */
@@ -156,7 +242,7 @@ function buildGlobe() {
 }
 
 export function buildWatchPieces(): WatchPieces {
-  const { shelf, books } = buildBookStack();
+  const { rails, frame, car } = buildCoaster();
   const { reel, film } = buildReel();
   const { globe, globeRing, plane } = buildGlobe();
   const outline = tonneauOutline(OUTLINE_POINTS);
@@ -208,8 +294,9 @@ export function buildWatchPieces(): WatchPieces {
     ),
     cap: lathe([[0, 0], [0.075, 0], [0.06, 0.04], [0, 0.05]], 20, 0),
     crystal: loft(outline, [[0.92, 0.0], [0.91, 0.05], [0.66, 0.078], [0.32, 0.09], [0, 0.094]]),
-    shelf,
-    books,
+    rails,
+    frame,
+    car,
     reel,
     film,
     invader: buildInvader(),

@@ -9,7 +9,7 @@ import {
   paintDial,
   paintEngraving,
 } from './dial';
-import { GEAR_SPECS, loadWatchPieces, OUTLINE_POINTS, type Piece } from './build';
+import { coasterAt, coasterPath, GEAR_SPECS, loadWatchPieces, OUTLINE_POINTS, type Piece } from './build';
 import { tonneauOutline } from './smooth';
 
 type Rgb = readonly [number, number, number];
@@ -174,6 +174,8 @@ export type AnchorInfo = {
   crown: { x: number; y: number; radius: number };
   /** Rough box of the watch case on screen, in pixels, for keeping notes clear of it. */
   model: { x: number; y: number; halfW: number; halfH: number };
+  /** The miniature on show, if any, as a box in pixels: notes keep clear of it too. */
+  prop: { x: number; y: number; halfW: number; halfH: number } | null;
   /** Continuous position along the page, 0 = hero. */
   position: number;
 };
@@ -216,7 +218,7 @@ type Group =
   | 'lugs'
   | 'strap'
   | 'crown'
-  | 'propBooks'
+  | 'propCoaster'
   | 'propReel'
   | 'propGame'
   | 'propGlobe'
@@ -249,7 +251,7 @@ const ALL: Partial<Record<Group, number>> = {
  */
 const STATES: readonly PoseState[] = [
   { anchor: [0, 0, 0.1], width: 2.4, rotation: [0.16, -0.45, 0], focus: [0, 0, 0], half: 2.9, explode: 0, zoom: 0.98, show: ALL },
-  { anchor: [0, 0, 0.1], width: 2.4, rotation: [0.2, -0.8, 0.03], focus: [0, 0, 0], half: 2.9, explode: 0, zoom: 0.98, show: { ...ALL, propBooks: 1 } },
+  { anchor: [0, 0, 0.1], width: 3.4, rotation: [0.2, -0.8, 0.03], focus: [0, 0, 0], half: 2.9, explode: 0, zoom: 0.98, show: { ...ALL, propCoaster: 1 } },
   { anchor: [0, 0, 0.25], width: 2.6, rotation: [0.12, -0.4, 0], focus: [0, 0, 0.25], half: 2.4, explode: 0.55, show: { ...ALL, propReel: 1 } },
   { anchor: [0, 0.1, -0.55], width: 2.4, rotation: [0.22, -0.9, 0.04], focus: [0, 0, -0.6], half: 2.8, explode: 0.85, show: { ...ALL, propGame: 1 } },
   { anchor: [0, 0, -0.9], width: 3.4, rotation: [0.04, Math.PI + 0.12, 0], focus: [0, 0, -0.8], half: 2.4, explode: 0.3, show: { ...ALL, propGlobe: 1 } },
@@ -260,6 +262,15 @@ const damp = (current: number, target: number, rate: number, dt: number) =>
   current + (target - current) * (1 - Math.exp(-rate * dt));
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 /** Ease out with a small overshoot, so the miniatures spring up. */
+/** Half width and half height of each miniature, in scene units, for keeping notes off it. */
+const PROP_EXTENT: Partial<Record<Group, [number, number]>> = {
+  propCoaster: [1.1, 0.6],
+  propReel: [1.0, 0.7],
+  propGame: [0.55, 0.45],
+  propGlobe: [0.6, 0.6],
+  propPetals: [0.6, 0.9],
+};
+
 const popIn = (x: number) => 1 + 2.7 * (x - 1) ** 3 + 1.7 * (x - 1) ** 2;
 const smooth = (t: number) => t * t * (3 - 2 * t);
 const lerp3 = (a: V3, b: V3, t: number): V3 => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
@@ -618,10 +629,20 @@ export async function createWatchScene({
     return node;
   };
 
-  // A stack of books rises between the gears.
-  const booksNode = propGroup('propBooks', [0, -0.93, -0.26], [0, 0, -0.2]);
-  flatMesh(pieces.shelf, gold(0.2)).setParent(booksNode);
-  flatMesh(pieces.books, steel(COLORS.violet, 0.3)).setParent(booksNode);
+  // A roller coaster beside the watch, with a little car that rides it all the way round.
+  const coasterNode = propGroup('propCoaster', [-2.2, -1.35, 0.3]);
+  coasterNode.rotation.y = 0.8;
+  const coasterLine = new Transform();
+  coasterLine.setParent(coasterNode);
+  coasterLine.scale.set(1.0, 1.0, 1.0);
+  coasterLine.position.set(-0.03, -0.4, 0);
+  flatMesh(pieces.rails, gold(0.2)).setParent(coasterLine);
+  flatMesh(pieces.frame, steel(COLORS.violet, 0.3)).setParent(coasterLine);
+  const carMesh = flatMesh(pieces.car, steel(COLORS.violet, 0.3));
+  carMesh.setParent(coasterLine);
+  const route = coasterPath();
+  const crest = route.points.filter((p) => p.x < 0).reduce((top, p) => (p.y > top.y ? p : top));
+  let carAt = 0;
 
   // A film reel, with its strip, beside the dial.
   const reelNode = propGroup('propReel', [0.98, -1.0, 0.2], [0, 0, 0.3]);
@@ -700,6 +721,8 @@ export async function createWatchScene({
   let height = 1;
   /** How wide the watch is across the current pose, in scene units. */
   let modelUnits = 2.4;
+  /** The miniature that is most in view this frame. */
+  let leadProp: { node: Transform; group: Group; scale: number } | null = null;
   let raf = 0;
   let lastTime = 0;
   let running = false;
@@ -770,6 +793,7 @@ export async function createWatchScene({
     // Pieces leave late in the move, once they have flown apart.
     const fade = smooth(Math.min(Math.max((u - 0.3) / 0.5, 0), 1));
 
+    leadProp = null;
     for (const layer of layers) {
       const visibleFrom = from.show[layer.group] ?? 0;
       const visibleTo = to.show[layer.group] ?? 0;
@@ -778,6 +802,7 @@ export async function createWatchScene({
       // The miniatures need room to be read: they only show beside the content, not behind it.
       const scale = vis <= 0.001 || (isProp && !wide) ? 0 : isProp ? popIn(vis) : Math.pow(vis, 0.7);
       layer.node.visible = scale > 0.01;
+      if (isProp && scale > 0.4 && (!leadProp || scale > leadProp.scale)) leadProp = { node: layer.node, group: layer.group, scale };
       layer.node.scale.set(scale, scale, scale);
       layer.node.position.set(
         layer.base[0] + layer.offset[0] * explode,
@@ -819,6 +844,15 @@ export async function createWatchScene({
 
     // The miniatures are alive: a turning reel, a bobbing invader, a circling plane, falling petals.
     reelMesh.rotation.z -= 0.9 * dt;
+    // The car is hauled up the lift, then runs on its own: faster the lower it is.
+    const here = coasterAt(carAt);
+    carAt += dt * (carAt < crest.s ? 0.34 : 0.3 + 1.15 * Math.sqrt(Math.max(0, crest.y - here.y)));
+    if (carAt >= route.length) carAt = 0;
+    const next = coasterAt(carAt);
+    const pop = Math.min(1, carAt / 0.15, (route.length - carAt) / 0.15);
+    carMesh.position.set(next.x, next.y, next.z);
+    carMesh.rotation.z = next.a;
+    carMesh.scale.set(pop, pop, pop);
     invaderMesh.position.y = Math.sin(t * 0.0018) * 0.05;
     invaderMesh.rotation.y = Math.sin(t * 0.0009) * 0.5;
     planePivot.rotation.z += 0.9 * dt;
@@ -836,6 +870,7 @@ export async function createWatchScene({
   const centrePoint = new Vec3();
   const crownPoint = new Vec3();
   const crownEdge = new Vec3();
+  const propPoint = new Vec3();
   /** Tell the page where the highlighted part is, so a text callout can be tied to it. */
   const reportAnchor = () => {
     if (!onAnchor) return;
@@ -857,7 +892,22 @@ export async function createWatchScene({
       (crownEdge.y - crownPoint.y) * 0.5 * height,
     );
     const pxPerUnit = Math.max(crownRadius / 0.22, 1);
+    let prop: AnchorInfo['prop'] = null;
+    const lead = leadProp as { node: Transform; group: Group; scale: number } | null;
+    const extent = lead ? PROP_EXTENT[lead.group] : undefined;
+    if (lead && extent) {
+      const pm = lead.node.worldMatrix;
+      propPoint.set(pm[12], pm[13], pm[14]);
+      camera.project(propPoint);
+      prop = {
+        x: (propPoint.x * 0.5 + 0.5) * width,
+        y: (1 - (propPoint.y * 0.5 + 0.5)) * height,
+        halfW: extent[0] * pxPerUnit * Math.min(lead.scale, 1),
+        halfH: extent[1] * pxPerUnit * Math.min(lead.scale, 1),
+      };
+    }
     onAnchor({
+      prop,
       model: {
         x: (centrePoint.x * 0.5 + 0.5) * width,
         y: (1 - (centrePoint.y * 0.5 + 0.5)) * height,
