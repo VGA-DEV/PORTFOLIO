@@ -147,7 +147,8 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
         b: a.model.y + a.model.halfH,
       };
       let cost = overlap(box, model) * 1.6;
-      for (const r of text) cost += overlap(box, r);
+      // Over the text is worse than over the watch: it hides what is being read.
+      for (const r of text) cost += overlap(box, r) * 5;
       if (crownRect) cost += overlap(box, crownRect) * 3;
       const dx = (box.l + box.r) / 2 - a.x;
       const dy = (box.t + box.b) / 2 - a.y;
@@ -289,7 +290,16 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       const settle = noteState ? (1 - noteState.out) * noteIn : clamp01(1.6 - Math.abs(a.position - nearest) * 4);
       const vw = window.innerWidth;
       const phone = narrow.matches;
-      const w = Math.min(phone ? 20 * 16 : 22 * 16, vw - 2 * MARGIN);
+      // On wide screens the note takes the free strip beside the content column, however narrow.
+      let free = vw - 2 * MARGIN;
+      if (!phone && text.length > 0) {
+        const textLeft = Math.min(...text.map((r) => r.l));
+        const textRight = Math.max(...text.map((r) => r.r));
+        const watchRight = sectionEls[nearest]?.dataset.side !== 'right';
+        const beside = watchRight ? textLeft - 2 * MARGIN : vw - textRight - 2 * MARGIN;
+        if (beside > 0) free = Math.min(free, Math.max(beside, 200));
+      }
+      const w = Math.min(phone ? 20 * 16 : 22 * 16, free);
 
       const key = `${nearest}|${Math.round(w)}`;
       if (measured.key !== key) {
@@ -401,6 +411,8 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
         const rect = spacer.getBoundingClientRect();
         const centre = rect.top + window.scrollY + rect.height / 2;
         heroAnchor = Math.min(Math.max(centre / window.innerHeight, 0.4), 0.8);
+        // A landscape window has little height: keep the watch clear of the bottom edge.
+        if (window.innerWidth > window.innerHeight) heroAnchor = Math.min(heroAnchor, 0.64);
       }
 
       try {

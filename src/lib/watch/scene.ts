@@ -700,10 +700,11 @@ export async function createWatchScene({
   let lastTime = 0;
   let running = false;
 
-  const fitCamera = (half: number) => {
+  const fitCamera = (half: number, portrait = width < height) => {
     const tan = Math.tan((camera.fov * Math.PI) / 360);
     const aspect = width / height;
-    camera.position.set(0, 0, Math.max(half / (tan * aspect), half / tan));
+    // Composed as on a phone, `half` is half the width in view; otherwise half the height.
+    camera.position.set(0, 0, portrait ? half / (tan * aspect) : half / tan);
     camera.lookAt([0, 0, 0]);
   };
 
@@ -741,13 +742,22 @@ export async function createWatchScene({
     const rotation = lerp3(from.rotation, to.rotation, ease);
     const focus = lerp3(from.focus, to.focus, ease);
     const portrait = width < height;
+    // Below 62rem the page is one column of text even on a landscape window, so the watch is
+    // placed as on a phone (behind and below the text, not beside it) at landscape scale.
+    const stacked = portrait || width < 992;
     const aspect = width / height;
     // On wider-than-tall screens the watch has half the width to itself: zoom out if it would not fit.
     const widest = lerp(from.width, to.width, ease);
     modelUnits = widest;
-    const fitHalf = portrait ? 0 : widest / (0.8 * aspect);
+    // The content column is a fixed 36rem, so on narrower windows the strip left for the watch
+    // shrinks: centre the watch in that strip, and zoom out if the model would still not fit it.
+    const container = Math.min(1120, width - 32);
+    const strip = width >= 992 ? Math.min(Math.max(((width + container) / 2 - 576) / width, 0.34), 0.5) : 0.5;
+    const centre = Math.min(Math.max(strip / 2, 0.17), 0.27);
+    const halfShare = Math.max(strip / 2 - 0.03, 0.12);
+    const fitHalf = portrait ? 0 : Math.max(widest / (0.8 * aspect), widest / (4 * halfShare * aspect));
     const half = (Math.max(lerp(from.half, to.half, ease), fitHalf) + 1.1 * burst) *
-      (portrait ? lerp(from.zoom ?? 0.72, to.zoom ?? 0.72, ease) : 1);
+      (portrait ? lerp(from.zoom ?? 0.72, to.zoom ?? 0.72, ease) : stacked ? 1.5 : 1);
     const explode = lerp(from.explode, to.explode, ease) + 0.9 * burst;
     // Pieces leave late in the move, once they have flown apart.
     const fade = smooth(Math.min(Math.max((u - 0.3) / 0.5, 0), 1));
@@ -775,14 +785,14 @@ export async function createWatchScene({
     const theta = lerp(angles[a] ?? 0, angles[b] ?? 0, ease);
     const viewW = portrait ? half : half * aspect;
     const viewH = portrait ? half / aspect : half;
-    const rx = (portrait ? 0.16 : 0.46) * viewW;
-    const ry = (portrait ? 0.2 : 0.55) * viewH;
+    const rx = (stacked ? 0.16 : (1 - 2 * centre)) * viewW;
+    const ry = (stacked ? 0.2 : 0.55) * viewH;
     const row = lerp(portraitRows[a] ?? 0.6, portraitRows[b] ?? 0.6, ease);
-    const baseY = portrait ? (0.5 - row) * 2 * viewH : 0;
+    const baseY = stacked ? (0.5 - row) * 2 * viewH : 0;
     rotator.position.x = rx * Math.cos(theta);
     rotator.position.y = baseY + ry * Math.sin(theta) + Math.sin(t * 0.0009) * 0.03;
     glassPhase.value = 0.2 + 0.4 * explode + shownX * 0.25 + Math.sin(t * 0.0004) * 0.05;
-    fitCamera(half);
+    fitCamera(half, portrait);
     const anchor = lerp3(from.anchor, to.anchor, ease);
     anchorNode.position.set(anchor[0], anchor[1], anchor[2]);
 
