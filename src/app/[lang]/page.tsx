@@ -41,6 +41,7 @@ export default async function HomePage() {
 
       <Section
         id='projects'
+        part={dict.notes.projects.part}
         title={dict.projects.title}
         intro={dict.projects.intro}
         side='right'
@@ -80,6 +81,7 @@ export default async function HomePage() {
 
       <Section
         id='experience'
+        part={dict.notes.experience.part}
         tone='mist'
         title={dict.experience.title}
         intro={dict.experience.intro}
@@ -104,7 +106,7 @@ export default async function HomePage() {
         </ol>
       </Section>
 
-      <Section id='stack' title={dict.stack.title} side='right'>
+      <Section id='stack' title={dict.stack.title} part={dict.notes.stack.part} side='right'>
         <div className='stack'>
           {stack.map((group) => (
             <div key={group.id} className='stack__group'>
@@ -126,6 +128,7 @@ export default async function HomePage() {
 
       <Section
         id='evolution'
+        part={dict.notes.evolution.part}
         tone='mist'
         title={dict.evolution.title}
         intro={dict.evolution.intro}
@@ -148,6 +151,7 @@ export default async function HomePage() {
 
       <Section
         id='contact'
+        part={dict.notes.contact.part}
         title={dict.contact.title}
         intro={dict.contact.intro}
         side='right'

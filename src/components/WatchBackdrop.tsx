@@ -241,6 +241,8 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       button.style.transform = `translate(${p.x.toFixed(1)}px, ${p.y.toFixed(1)}px) translate(-50%, -50%)`;
       button.style.width = button.style.height = `${size.toFixed(1)}px`;
       button.dataset.ready = 'true';
+      // The hint sits to the right of the crown, or under it when the edge of the screen is too close.
+      button.dataset.hint = p.x + size / 2 + 170 > vw ? 'below' : 'right';
 
       // A thin thread ties the stepped-aside control back to the crown it belongs to.
       const tether = tetherRef.current;
@@ -372,6 +374,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       dot.setAttribute('cy', f(a.y));
 
       placeCrown(a, rethink, { l: L, t: T, r: R, b: B });
+      callout.dataset.hidden = narrow.matches ? 'true' : 'false';
     };
 
     const stop = () => {
@@ -495,7 +498,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
         }
         // Behind single-column text the watch is fainter, except in the hero.
         if (narrow.matches) {
-          root.style.setProperty('--watch-opacity', lerp(1, 0.38, clamp01(position * 1.6)).toFixed(3));
+          root.style.setProperty('--watch-opacity', lerp(1, 0.25, clamp01(position * 1.6)).toFixed(3));
         } else {
           root.style.removeProperty('--watch-opacity');
         }

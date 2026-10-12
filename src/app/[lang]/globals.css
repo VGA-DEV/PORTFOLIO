@@ -945,8 +945,8 @@ html[data-watch='3d'] .crown-control[data-ready='true'] {
 
 .crown-control__hint {
   position: absolute;
-  bottom: calc(100% + 0.1rem);
-  left: 50%;
+  top: 50%;
+  left: calc(100% + 0.6rem);
   color: var(--ctl);
   font-size: 0.72rem;
   font-weight: 700;
@@ -954,9 +954,16 @@ html[data-watch='3d'] .crown-control[data-ready='true'] {
   text-shadow: 0 0 6px var(--ctl-disc);
   text-transform: uppercase;
   white-space: nowrap;
-  transform: translateX(-50%);
+  transform: translateY(-50%);
   opacity: 0;
   transition: opacity 0.3s var(--ease-out);
+}
+
+/* No room on the right (the crown is near the edge): the hint goes under it. */
+.crown-control[data-hint='below'] .crown-control__hint {
+  top: calc(100% + 0.2rem);
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .crown-control:not([data-used]) .crown-control__hint,
@@ -1216,4 +1223,29 @@ html[data-sweep] .section {
   margin-top: calc(-1 * var(--overlap, 0px));
   /* The section itself is never painted; its content shows only when it has arrived. */
   visibility: hidden;
+}
+
+/* On small screens the watch is only a faint background: its notes and miniatures are not
+   shown, and the name of the part it is told through becomes a small label above the title. */
+.section__eyebrow {
+  margin: 0 0 var(--space-1);
+  color: var(--color-champagne-deep);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.section--stage .section__eyebrow {
+  color: var(--color-champagne);
+}
+
+@media (min-width: 62rem) and (pointer: fine) {
+  .section__eyebrow {
+    display: none;
+  }
+}
+
+.callout[data-hidden='true'] {
+  display: none !important;
 }

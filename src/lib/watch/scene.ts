@@ -774,7 +774,9 @@ export async function createWatchScene({
       const visibleFrom = from.show[layer.group] ?? 0;
       const visibleTo = to.show[layer.group] ?? 0;
       const vis = lerp(visibleFrom, visibleTo, fade);
-      const scale = vis <= 0.001 ? 0 : layer.group.startsWith('prop') ? popIn(vis) : Math.pow(vis, 0.7);
+      const isProp = layer.group.startsWith('prop');
+      // The miniatures need room to be read: they only show beside the content, not behind it.
+      const scale = vis <= 0.001 || (isProp && !wide) ? 0 : isProp ? popIn(vis) : Math.pow(vis, 0.7);
       layer.node.visible = scale > 0.01;
       layer.node.scale.set(scale, scale, scale);
       layer.node.position.set(

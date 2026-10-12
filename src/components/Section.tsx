@@ -5,6 +5,8 @@ type SectionProps = {
   id: string;
   title: string;
   intro?: string;
+  /** The part of the watch this section is told through; shown above the title on small screens, where the watch is only a faint background. */
+  part?: string;
   /** Which side of the screen the text sits on; the watch takes the other. */
   side?: 'left' | 'right';
   /** `stage` is the dark variant that bookends the page; `mist` is a second light tone, so neighbours differ. */
@@ -18,6 +20,7 @@ export function Section({
   id,
   title,
   intro,
+  part,
   side = 'left',
   tone = 'paper',
   dwell = true,
@@ -36,6 +39,11 @@ export function Section({
         <div className='container'>
           <div className='section__body'>
             <header className='section__head'>
+              {part ? (
+                <p className='section__eyebrow' aria-hidden='true'>
+                  {part}
+                </p>
+              ) : null}
               <h2 id={`${id}-title`} className='section__title'>
                 {title}
               </h2>
