@@ -22,7 +22,7 @@
   },
   "projects": {
     "title": "Projects",
-    "intro": "TODO: choose 3-4 personal projects. The cards below are examples.",
+    "intro": "Personal projects, built outside work: one finished, one in progress and one to take forward.",
     "statusLabel": "Status",
     "stackLabel": "Stack",
     "status": {
@@ -32,27 +32,31 @@
     },
     "items": [
       {
-        "name": "Example project 1",
-        "summary": "TODO: what it is and what problem it solves.",
+        "name": "Coasterdle",
+        "summary": "A Wordle-style guessing game set in amusement parks. It is being built right now.",
         "status": "inDevelopment",
         "stack": [
           "TODO"
         ]
       },
       {
-        "name": "Example project 2",
-        "summary": "TODO: what it is and what problem it solves.",
+        "name": "SQUARED",
+        "summary": "A simple game where you fit a growing rectangle inside a frame, without falling short or going over. Published on Google Play.",
         "status": "working",
         "stack": [
-          "TODO"
+          "Unity",
+          "C#",
+          "Photoshop"
         ]
       },
       {
-        "name": "Example project 3",
-        "summary": "TODO: what it is and what problem it solves.",
+        "name": "GYM_RECORDS",
+        "summary": "An Android app to log training and food, and check whether routines and diet help reach the goals. Pending: I want to take it forward.",
         "status": "pending",
         "stack": [
-          "TODO"
+          "Kotlin",
+          "SQLite",
+          "Photoshop"
         ]
       }
     ]
@@ -117,16 +121,16 @@
   },
   "notes": {
     "projects": {
-      "part": "Movement",
-      "text": "The movement is the watch’s mechanism: small parts that fit together so everything works. Projects are the same; what matters is how they fit inside."
+      "part": "Whole watch",
+      "text": "A watch is all its parts working together. That is what I look for in each project: the whole has to work, not just each part."
     },
     "experience": {
       "part": "Dial and hands",
       "text": "The dial and hands are what you read on a watch: time, in order. Experience is told the same way, chapter by chapter."
     },
     "stack": {
-      "part": "Taken apart",
-      "text": "To see what a watch is made of, you take it apart. Here are the loose pieces, grouped by the part of the watch they match."
+      "part": "Movement",
+      "text": "The movement is the mechanism that makes a watch run, even if you cannot see it. Here are the technologies I work with, grouped by what each one does."
     },
     "evolution": {
       "part": "Case back",

@@ -249,9 +249,9 @@ const ALL: Partial<Record<Group, number>> = {
  */
 const STATES: readonly PoseState[] = [
   { anchor: [0, 0, 0.1], width: 2.4, rotation: [0.16, -0.45, 0], focus: [0, 0, 0], half: 2.9, explode: 0, zoom: 0.98, show: ALL },
-  { anchor: [0, 0.1, -0.55], width: 2.4, rotation: [0.22, -0.9, 0.04], focus: [0, 0, -0.6], half: 2.8, explode: 0.85, show: { ...ALL, propBooks: 1 } },
+  { anchor: [0, 0, 0.1], width: 2.4, rotation: [0.2, -0.8, 0.03], focus: [0, 0, 0], half: 2.9, explode: 0, zoom: 0.98, show: { ...ALL, propBooks: 1 } },
   { anchor: [0, 0, 0.25], width: 2.6, rotation: [0.12, -0.4, 0], focus: [0, 0, 0.25], half: 2.4, explode: 0.55, show: { ...ALL, propReel: 1 } },
-  { anchor: [0, 0, -0.1], width: 5.8, rotation: [0.2, -0.95, 0.05], focus: [0, 0, 0], half: 4.1, explode: 1, show: { ...ALL, propGame: 1 } },
+  { anchor: [0, 0.1, -0.55], width: 2.4, rotation: [0.22, -0.9, 0.04], focus: [0, 0, -0.6], half: 2.8, explode: 0.85, show: { ...ALL, propGame: 1 } },
   { anchor: [0, 0, -0.9], width: 3.4, rotation: [0.04, Math.PI + 0.12, 0], focus: [0, 0, -0.8], half: 2.4, explode: 0.3, show: { ...ALL, propGlobe: 1 } },
   { anchor: [1.045, 0.32, -0.255], width: 3.0, rotation: [0.1, -1.15, 0], focus: [0.9, 0.15, -0.2], half: 2.6, explode: 0.1, show: { ...ALL, propPetals: 1 } },
 ];

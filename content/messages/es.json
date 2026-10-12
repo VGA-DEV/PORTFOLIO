@@ -22,7 +22,7 @@
   },
   "projects": {
     "title": "Proyectos",
-    "intro": "TODO: elegir 3-4 proyectos propios. Las tarjetas de abajo son de ejemplo.",
+    "intro": "Proyectos propios, hechos fuera del trabajo: uno terminado, uno en marcha y uno por sacar adelante.",
     "statusLabel": "Estado",
     "stackLabel": "Stack",
     "status": {
@@ -32,27 +32,31 @@
     },
     "items": [
       {
-        "name": "Proyecto de ejemplo 1",
-        "summary": "TODO: qué es y qué problema resuelve.",
+        "name": "Coasterdle",
+        "summary": "Juego de adivinar al estilo Wordle, ambientado en parques de atracciones. Se está desarrollando ahora mismo.",
         "status": "inDevelopment",
         "stack": [
           "TODO"
         ]
       },
       {
-        "name": "Proyecto de ejemplo 2",
-        "summary": "TODO: qué es y qué problema resuelve.",
+        "name": "SQUARED",
+        "summary": "Juego sencillo en el que hay que encajar un rectángulo que se va expandiendo dentro de un marco, sin quedarse corto ni pasarse. Publicado en Google Play.",
         "status": "working",
         "stack": [
-          "TODO"
+          "Unity",
+          "C#",
+          "Photoshop"
         ]
       },
       {
-        "name": "Proyecto de ejemplo 3",
-        "summary": "TODO: qué es y qué problema resuelve.",
+        "name": "GYM_RECORDS",
+        "summary": "Aplicación Android para registrar el entrenamiento y la alimentación, y comprobar si las rutinas y la dieta ayudan a cumplir los objetivos. Pendiente: quiero sacarla adelante.",
         "status": "pending",
         "stack": [
-          "TODO"
+          "Kotlin",
+          "SQLite",
+          "Photoshop"
         ]
       }
     ]
@@ -117,16 +121,16 @@
   },
   "notes": {
     "projects": {
-      "part": "Movimiento",
-      "text": "El movimiento es el mecanismo del reloj: piezas pequeñas que encajan para que todo funcione. Los proyectos son lo mismo; lo importante está en cómo encajan por dentro."
+      "part": "Reloj entero",
+      "text": "Un reloj es el conjunto de todas sus piezas funcionando juntas. Es lo que busco en cada proyecto: que funcione el conjunto, no solo cada parte."
     },
     "experience": {
       "part": "Esfera y agujas",
       "text": "La esfera y las agujas son lo que se lee de un reloj: el tiempo, en orden. La experiencia se cuenta igual, capítulo a capítulo."
     },
     "stack": {
-      "part": "Desmontado",
-      "text": "Para ver de qué está hecho un reloj hay que desmontarlo. Aquí están las piezas sueltas, agrupadas por la parte del reloj a la que corresponden."
+      "part": "Movimiento",
+      "text": "El movimiento es el mecanismo que hace funcionar el reloj, aunque no se vea. Aquí están las tecnologías con las que trabajo, agrupadas por lo que hace cada una."
     },
     "evolution": {
       "part": "Fondo de caja",
