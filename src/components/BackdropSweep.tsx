@@ -126,7 +126,11 @@ export function BackdropSweep() {
         // and the text cannot shake; at the end of the dwell it takes its place in the flow.
         const container = pin.querySelector<HTMLElement>(':scope > .container');
         const waiting =
-          k > 0 && !!container && !!dwells[k - 1] && dwells[k - 1].getBoundingClientRect().bottom - viewport > 0.5;
+          k > 0 &&
+          !!container &&
+          !!dwells[k - 1] &&
+          before >= 0.4 &&
+          dwells[k - 1].getBoundingClientRect().bottom - viewport > 0.5;
         if (container && waiting !== heldPins.has(pin)) {
           if (waiting) {
             const offset = container.offsetTop;
@@ -157,7 +161,22 @@ export function BackdropSweep() {
     // A section's content is held when it reaches the top of the page (or, if it is taller
     // than the screen, when its bottom reaches the bottom of the screen). The next section
     // is pulled up so that it is in place just as the dwell ends.
+    /** Put every held section back in the flow, so that nothing measured earlier outlives a resize. */
+    const releaseHeld = () => {
+      heldPins.forEach((pin) => {
+        pin.style.removeProperty('height');
+        const container = pin.querySelector<HTMLElement>(':scope > .container');
+        container?.removeAttribute('style');
+      });
+      heldPins.clear();
+    };
+    let lastSize = '';
     const setPins = () => {
+      const size = `${window.innerWidth}x${window.innerHeight}`;
+      if (size !== lastSize) {
+        lastSize = size;
+        releaseHeld();
+      }
       const viewport = window.innerHeight;
       const header = document.querySelector<HTMLElement>('.site-header')?.offsetHeight ?? 0;
       headerHeight = header;

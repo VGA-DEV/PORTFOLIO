@@ -453,8 +453,11 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
           if (progress >= 0) {
             const state = moveState[i] ?? { moved: false, passed: false, ready: false, last: progress };
             moveState[i] = state;
-            if (!state.ready) {
-              state.moved = progress > MOVE_AT;
+            if (!state.ready || Math.abs(progress - state.last) > 0.3) {
+              // First reading, or a jump (a link, or a resize that moved everything): take the
+              // state that matches where we are, as if we had got here by scrolling.
+              const up = state.ready && progress < state.last;
+              state.moved = progress > (up ? MOVE_BACK_AT : MOVE_AT);
               state.passed = progress > 0.6;
               state.ready = true;
             } else if (progress < MOVE_AT) {
@@ -513,10 +516,14 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       };
       update();
       window.addEventListener('scroll', onScroll, { passive: true });
-      window.addEventListener('resize', onScroll, { passive: true });
+      const onResize = () => {
+        moveState.length = 0;
+        onScroll();
+      };
+      window.addEventListener('resize', onResize, { passive: true });
       cleanups.push(() => {
         window.removeEventListener('scroll', onScroll);
-        window.removeEventListener('resize', onScroll);
+        window.removeEventListener('resize', onResize);
         cancelAnimationFrame(frame);
       });
 
