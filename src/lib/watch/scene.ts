@@ -757,7 +757,9 @@ export async function createWatchScene({
     const halfShare = Math.max(strip / 2 - 0.03, 0.12);
     const fitHalf = portrait ? 0 : Math.max(widest / (0.8 * aspect), widest / (4 * halfShare * aspect));
     const half = (Math.max(lerp(from.half, to.half, ease), fitHalf) + 1.1 * burst) *
-      (portrait ? lerp(from.zoom ?? 0.72, to.zoom ?? 0.72, ease) : stacked ? 1.5 : 1);
+      // On a phone the watch fills the width; on a tablet held upright that would be enormous,
+      // so past phone widths the view grows with the screen and the watch keeps a similar size.
+      (portrait ? lerp(from.zoom ?? 0.72, to.zoom ?? 0.72, ease) * Math.max(1, width / 480) : stacked ? 1.5 : 1);
     const explode = lerp(from.explode, to.explode, ease) + 0.9 * burst;
     // Pieces leave late in the move, once they have flown apart.
     const fade = smooth(Math.min(Math.max((u - 0.3) / 0.5, 0), 1));
