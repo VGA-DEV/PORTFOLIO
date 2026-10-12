@@ -1206,7 +1206,7 @@ html[data-sweep] .pin {
 
 @media (min-width: 62rem) and (pointer: fine) {
   html[data-sweep] .dwell {
-    height: clamp(34rem, 150svh, 96rem);
+    height: clamp(32rem, 140svh, 90rem);
   }
 }
 

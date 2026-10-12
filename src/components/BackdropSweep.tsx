@@ -66,6 +66,8 @@ export function BackdropSweep() {
     const lastAngle: number[] = nodes.map(() => -1);
     const lastStyle = new Map<HTMLElement, string>();
     const lastVisible = new Map<HTMLElement, boolean>();
+    const heldPins = new Set<HTMLElement>();
+    let headerHeight = 0;
     let frame = 0;
 
     const setStyle = (el: HTMLElement, opacity: number, shift: number) => {
@@ -115,14 +117,30 @@ export function BackdropSweep() {
           const inn = (before < 0 ? 1 : arriveProgress(before, r)) * gate;
           setStyle(el, (1 - out) * inn, -34 * out + 46 * (1 - inn));
         });
-        // The next section waits where it will end up, instead of coming up the screen
-        // with the scroll, so its rows land exactly over the ones that leave.
-        let lift = 0;
-        if (k > 0 && dwells[k - 1]) lift = Math.max(0, dwells[k - 1].getBoundingClientRect().bottom - viewport);
-        const transform = lift > 0.5 ? `translate3d(0, ${(-lift).toFixed(1)}px, 0)` : '';
-        if (lastStyle.get(pin) !== transform) {
-          lastStyle.set(pin, transform);
-          pin.style.transform = transform;
+        // The next section waits where it will end up, instead of coming up the screen with
+        // the scroll, so its rows land exactly over the ones that leave. It is held with
+        // `position: fixed`, which the scroll never moves, so there is nothing to keep up with
+        // and the text cannot shake; at the end of the dwell it takes its place in the flow.
+        const container = pin.querySelector<HTMLElement>(':scope > .container');
+        const waiting =
+          k > 0 && !!container && !!dwells[k - 1] && dwells[k - 1].getBoundingClientRect().bottom - viewport > 0.5;
+        if (container && waiting !== heldPins.has(pin)) {
+          if (waiting) {
+            const offset = container.offsetTop;
+            pin.style.height = `${pin.offsetHeight}px`;
+            container.style.position = 'fixed';
+            container.style.top = `${headerHeight + offset}px`;
+            container.style.left = '0';
+            container.style.right = '0';
+            heldPins.add(pin);
+          } else {
+            pin.style.removeProperty('height');
+            container.style.removeProperty('position');
+            container.style.removeProperty('top');
+            container.style.removeProperty('left');
+            container.style.removeProperty('right');
+            heldPins.delete(pin);
+          }
         }
         // Out of sight, and out of reach, until it starts to arrive and once it has gone.
         const visible = !(k > 0 && before >= 0 && before < 0.4) && !(own >= 0.53);
@@ -139,6 +157,7 @@ export function BackdropSweep() {
     const setPins = () => {
       const viewport = window.innerHeight;
       const header = document.querySelector<HTMLElement>('.site-header')?.offsetHeight ?? 0;
+      headerHeight = header;
       pins.forEach((pin) => {
         pin.style.top = `${Math.round(Math.min(viewport - pin.offsetHeight, header))}px`;
       });
@@ -169,6 +188,8 @@ export function BackdropSweep() {
         pin.style.removeProperty('top');
         pin.style.removeProperty('visibility');
         pin.style.removeProperty('transform');
+        pin.style.removeProperty('height');
+        pin.querySelector<HTMLElement>(':scope > .container')?.removeAttribute('style');
       });
       items.flat().forEach((el) => {
         el.style.removeProperty('opacity');
