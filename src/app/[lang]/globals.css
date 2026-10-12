@@ -676,6 +676,54 @@ html[data-watch='flat'] .hero__watch .watch__frame {
   font-weight: 600;
 }
 
+/* Projects: each entry is a short header (name and state), the summary across the whole column
+   and a fine line of stack, so four entries still fit a screen beside the watch. */
+.ledger--projects .ledger__row {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-1);
+  padding-block: var(--space-2);
+}
+
+.ledger__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.15rem var(--space-3);
+}
+
+.ledger--projects .ledger__body p {
+  margin-bottom: var(--space-1);
+}
+
+.ledger__stack {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 0.9em;
+  color: var(--color-ink-soft);
+  font-size: 0.95rem;
+}
+
+.ledger__label {
+  color: var(--color-ink-soft);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 /* A three-step level bar, like a game HUD: pending, in development, working. */
 .status__level {
   display: inline-block;

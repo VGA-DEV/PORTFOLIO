@@ -22,7 +22,7 @@
   },
   "projects": {
     "title": "Proyectos",
-    "intro": "Proyectos propios, hechos fuera del trabajo: uno terminado, uno en marcha y uno por sacar adelante.",
+    "intro": "Un reloj pulido es el resultado de todas sus piezas, de la más grande a la más pequeña. Un proyecto también: sale de todas mis facetas y habilidades trabajando juntas.",
     "statusLabel": "Estado",
     "stackLabel": "Stack",
     "status": {
@@ -121,8 +121,8 @@
   },
   "notes": {
     "projects": {
-      "part": "Reloj entero",
-      "text": "Un reloj es el conjunto de todas sus piezas funcionando juntas. Es lo que busco en cada proyecto: que funcione el conjunto, no solo cada parte."
+      "part": "El conjunto",
+      "text": "Entero y pulido: así queda un reloj cuando todas sus piezas, de la mayor a la menor, están en su sitio."
     },
     "experience": {
       "part": "Esfera y agujas",

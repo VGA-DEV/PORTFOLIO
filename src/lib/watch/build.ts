@@ -29,7 +29,6 @@ export type WatchPieces = {
   crystal: Piece;
   /** Small gold miniatures, one per interest ("complications"). */
   rails: Piece;
-  frame: Piece;
   car: Piece;
   reel: Piece;
   film: Piece;
@@ -66,10 +65,10 @@ const mergeSmooth = (...parts: SmoothMesh[]): SmoothMesh => ({
 type TrackPoint = { x: number; y: number; z: number; a: number; s: number };
 
 /**
- * The roller coaster's route, seen from the side: a lift hill, a crest, a drop, one
- * loop that shifts a little sideways so it does not cross itself, and a run-out.
- * Built once from a few key points smoothed with a Catmull-Rom spline and resampled
- * at an even spacing, so the rails and the little car follow exactly the same line.
+ * The roller coaster's route, seen from the side: the last of the lift hill, the crest
+ * at the very top and the start of a gentle drop. Built once from a few key points smoothed with a Catmull-Rom
+ * spline and resampled at an even spacing, so the rails and the little cars follow
+ * exactly the same line.
  */
 export const COASTER_STEP = 0.04;
 
@@ -78,22 +77,16 @@ let coasterCache: { points: TrackPoint[]; length: number } | null = null;
 export function coasterPath() {
   if (coasterCache) return coasterCache;
   const keys: [number, number, number][] = [
-    [-1.0, 0.06, -0.07],
-    [-0.85, 0.06, -0.07],
-    [-0.55, 0.45, -0.07],
-    [-0.3, 0.74, -0.07],
-    [-0.1, 0.7, -0.07],
-    [0.1, 0.36, -0.07],
-    [0.2, 0.14, -0.07],
+    [-1.0, 0.0, 0],
+    [-0.7, 0.2, 0],
+    [-0.4, 0.42, 0],
+    [-0.15, 0.55, 0],
+    [0.05, 0.58, 0],
+    [0.25, 0.5, 0],
+    [0.5, 0.32, 0],
+    [0.75, 0.18, 0],
+    [1.0, 0.12, 0],
   ];
-  // The loop: a circle whose centre drifts forward and across as it goes round.
-  const radius = 0.3;
-  const around = 28;
-  for (let i = 0; i <= around; i++) {
-    const t = (i / around) * Math.PI * 2;
-    keys.push([0.3 + radius * Math.sin(t) + 0.12 * (t / (Math.PI * 2)), 0.06 + radius * (1 - Math.cos(t)), -0.07 + 0.14 * (t / (Math.PI * 2))]);
-  }
-  keys.push([0.6, 0.06, 0.07], [0.85, 0.06, 0.07], [1.05, 0.06, 0.07]);
 
   const dense: [number, number, number][] = [];
   const at = (i: number) => keys[Math.min(Math.max(i, 0), keys.length - 1)];
@@ -110,7 +103,7 @@ export function coasterPath() {
   }
   dense.push(keys[keys.length - 1]);
 
-  // An even spacing along the line, so the box segments and the car's pace are regular.
+  // An even spacing along the line, so the box segments and the cars' pace are regular.
   const points: TrackPoint[] = [];
   let carry = 0;
   let travelled = 0;
@@ -148,11 +141,16 @@ export function coasterAt(s: number): TrackPoint {
   return { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f, z: a.z + (b.z - a.z) * f, a: a.a + (b.a - a.a) * f, s };
 }
 
-/** A roller coaster: two gold rails, violet ties and posts, and a small car to ride them. */
+/** Half the gap between the two rails. */
+const GAUGE = 0.13;
+
+/**
+ * A chunky brass roller coaster seen from the top of the hill: thick rails, ties, a chain on
+ * the way up and a stout car to ride it. No supports: just the crest, in one metal.
+ */
 function buildCoaster() {
   const { points } = coasterPath();
-  const rails: Float32Array[] = [];
-  const frame: Float32Array[] = [];
+  const parts: Float32Array[] = [];
   for (let i = 0; i < points.length - 1; i++) {
     const p = points[i];
     const q = points[i + 1];
@@ -161,19 +159,30 @@ function buildCoaster() {
     const mz = (p.z + q.z) / 2;
     const angle = Math.atan2(q.y - p.y, q.x - p.x);
     const length = Math.hypot(q.x - p.x, q.y - p.y) * 1.12;
-    rails.push(box(mx, my, mz - 0.045, length, 0.032, 0.03, angle), box(mx, my, mz + 0.045, length, 0.032, 0.03, angle));
-    if (i % 3 === 0) frame.push(box(mx, my - 0.022, mz, 0.024, 0.02, 0.12, angle));
-    // Posts hold the track up wherever it is not going round the loop.
-    const onLoop = mx > 0.2 && mx < 0.58 && mz > -0.06;
-    if (i % 6 === 3 && !onLoop && my > 0.14) frame.push(box(mx, (my - 0.03) / 2, mz, 0.034, my - 0.03, 0.034));
+    parts.push(
+      box(mx, my, mz - GAUGE, length, 0.052, 0.046, angle),
+      box(mx, my, mz + GAUGE, length, 0.052, 0.046, angle),
+    );
+    if (i % 2 === 0) parts.push(box(mx, my - 0.036, mz, 0.04, 0.03, 2 * GAUGE + 0.08, angle));
+    // On the way up there is a chain between the rails, with a tooth every other step.
+    if (mx < 0 && angle > 0.1) {
+      parts.push(box(mx, my - 0.01, mz, length, 0.028, 0.06, angle));
+      if (i % 2 === 1) parts.push(box(mx, my + 0.018, mz, 0.024, 0.032, 0.08, angle));
+    }
   }
+
+  // One car: a stout tub with two seat rows, a nose and four wheels.
   const car = merge(
-    box(0, 0.05, 0, 0.26, 0.06, 0.13),
-    box(-0.08, 0.1, 0, 0.06, 0.06, 0.11),
-    box(0.03, 0.1, 0, 0.06, 0.06, 0.11),
-    box(0.1, 0.085, 0, 0.04, 0.03, 0.11),
+    box(0, 0.075, 0, 0.3, 0.07, 0.28),
+    box(-0.09, 0.145, 0, 0.05, 0.09, 0.26),
+    box(0.02, 0.13, 0, 0.1, 0.04, 0.26),
+    box(0.16, 0.09, 0, 0.07, 0.05, 0.26),
+    box(-0.1, 0.045, -GAUGE - 0.03, 0.07, 0.07, 0.03),
+    box(-0.1, 0.045, GAUGE + 0.03, 0.07, 0.07, 0.03),
+    box(0.1, 0.045, -GAUGE - 0.03, 0.07, 0.07, 0.03),
+    box(0.1, 0.045, GAUGE + 0.03, 0.07, 0.07, 0.03),
   );
-  return { rails: merge(...rails), frame: merge(...frame), car };
+  return { rails: merge(...parts), car };
 }
 
 /** A film reel with its strip trailing off to one side. */
@@ -242,7 +251,7 @@ function buildGlobe() {
 }
 
 export function buildWatchPieces(): WatchPieces {
-  const { rails, frame, car } = buildCoaster();
+  const { rails, car } = buildCoaster();
   const { reel, film } = buildReel();
   const { globe, globeRing, plane } = buildGlobe();
   const outline = tonneauOutline(OUTLINE_POINTS);
@@ -295,7 +304,6 @@ export function buildWatchPieces(): WatchPieces {
     cap: lathe([[0, 0], [0.075, 0], [0.06, 0.04], [0, 0.05]], 20, 0),
     crystal: loft(outline, [[0.92, 0.0], [0.91, 0.05], [0.66, 0.078], [0.32, 0.09], [0, 0.094]]),
     rails,
-    frame,
     car,
     reel,
     film,

@@ -148,7 +148,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       };
       let cost = overlap(box, model) * 1.6;
       // Over the text is worse than over the watch: it hides what is being read.
-      for (const r of text) cost += overlap(box, r) * 5;
+      for (const r of text) cost += overlap(box, r) * 30;
       if (crownRect) cost += overlap(box, crownRect) * 3;
       if (a.prop) {
         cost += overlap(box, {

@@ -46,33 +46,27 @@ export default async function HomePage() {
         intro={dict.projects.intro}
         side='right'
       >
-        <ol className='ledger'>
+        <ol className='ledger ledger--projects'>
           {dict.projects.items.map((project) => (
             <li key={project.name} className='ledger__row'>
-              <h3 className='ledger__title'>{project.name}</h3>
+              <div className='ledger__head'>
+                <h3 className='ledger__title'>{project.name}</h3>
+                <p className='status'>
+                  <span className='sr-only'>{dict.projects.statusLabel}: </span>
+                  <span
+                    className='status__level'
+                    data-level={STATUS_LEVEL[project.status] ?? 1}
+                    aria-hidden='true'
+                  />
+                  {dict.projects.status[project.status as keyof typeof dict.projects.status]}
+                </p>
+              </div>
               <div className='ledger__body'>
                 <p>{project.summary}</p>
-                <dl className='ledger__meta'>
-                  <div>
-                    <dt>{dict.projects.statusLabel}</dt>
-                    <dd className='status'>
-                      <span
-                        className='status__level'
-                        data-level={STATUS_LEVEL[project.status] ?? 1}
-                        aria-hidden='true'
-                      />
-                      {
-                        dict.projects.status[
-                          project.status as keyof typeof dict.projects.status
-                        ]
-                      }
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>{dict.projects.stackLabel}</dt>
-                    <dd>{project.stack.join(', ')}</dd>
-                  </div>
-                </dl>
+                <p className='ledger__stack'>
+                  <span className='ledger__label'>{dict.projects.stackLabel}</span>
+                  {project.stack.join(' · ')}
+                </p>
               </div>
             </li>
           ))}

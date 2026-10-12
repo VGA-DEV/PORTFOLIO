@@ -22,7 +22,7 @@
   },
   "projects": {
     "title": "Projects",
-    "intro": "Personal projects, built outside work: one finished, one in progress and one to take forward.",
+    "intro": "A polished watch is the result of all its parts, from the largest to the smallest. A project is too: it comes from all my skills and areas of work together.",
     "statusLabel": "Status",
     "stackLabel": "Stack",
     "status": {
@@ -121,8 +121,8 @@
   },
   "notes": {
     "projects": {
-      "part": "Whole watch",
-      "text": "A watch is all its parts working together. That is what I look for in each project: the whole has to work, not just each part."
+      "part": "The whole",
+      "text": "Whole and polished: this is a watch when all its parts, from the largest to the smallest, are in place."
     },
     "experience": {
       "part": "Dial and hands",

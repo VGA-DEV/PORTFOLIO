@@ -264,7 +264,7 @@ const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 /** Ease out with a small overshoot, so the miniatures spring up. */
 /** Half width and half height of each miniature, in scene units, for keeping notes off it. */
 const PROP_EXTENT: Partial<Record<Group, [number, number]>> = {
-  propCoaster: [1.1, 0.6],
+  propCoaster: [1.3, 0.7],
   propReel: [1.0, 0.7],
   propGame: [0.55, 0.45],
   propGlobe: [0.6, 0.6],
@@ -630,16 +630,23 @@ export async function createWatchScene({
   };
 
   // A roller coaster beside the watch, with a little car that rides it all the way round.
-  const coasterNode = propGroup('propCoaster', [-2.2, -1.35, 0.3]);
+  const coasterNode = propGroup('propCoaster', [-2.0, 0.95, 0.3]);
   coasterNode.rotation.y = 0.8;
+  // The track runs towards the viewer, turned a little to the left.
   const coasterLine = new Transform();
   coasterLine.setParent(coasterNode);
-  coasterLine.scale.set(1.0, 1.0, 1.0);
-  coasterLine.position.set(-0.03, -0.4, 0);
-  flatMesh(pieces.rails, gold(0.2)).setParent(coasterLine);
-  flatMesh(pieces.frame, steel(COLORS.violet, 0.3)).setParent(coasterLine);
-  const carMesh = flatMesh(pieces.car, steel(COLORS.violet, 0.3));
-  carMesh.setParent(coasterLine);
+  coasterLine.scale.set(1.5, 1.5, 1.5);
+  coasterLine.rotation.y = -Math.PI / 2 + 1.0;
+  const coasterTrack = new Transform();
+  coasterTrack.setParent(coasterLine);
+  coasterTrack.position.set(0, -0.3, 0);
+  flatMesh(pieces.rails, gold(0.2)).setParent(coasterTrack);
+  // A train of two cars, the second one behind the first.
+  const cars = [0, 1].map(() => {
+    const mesh = flatMesh(pieces.car, gold(0.2));
+    mesh.setParent(coasterTrack);
+    return mesh;
+  });
   const route = coasterPath();
   const crest = route.points.filter((p) => p.x < 0).reduce((top, p) => (p.y > top.y ? p : top));
   let carAt = 0;
@@ -848,11 +855,14 @@ export async function createWatchScene({
     const here = coasterAt(carAt);
     carAt += dt * (carAt < crest.s ? 0.34 : 0.3 + 1.15 * Math.sqrt(Math.max(0, crest.y - here.y)));
     if (carAt >= route.length) carAt = 0;
-    const next = coasterAt(carAt);
-    const pop = Math.min(1, carAt / 0.15, (route.length - carAt) / 0.15);
-    carMesh.position.set(next.x, next.y, next.z);
-    carMesh.rotation.z = next.a;
-    carMesh.scale.set(pop, pop, pop);
+    cars.forEach((mesh, index) => {
+      const behind = carAt - index * 0.38;
+      const place = coasterAt(behind);
+      const pop = Math.max(0, Math.min(1, behind / 0.15, (route.length - behind) / 0.15));
+      mesh.position.set(place.x, place.y, place.z);
+      mesh.rotation.z = place.a;
+      mesh.scale.set(pop, pop, pop);
+    });
     invaderMesh.position.y = Math.sin(t * 0.0018) * 0.05;
     invaderMesh.rotation.y = Math.sin(t * 0.0009) * 0.5;
     planePivot.rotation.z += 0.9 * dt;
