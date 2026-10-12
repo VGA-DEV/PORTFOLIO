@@ -34,3 +34,12 @@ export function subscribeMove(fn: () => void) {
     listeners.delete(fn);
   };
 }
+
+/**
+ * How far the watch has set off from section `k` (0 = still there, 1 = well on its way).
+ * The content that is leaving is held back until it has, so a fast scroll never empties the screen.
+ */
+export function leftFrom(k: number) {
+  if (!live) return 1;
+  return Math.min(Math.max((value - k - 0.1) / 0.5, 0), 1);
+}

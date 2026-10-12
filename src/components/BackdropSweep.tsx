@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { arriveProgress, dwellProgress, leaveProgress } from '@/lib/transition';
-import { arrivedAt, subscribeMove } from '@/lib/watch/move';
+import { arrivedAt, leftFrom, subscribeMove } from '@/lib/watch/move';
 
 const REDUCED_QUERY = '(prefers-reduced-motion: reduce)';
 
@@ -106,9 +106,11 @@ export function BackdropSweep() {
         const list = items[k];
         const n = list.length;
         const gate = arrivedAt(k);
+        const leftGate = leftFrom(k);
         list.forEach((el, idx) => {
           const r = n > 1 ? idx / (n - 1) : 0;
-          const out = own < 0 ? 0 : leaveProgress(own, r);
+          // Held at a third gone until the watch has set off, so the screen is never emptied.
+          const out = own < 0 ? 0 : Math.min(leaveProgress(own, r), 0.35 + 0.65 * leftGate);
           // The content of a section comes in only once the watch has moved on to its piece.
           const inn = (before < 0 ? 1 : arriveProgress(before, r)) * gate;
           setStyle(el, (1 - out) * inn, -34 * out + 46 * (1 - inn));

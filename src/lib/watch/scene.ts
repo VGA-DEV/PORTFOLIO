@@ -860,7 +860,7 @@ export async function createWatchScene({
     const dt = Math.min(Math.max((now - lastTime) / 1000, 0.001), 0.25);
     lastTime = now;
     // A critically damped spring: the move starts gently, glides and settles without overshoot.
-    const omega = 7;
+    const omega = 4.2;
     for (let left = dt; left > 0; left -= 1 / 120) {
       const h = Math.min(left, 1 / 120);
       positionVelocity += (omega * omega * (position - shownPosition) - 2 * omega * positionVelocity) * h;
