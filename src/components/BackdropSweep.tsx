@@ -181,6 +181,9 @@ export function BackdropSweep() {
       const header = document.querySelector<HTMLElement>('.site-header')?.offsetHeight ?? 0;
       headerHeight = header;
       pins.forEach((pin) => {
+        // Every section fills at least the screen below the header, whatever the layout, so the
+        // next one, pulled up by exactly that much, never starts its own dwell inside this one's.
+        pin.style.minHeight = `${Math.max(viewport - header, 0)}px`;
         pin.style.top = `${Math.round(Math.min(viewport - pin.offsetHeight, header))}px`;
       });
       html.style.setProperty('--overlap', `${viewport - header}px`);
@@ -211,6 +214,7 @@ export function BackdropSweep() {
         pin.style.removeProperty('visibility');
         pin.style.removeProperty('transform');
         pin.style.removeProperty('height');
+        pin.style.removeProperty('min-height');
         pin.querySelector<HTMLElement>(':scope > .container')?.removeAttribute('style');
       });
       items.flat().forEach((el) => {
