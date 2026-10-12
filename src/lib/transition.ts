@@ -30,4 +30,6 @@ export const arriveProgress = (p: number, r: number) => smooth(clamp01((p - (0.4
 
 /** Progress at which the watch starts to move on, and at which the note's text changes over. */
 export const MOVE_AT = 0.15;
+/** Going back up, the watch returns here, just as the next section's content has left. */
+export const MOVE_BACK_AT = 0.55;
 export const SWAP_AT = 0.5;

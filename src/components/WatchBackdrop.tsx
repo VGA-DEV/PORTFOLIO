@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { MOVE_AT, SWAP_AT, arriveProgress, dwellProgress, leaveProgress } from '@/lib/transition';
-import { arrivedAt, setMove, setMoveLive } from '@/lib/watch/move';
+import { MOVE_AT, MOVE_BACK_AT, SWAP_AT, arriveProgress, dwellProgress, leaveProgress } from '@/lib/transition';
+import { arrivedAt, setMove, setMoveLive, stillAt } from '@/lib/watch/move';
 import type { AnchorInfo, WatchScene } from '@/lib/watch/scene';
 
 type WatchBackdropProps = {
@@ -285,7 +285,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
         target = { x: target.x, y: target.y, key: '' };
       }
       // The note comes in only once the watch has moved on to its piece, like the content.
-      const noteIn = noteState ? noteState.inn * arrivedAt(nearest) : 1;
+      const noteIn = noteState ? noteState.inn * arrivedAt(nearest) * stillAt(nearest) : 1;
       const settle = noteState ? (1 - noteState.out) * noteIn : clamp01(1.6 - Math.abs(a.position - nearest) * 4);
       const vw = window.innerWidth;
       const phone = narrow.matches;
@@ -390,6 +390,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       const sections = Array.from(document.querySelectorAll<HTMLElement>('[data-watch-section]'));
       sectionEls = sections;
       const gaps = Array.from(document.querySelectorAll<HTMLElement>('[data-gap]'));
+      const moveState: { moved: boolean; passed: boolean; ready: boolean; last: number }[] = [];
       // Text on the left puts the watch on the right, and the other way round.
       const sides = sections.map((el) => (el.dataset.side === 'right' ? -1 : 1));
 
@@ -431,15 +432,33 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
         frame = 0;
         const viewport = window.innerHeight;
         // Each move to the next section is triggered in the second half of the dwell that ends the section before it.
+        // The watch sets off at one point going down and goes back at another going up, so
+        // that on the way up it returns just as the next section's content has left.
         let position = 0;
         for (let i = 1; i < sections.length; i++) {
           const gap = gaps[i - 1];
           const progress = gap ? dwellProgress(gap, viewport) : -1;
           if (progress >= 0) {
-            // The watch moves on quickly, once the held content has faded, rather than
-            // following the scroll: it is the background that stretches with it.
-            const t = clamp01((progress - MOVE_AT) / 0.1);
-            position += t * t * (3 - 2 * t);
+            const state = moveState[i] ?? { moved: false, passed: false, ready: false, last: progress };
+            moveState[i] = state;
+            if (!state.ready) {
+              state.moved = progress > MOVE_AT;
+              state.passed = progress > 0.6;
+              state.ready = true;
+            } else if (progress < MOVE_AT) {
+              state.moved = false;
+              state.passed = false;
+            } else if (progress > 0.6) {
+              state.moved = true;
+              state.passed = true;
+            } else if (state.passed && progress < MOVE_BACK_AT) {
+              state.moved = false;
+              state.passed = false;
+            } else if (!state.moved && !state.passed && progress > state.last) {
+              state.moved = true;
+            }
+            state.last = progress;
+            position += state.moved ? 1 : 0;
           } else {
             const top = sections[i].getBoundingClientRect().top;
             position += clamp01((viewport * 0.8 - top) / (viewport * 0.5));

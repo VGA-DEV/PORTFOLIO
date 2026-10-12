@@ -25,7 +25,7 @@ export const getMove = () => value;
 /** How far the watch has settled on section `k`, from 0 (still leaving the one before) to 1 (there). */
 export function arrivedAt(k: number) {
   if (!live || k <= 0) return 1;
-  return Math.min(Math.max((value - (k - 1) - 0.6) / 0.35, 0), 1);
+  return Math.min(Math.max((value - (k - 1) - 0.5) / 0.4, 0), 1);
 }
 
 export function subscribeMove(fn: () => void) {
@@ -42,4 +42,14 @@ export function subscribeMove(fn: () => void) {
 export function leftFrom(k: number) {
   if (!live) return 1;
   return Math.min(Math.max((value - k - 0.1) / 0.5, 0), 1);
+}
+
+/**
+ * Whether the watch is still at (or on its way back to) section `k`'s piece, from 1 (at it)
+ * to 0 (well past it). The content of a section is only shown while it is, so scrolling
+ * back up never brings a section's content over a watch that is still on the next piece.
+ */
+export function stillAt(k: number) {
+  if (!live) return 1;
+  return Math.min(Math.max(1 - (value - k - 0.4) / 0.5, 0), 1);
 }
