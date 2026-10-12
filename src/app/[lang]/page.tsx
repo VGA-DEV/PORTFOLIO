@@ -43,7 +43,6 @@ export default async function HomePage() {
         id='projects'
         part={dict.notes.projects.part}
         title={dict.projects.title}
-        intro={dict.projects.intro}
         side='right'
       >
         <ol className='ledger ledger--projects'>

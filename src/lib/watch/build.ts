@@ -1,4 +1,4 @@
-import { blossom, box, extrudeStar, gear, hand, lathe, merge, translateFlat } from './geometry';
+import { blossom, box, extrudeStar, gear, hand, lathe, merge, translateFlat, tube } from './geometry';
 import { loft, roundedTrapezoid, strap, tonneauOutline, type SmoothMesh } from './smooth';
 
 /**
@@ -66,7 +66,7 @@ type TrackPoint = { x: number; y: number; z: number; a: number; s: number };
 
 /**
  * The roller coaster's route, seen from the side: the last of the lift hill, the crest
- * at the very top and the start of a gentle drop. Built once from a few key points smoothed with a Catmull-Rom
+ * at the very top, with the drop mirroring the climb. Built once from a few key points smoothed with a Catmull-Rom
  * spline and resampled at an even spacing, so the rails and the little cars follow
  * exactly the same line.
  */
@@ -77,15 +77,15 @@ let coasterCache: { points: TrackPoint[]; length: number } | null = null;
 export function coasterPath() {
   if (coasterCache) return coasterCache;
   const keys: [number, number, number][] = [
-    [-1.0, 0.0, 0],
-    [-0.7, 0.2, 0],
-    [-0.4, 0.42, 0],
-    [-0.15, 0.55, 0],
-    [0.05, 0.58, 0],
-    [0.25, 0.5, 0],
-    [0.5, 0.32, 0],
-    [0.75, 0.18, 0],
-    [1.0, 0.12, 0],
+    [-0.95, 0.0, 0],
+    [-0.7, 0.18, 0],
+    [-0.42, 0.4, 0],
+    [-0.2, 0.55, 0],
+    [0.0, 0.6, 0],
+    [0.2, 0.55, 0],
+    [0.42, 0.4, 0],
+    [0.7, 0.18, 0],
+    [0.95, 0.0, 0],
   ];
 
   const dense: [number, number, number][] = [];
@@ -145,42 +145,55 @@ export function coasterAt(s: number): TrackPoint {
 const GAUGE = 0.13;
 
 /**
- * A chunky brass roller coaster seen from the top of the hill: thick rails, ties, a chain on
- * the way up and a stout car to ride it. No supports: just the crest, in one metal.
+ * A brass roller coaster seen from the top of the hill, in tubular steel style: two round rails
+ * over a thicker spine, joined by slim struts, with a detailed train car. All one metal.
  */
 function buildCoaster() {
   const { points } = coasterPath();
-  const parts: Float32Array[] = [];
-  for (let i = 0; i < points.length - 1; i++) {
+  const line = (z: number, lift: number) => points.map((p) => [p.x, p.y + lift, p.z + z] as const);
+  const parts: Float32Array[] = [
+    tube(line(-GAUGE, 0), 0.03, 8),
+    tube(line(GAUGE, 0), 0.03, 8),
+    tube(line(0, -0.085), 0.046, 8),
+  ];
+  // Struts from each rail down to the spine, every few steps.
+  for (let i = 2; i < points.length - 1; i += 7) {
     const p = points[i];
-    const q = points[i + 1];
-    const mx = (p.x + q.x) / 2;
-    const my = (p.y + q.y) / 2;
-    const mz = (p.z + q.z) / 2;
-    const angle = Math.atan2(q.y - p.y, q.x - p.x);
-    const length = Math.hypot(q.x - p.x, q.y - p.y) * 1.12;
-    parts.push(
-      box(mx, my, mz - GAUGE, length, 0.052, 0.046, angle),
-      box(mx, my, mz + GAUGE, length, 0.052, 0.046, angle),
-    );
-    if (i % 2 === 0) parts.push(box(mx, my - 0.036, mz, 0.04, 0.03, 2 * GAUGE + 0.08, angle));
-    // On the way up there is a chain between the rails, with a tooth every other step.
-    if (mx < 0 && angle > 0.1) {
-      parts.push(box(mx, my - 0.01, mz, length, 0.028, 0.06, angle));
-      if (i % 2 === 1) parts.push(box(mx, my + 0.018, mz, 0.024, 0.032, 0.08, angle));
+    for (const side of [-1, 1]) {
+      parts.push(tube([[p.x, p.y, p.z + side * GAUGE], [p.x, p.y - 0.085, p.z]], 0.011, 6, [1, 0, 0]));
     }
   }
+  // The track ends in a cap on the spine, like a sealed pipe.
+  const ends = [points[0], points[points.length - 1]];
+  for (const e of ends) parts.push(tube([[e.x, e.y - 0.085, -GAUGE - 0.04], [e.x, e.y - 0.085, GAUGE + 0.04]], 0.026, 8, [0, 1, 0]));
 
-  // One car: a stout tub with two seat rows, a nose and four wheels.
+  // The car, pointing along +x with its origin on the rails' line: axles and wheels, a floor,
+  // side panels, a slanted nose, two seats with backs and headrests, lap bars, a fin and a hitch.
+  const wheel = (x: number, side: number) =>
+    tube([[x, 0.074, side * (GAUGE + 0.03)], [x, 0.074, side * (GAUGE - 0.03)]], 0.046, 10, [0, 1, 0]);
+  const seat = (x: number) => [
+    box(x, 0.168, 0, 0.09, 0.03, 0.2),
+    box(x - 0.045, 0.225, 0, 0.022, 0.1, 0.2, -0.16),
+    box(x - 0.058, 0.295, 0, 0.026, 0.045, 0.12, -0.16),
+    tube([[x + 0.05, 0.215, -0.085], [x + 0.05, 0.215, 0.085]], 0.012, 6, [0, 1, 0]),
+    tube([[x + 0.05, 0.215, -0.085], [x + 0.05, 0.18, -0.085]], 0.01, 6, [1, 0, 0]),
+    tube([[x + 0.05, 0.215, 0.085], [x + 0.05, 0.18, 0.085]], 0.01, 6, [1, 0, 0]),
+  ];
   const car = merge(
-    box(0, 0.075, 0, 0.3, 0.07, 0.28),
-    box(-0.09, 0.145, 0, 0.05, 0.09, 0.26),
-    box(0.02, 0.13, 0, 0.1, 0.04, 0.26),
-    box(0.16, 0.09, 0, 0.07, 0.05, 0.26),
-    box(-0.1, 0.045, -GAUGE - 0.03, 0.07, 0.07, 0.03),
-    box(-0.1, 0.045, GAUGE + 0.03, 0.07, 0.07, 0.03),
-    box(0.1, 0.045, -GAUGE - 0.03, 0.07, 0.07, 0.03),
-    box(0.1, 0.045, GAUGE + 0.03, 0.07, 0.07, 0.03),
+    tube([[-0.11, 0.074, -GAUGE - 0.03], [-0.11, 0.074, GAUGE + 0.03]], 0.014, 6, [0, 1, 0]),
+    tube([[0.11, 0.074, -GAUGE - 0.03], [0.11, 0.074, GAUGE + 0.03]], 0.014, 6, [0, 1, 0]),
+    wheel(-0.11, -1),
+    wheel(-0.11, 1),
+    wheel(0.11, -1),
+    wheel(0.11, 1),
+    box(0, 0.128, 0, 0.4, 0.034, 0.28),
+    box(0, 0.178, -0.14, 0.38, 0.07, 0.022),
+    box(0, 0.178, 0.14, 0.38, 0.07, 0.022),
+    box(0.205, 0.16, 0, 0.13, 0.05, 0.26, 0.45),
+    box(-0.21, 0.19, 0, 0.04, 0.1, 0.22),
+    ...seat(-0.07),
+    ...seat(0.085),
+    tube([[0.25, 0.14, 0], [0.34, 0.14, 0]], 0.013, 6, [0, 0, 1]),
   );
   return { rails: merge(...parts), car };
 }

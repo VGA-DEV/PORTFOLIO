@@ -100,6 +100,50 @@ export function box(
   return b.build();
 }
 
+type Vec3 = readonly [number, number, number];
+
+/**
+ * A faceted tube along a 3D polyline, closed at both ends: a rail, a pipe, an axle or a wheel.
+ * `ref` is any direction the path does not run along, used to orient the cross-section.
+ */
+export function tube(path: readonly Vec3[], radius: number, sides = 8, ref: Vec3 = [0, 0, 1]) {
+  const b = new TriangleBuilder();
+  const norm = (v: Vec3): Vec3 => {
+    const l = Math.hypot(v[0], v[1], v[2]) || 1;
+    return [v[0] / l, v[1] / l, v[2] / l];
+  };
+  const cross = (u: Vec3, v: Vec3): Vec3 => [
+    u[1] * v[2] - u[2] * v[1],
+    u[2] * v[0] - u[0] * v[2],
+    u[0] * v[1] - u[1] * v[0],
+  ];
+  const rings = path.map((p, i) => {
+    const prev = path[Math.max(i - 1, 0)];
+    const next = path[Math.min(i + 1, path.length - 1)];
+    const t = norm([next[0] - prev[0], next[1] - prev[1], next[2] - prev[2]]);
+    let u = cross(t, ref);
+    if (Math.hypot(u[0], u[1], u[2]) < 0.2) u = cross(t, [0, 1, 0]);
+    u = norm(u);
+    const v = cross(t, u);
+    return Array.from({ length: sides }, (_, k) => {
+      const a = (k / sides) * Math.PI * 2;
+      const c = Math.cos(a) * radius;
+      const s = Math.sin(a) * radius;
+      return [p[0] + u[0] * c + v[0] * s, p[1] + u[1] * c + v[1] * s, p[2] + u[2] * c + v[2] * s] as const;
+    });
+  });
+  for (let i = 0; i < rings.length - 1; i++) {
+    for (let k = 0; k < sides; k++) {
+      const k2 = (k + 1) % sides;
+      b.quad(rings[i][k], rings[i][k2], rings[i + 1][k2], rings[i + 1][k]);
+    }
+  }
+  for (const [ring, centre] of [[rings[0], path[0]], [rings[rings.length - 1], path[path.length - 1]]] as const) {
+    for (let k = 0; k < sides; k++) b.tri(centre, ring[k], ring[(k + 1) % sides]);
+  }
+  return b.build();
+}
+
 /** Join several geometries into one draw call. */
 export function merge(...parts: Float32Array[]) {
   const total = parts.reduce((sum, p) => sum + p.length, 0);

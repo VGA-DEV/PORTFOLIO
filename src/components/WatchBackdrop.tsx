@@ -322,6 +322,8 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
         callout.style.setProperty('--box-w', `${w.toFixed(0)}px`);
         measured = { key, w, h: box.offsetHeight };
       }
+      // The text changes after the index does, so the height is read again on every think.
+      if (rethink) measured.h = box.offsetHeight;
       const h = measured.h;
 
       const crownRect: Rect | null = crownShown

@@ -630,20 +630,20 @@ export async function createWatchScene({
   };
 
   // A roller coaster beside the watch, with a little car that rides it all the way round.
-  const coasterNode = propGroup('propCoaster', [-2.0, 0.95, 0.3]);
+  const coasterNode = propGroup('propCoaster', [-2.75, 0.85, 0.3]);
   coasterNode.rotation.y = 0.8;
   // The track runs towards the viewer, turned a little to the left.
   const coasterLine = new Transform();
   coasterLine.setParent(coasterNode);
-  coasterLine.scale.set(1.5, 1.5, 1.5);
+  coasterLine.scale.set(1.2, 1.2, 1.2);
   coasterLine.rotation.y = -Math.PI / 2 + 1.0;
   const coasterTrack = new Transform();
   coasterTrack.setParent(coasterLine);
   coasterTrack.position.set(0, -0.3, 0);
-  flatMesh(pieces.rails, gold(0.2)).setParent(coasterTrack);
+  flatMesh(pieces.rails, gold(0.12)).setParent(coasterTrack);
   // A train of two cars, the second one behind the first.
   const cars = [0, 1].map(() => {
-    const mesh = flatMesh(pieces.car, gold(0.2));
+    const mesh = flatMesh(pieces.car, gold(0.12));
     mesh.setParent(coasterTrack);
     return mesh;
   });
@@ -856,7 +856,7 @@ export async function createWatchScene({
     carAt += dt * (carAt < crest.s ? 0.34 : 0.3 + 1.15 * Math.sqrt(Math.max(0, crest.y - here.y)));
     if (carAt >= route.length) carAt = 0;
     cars.forEach((mesh, index) => {
-      const behind = carAt - index * 0.38;
+      const behind = carAt - index * 0.5;
       const place = coasterAt(behind);
       const pop = Math.max(0, Math.min(1, behind / 0.15, (route.length - behind) / 0.15));
       mesh.position.set(place.x, place.y, place.z);
