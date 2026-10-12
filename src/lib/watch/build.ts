@@ -65,8 +65,8 @@ const mergeSmooth = (...parts: SmoothMesh[]): SmoothMesh => ({
 type TrackPoint = { x: number; y: number; z: number; a: number; s: number };
 
 /**
- * The roller coaster's route, seen from the side: the last of the lift hill, the crest
- * at the very top, with the drop mirroring the climb. Built once from a few key points smoothed with a Catmull-Rom
+ * The roller coaster's route, seen from the side: the last of the lift hill, a wide
+ * rounded crest at the very top, with the drop mirroring the climb. Built once from a few key points smoothed with a Catmull-Rom
  * spline and resampled at an even spacing, so the rails and the little cars follow
  * exactly the same line.
  */
@@ -76,17 +76,11 @@ let coasterCache: { points: TrackPoint[]; length: number } | null = null;
 
 export function coasterPath() {
   if (coasterCache) return coasterCache;
-  const keys: [number, number, number][] = [
-    [-0.95, 0.0, 0],
-    [-0.7, 0.18, 0],
-    [-0.42, 0.4, 0],
-    [-0.2, 0.55, 0],
-    [0.0, 0.6, 0],
-    [0.2, 0.55, 0],
-    [0.42, 0.4, 0],
-    [0.7, 0.18, 0],
-    [0.95, 0.0, 0],
-  ];
+  // A wide, rounded arch (like an upside-down U) rather than a pointed peak.
+  const keys: [number, number, number][] = Array.from({ length: 15 }, (_, i) => {
+    const x = -0.95 + (i / 14) * 1.9;
+    return [x, 0.58 * (1 - Math.abs(x / 1.0) ** 2.4), 0] as [number, number, number];
+  });
 
   const dense: [number, number, number][] = [];
   const at = (i: number) => keys[Math.min(Math.max(i, 0), keys.length - 1)];
@@ -172,13 +166,21 @@ function buildCoaster() {
   const wheel = (x: number, side: number) =>
     tube([[x, 0.074, side * (GAUGE + 0.03)], [x, 0.074, side * (GAUGE - 0.03)]], 0.046, 10, [0, 1, 0]);
   const seat = (x: number) => [
-    box(x, 0.168, 0, 0.09, 0.03, 0.2),
+    box(x, 0.182, 0, 0.09, 0.03, 0.2),
+    box(x, 0.215, -0.105, 0.09, 0.04, 0.016),
+    box(x, 0.215, 0.105, 0.09, 0.04, 0.016),
     box(x - 0.045, 0.225, 0, 0.022, 0.1, 0.2, -0.16),
     box(x - 0.058, 0.295, 0, 0.026, 0.045, 0.12, -0.16),
     tube([[x + 0.05, 0.215, -0.085], [x + 0.05, 0.215, 0.085]], 0.012, 6, [0, 1, 0]),
     tube([[x + 0.05, 0.215, -0.085], [x + 0.05, 0.18, -0.085]], 0.01, 6, [1, 0, 0]),
     tube([[x + 0.05, 0.215, 0.085], [x + 0.05, 0.18, 0.085]], 0.01, 6, [1, 0, 0]),
   ];
+  const hub = (x: number, side: number) =>
+    tube([[x, 0.074, side * (GAUGE + 0.03)], [x, 0.074, side * (GAUGE + 0.06)]], 0.022, 8, [0, 1, 0]);
+  const rivets = [-0.14, -0.084, -0.028, 0.028, 0.084, 0.14].flatMap((x) => [
+    box(x, 0.2, -0.153, 0.016, 0.016, 0.012),
+    box(x, 0.2, 0.153, 0.016, 0.016, 0.012),
+  ]);
   const car = merge(
     tube([[-0.11, 0.074, -GAUGE - 0.03], [-0.11, 0.074, GAUGE + 0.03]], 0.014, 6, [0, 1, 0]),
     tube([[0.11, 0.074, -GAUGE - 0.03], [0.11, 0.074, GAUGE + 0.03]], 0.014, 6, [0, 1, 0]),
@@ -186,14 +188,35 @@ function buildCoaster() {
     wheel(-0.11, 1),
     wheel(0.11, -1),
     wheel(0.11, 1),
-    box(0, 0.128, 0, 0.4, 0.034, 0.28),
-    box(0, 0.178, -0.14, 0.38, 0.07, 0.022),
-    box(0, 0.178, 0.14, 0.38, 0.07, 0.022),
-    box(0.205, 0.16, 0, 0.13, 0.05, 0.26, 0.45),
-    box(-0.21, 0.19, 0, 0.04, 0.1, 0.22),
+    hub(-0.11, -1),
+    hub(-0.11, 1),
+    hub(0.11, -1),
+    hub(0.11, 1),
+    // Fenders over the wheels.
+    box(-0.11, 0.128, -GAUGE, 0.14, 0.022, 0.07),
+    box(-0.11, 0.128, GAUGE, 0.14, 0.022, 0.07),
+    box(0.11, 0.128, -GAUGE, 0.14, 0.022, 0.07),
+    box(0.11, 0.128, GAUGE, 0.14, 0.022, 0.07),
+    // Floor, side panels with a top rim and a row of rivets, and the slanted nose.
+    box(0, 0.142, 0, 0.4, 0.034, 0.28),
+    box(0, 0.19, -0.14, 0.38, 0.07, 0.022),
+    box(0, 0.19, 0.14, 0.38, 0.07, 0.022),
+    box(0, 0.232, -0.146, 0.4, 0.016, 0.034),
+    box(0, 0.232, 0.146, 0.4, 0.016, 0.034),
+    ...rivets,
+    box(0.205, 0.172, 0, 0.13, 0.05, 0.26, 0.45),
+    // Front bumper, a lamp and a hood ornament; at the back a pair of fins and a bumper.
+    tube([[0.275, 0.14, -0.125], [0.275, 0.14, 0.125]], 0.018, 8, [0, 1, 0]),
+    tube([[0.255, 0.215, 0], [0.31, 0.215, 0]], 0.03, 10, [0, 1, 0]),
+    tube([[0.2, 0.235, 0], [0.2, 0.275, 0]], 0.014, 6, [1, 0, 0]),
+    box(-0.21, 0.205, -0.07, 0.04, 0.11, 0.03),
+    box(-0.21, 0.205, 0.07, 0.04, 0.11, 0.03),
+    tube([[-0.225, 0.14, -0.125], [-0.225, 0.14, 0.125]], 0.016, 8, [0, 1, 0]),
     ...seat(-0.07),
     ...seat(0.085),
-    tube([[0.25, 0.14, 0], [0.34, 0.14, 0]], 0.013, 6, [0, 0, 1]),
+    box(0.008, 0.215, 0, 0.012, 0.06, 0.2),
+    // Hitch to the next car.
+    tube([[0.285, 0.15, 0], [0.37, 0.15, 0]], 0.013, 6, [0, 0, 1]),
   );
   return { rails: merge(...parts), car };
 }

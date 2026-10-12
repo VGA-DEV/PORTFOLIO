@@ -630,13 +630,13 @@ export async function createWatchScene({
   };
 
   // A roller coaster beside the watch, with a little car that rides it all the way round.
-  const coasterNode = propGroup('propCoaster', [-2.75, 0.85, 0.3]);
+  const coasterNode = propGroup('propCoaster', [-2.55, 0.85, 0.3]);
   coasterNode.rotation.y = 0.8;
   // The track runs towards the viewer, turned a little to the left.
   const coasterLine = new Transform();
   coasterLine.setParent(coasterNode);
-  coasterLine.scale.set(1.2, 1.2, 1.2);
-  coasterLine.rotation.y = -Math.PI / 2 + 1.0;
+  coasterLine.scale.set(1.05, 1.05, 1.05);
+  coasterLine.rotation.y = -Math.PI / 2 - 0.8;
   const coasterTrack = new Transform();
   coasterTrack.setParent(coasterLine);
   coasterTrack.position.set(0, -0.3, 0);
