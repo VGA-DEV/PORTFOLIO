@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { arriveProgress, dwellProgress, leaveProgress } from '@/lib/transition';
+import { arrivedAt, subscribeMove } from '@/lib/watch/move';
 
 const REDUCED_QUERY = '(prefers-reduced-motion: reduce)';
 
@@ -104,10 +105,12 @@ export function BackdropSweep() {
         const before = k > 0 ? (progress[k - 1] ?? -1) : 1;
         const list = items[k];
         const n = list.length;
+        const gate = arrivedAt(k);
         list.forEach((el, idx) => {
           const r = n > 1 ? idx / (n - 1) : 0;
           const out = own < 0 ? 0 : leaveProgress(own, r);
-          const inn = before < 0 ? 1 : arriveProgress(before, r);
+          // The content of a section comes in only once the watch has moved on to its piece.
+          const inn = (before < 0 ? 1 : arriveProgress(before, r)) * gate;
           setStyle(el, (1 - out) * inn, -34 * out + 46 * (1 - inn));
         });
         // The next section waits where it will end up, instead of coming up the screen
@@ -120,7 +123,7 @@ export function BackdropSweep() {
           pin.style.transform = transform;
         }
         // Out of sight, and out of reach, until it starts to arrive and once it has gone.
-        const visible = !(k > 0 && before >= 0 && before < 0.17) && !(own >= 0.73);
+        const visible = !(k > 0 && before >= 0 && before < 0.4) && !(own >= 0.53);
         if (lastVisible.get(pin) !== visible) {
           lastVisible.set(pin, visible);
           pin.style.visibility = visible ? 'visible' : 'hidden';
@@ -152,10 +155,12 @@ export function BackdropSweep() {
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll, { passive: true });
     window.addEventListener('resize', setPins, { passive: true });
+    const unsubscribe = subscribeMove(onScroll);
     return () => {
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onScroll);
       window.removeEventListener('resize', setPins);
+      unsubscribe();
       resizeObserver.disconnect();
       cancelAnimationFrame(frame);
       pins.forEach((pin) => {

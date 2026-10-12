@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { SWAP_AT, arriveProgress, dwellProgress, leaveProgress } from '@/lib/transition';
+import { MOVE_AT, SWAP_AT, arriveProgress, dwellProgress, leaveProgress } from '@/lib/transition';
+import { arrivedAt, setMove, setMoveLive } from '@/lib/watch/move';
 import type { AnchorInfo, WatchScene } from '@/lib/watch/scene';
 
 type WatchBackdropProps = {
@@ -126,7 +127,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
     let sectionEls: HTMLElement[] = [];
     let look = rollLook();
     /** Which note is up, and how far in or out it is, read from the scroll through the dwells. */
-    let noteState: { index: number; alpha: number; shift: number } | null = null;
+    let noteState: { index: number; out: number; inn: number } | null = null;
 
     let text: Rect[] = [];
     let lastScan = -1e9;
@@ -270,6 +271,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
         lastScan = now;
       }
 
+      setMove(a.position);
       const nearest = noteState ? noteState.index : Math.round(a.position);
       if (nearest !== indexRef.current) {
         indexRef.current = nearest;
@@ -282,7 +284,9 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
         look = rollLook();
         target = { x: target.x, y: target.y, key: '' };
       }
-      const settle = noteState ? noteState.alpha : clamp01(1.6 - Math.abs(a.position - nearest) * 4);
+      // The note comes in only once the watch has moved on to its piece, like the content.
+      const noteIn = noteState ? noteState.inn * arrivedAt(nearest) : 1;
+      const settle = noteState ? (1 - noteState.out) * noteIn : clamp01(1.6 - Math.abs(a.position - nearest) * 4);
       const vw = window.innerWidth;
       const phone = narrow.matches;
       const w = Math.min(phone ? 20 * 16 : 22 * 16, vw - 2 * MARGIN);
@@ -352,7 +356,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       callout.style.setProperty('--box-x', `${f(L)}px`);
       callout.style.setProperty('--box-y', `${f(T)}px`);
       callout.style.setProperty('--settle', settle.toFixed(3));
-      callout.style.setProperty('--shift', `${(noteState ? noteState.shift : 0).toFixed(1)}px`);
+      callout.style.setProperty('--shift', `${(noteState ? -34 * noteState.out + 46 * (1 - noteIn) : 0).toFixed(1)}px`);
       line.setAttribute('d', d);
       dot.setAttribute('cx', f(a.x));
       dot.setAttribute('cy', f(a.y));
@@ -365,6 +369,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       teardown?.();
       teardown = null;
       sceneHandle.current = null;
+      setMoveLive(false);
       if (crownRef.current) delete crownRef.current.dataset.ready;
       scene?.dispose();
       scene = null;
@@ -417,6 +422,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       }
       sceneHandle.current = scene;
       root.dataset.watch = '3d';
+      setMoveLive(true);
       const cleanups: (() => void)[] = [];
       const current = scene;
 
@@ -432,7 +438,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
           if (progress >= 0) {
             // The watch moves on quickly, once the held content has faded, rather than
             // following the scroll: it is the background that stretches with it.
-            const t = clamp01((progress - (SWAP_AT - 0.08)) / 0.1);
+            const t = clamp01((progress - MOVE_AT) / 0.1);
             position += t * t * (3 - 2 * t);
           } else {
             const top = sections[i].getBoundingClientRect().top;
@@ -449,7 +455,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
           const before = index > 0 ? progress[index - 1] : 1;
           const out = leaveProgress(own, 1);
           const inn = arriveProgress(before, 1);
-          noteState = { index, alpha: (1 - out) * inn, shift: -34 * out + 46 * (1 - inn) };
+          noteState = { index, out, inn };
         } else {
           noteState = null;
         }
