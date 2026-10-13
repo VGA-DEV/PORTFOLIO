@@ -74,12 +74,17 @@ export function EvolutionArchive({
                 <dt>{labels.metrics.rows[row.id]}</dt>
                 <dd>
                   {formatter(locale, row.unit)(value)}
-                  {better ? (
+                  {before === null ? null : better ? (
                     <span className='score__change'>
                       <span className='sr-only'>{labels.metrics.better}</span>
                       {formatter(locale, row.unit, true)(change)}
                     </span>
-                  ) : null}
+                  ) : (
+                    // The slot stays, empty, so every figure in the grid sits on the same line.
+                    <span className='score__change score__change--none' aria-hidden='true'>
+                      &nbsp;
+                    </span>
+                  )}
                 </dd>
               </div>
             );
