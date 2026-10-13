@@ -171,7 +171,9 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
     /** Look for the freest background around, and keep the choice unless a clearly better one appears. */
     const thinkNote = (a: AnchorInfo, w: number, h: number, crownRect: Rect | null) => {
       const vw = window.innerWidth;
-      const vh = window.innerHeight;
+      // The footer is an opaque band over the canvas: when it has scrolled into view, the notes stay above it.
+      const footerTop = document.querySelector('.site-footer')?.getBoundingClientRect().top ?? Infinity;
+      const vh = Math.min(window.innerHeight, footerTop);
       if (narrow.matches) {
         target = { x: (vw - w) / 2, y: vh - h - 18, key: 'phone' };
         return;

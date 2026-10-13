@@ -1084,6 +1084,9 @@ html[data-watch='flat'] .hero__watch .watch__frame {
 
 /* Footer */
 .site-footer {
+  /* An opaque band above the fixed watch, so the watch never runs behind the footer's logo. */
+  position: relative;
+  z-index: 2;
   padding-block: var(--space-3);
   background: var(--color-stage);
   border-top: 1px solid rgb(214 189 138 / 0.35);
