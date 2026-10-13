@@ -98,12 +98,6 @@
       "frontend": "Frontend",
       "architecture": "Architecture",
       "devops": "DevOps"
-    },
-    "parts": {
-      "backend": "Movement",
-      "frontend": "Crystal",
-      "architecture": "Dial",
-      "devops": "Case"
     }
   },
   "evolution": {

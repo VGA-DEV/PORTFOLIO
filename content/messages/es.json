@@ -98,12 +98,6 @@
       "frontend": "Frontend",
       "architecture": "Arquitectura",
       "devops": "DevOps"
-    },
-    "parts": {
-      "backend": "Movimiento",
-      "frontend": "Cristal",
-      "architecture": "Esfera",
-      "devops": "Caja"
     }
   },
   "evolution": {

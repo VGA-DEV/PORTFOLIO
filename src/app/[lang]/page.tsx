@@ -106,11 +106,8 @@ export default async function HomePage() {
             <div key={group.id} className='stack__group'>
               <h3 className='stack__title'>
                 {dict.stack.groups[group.id as keyof typeof dict.stack.groups]}
-                <span className='stack__part'>
-                  {dict.stack.parts[group.id as keyof typeof dict.stack.parts]}
-                </span>
               </h3>
-              <ul>
+              <ul className='stack__list'>
                 {group.items.map((item) => (
                   <li key={item}>{item}</li>
                 ))}
