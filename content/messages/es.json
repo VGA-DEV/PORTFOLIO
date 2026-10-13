@@ -136,7 +136,7 @@
     },
     "stack": {
       "part": "Movimiento",
-      "text": "El movimiento es el mecanismo que hace funcionar el reloj, aunque no se vea. Aquí están las tecnologías con las que trabajo, agrupadas por lo que hace cada una."
+      "text": "Igual que el mecanismo hace que todo el reloj funcione, el stack de un desarrollador hace lo mismo con sus proyectos."
     },
     "evolution": {
       "part": "Fondo de caja",

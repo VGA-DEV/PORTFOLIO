@@ -812,48 +812,66 @@ html[data-watch='flat'] .hero__watch .watch__frame {
 }
 
 
-/* Stack: four groups, each a rule-topped title and its technologies run together in a line of
-   words separated by small diamonds, so the whole stack is seen at once. */
+/* Stack: a caliber specification sheet. One row per group: the label in purple, a dotted leader
+   and, in a column that starts at the same edge for every row, the technologies as running text. */
 .stack {
   display: grid;
-  gap: var(--space-4) var(--space-4);
-  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+}
+
+.stack__group {
+  display: grid;
+  grid-template-columns: 13rem minmax(0, 1fr);
+  gap: var(--space-1) var(--space-2);
+  align-items: baseline;
+  padding-block: var(--space-2);
+  border-bottom: 1px solid rgb(52 4 64 / 0.16);
+}
+
+.stack__group:first-child {
+  border-top: 1px solid rgb(52 4 64 / 0.16);
 }
 
 .stack__title {
-  margin-bottom: var(--space-2);
-  padding-bottom: var(--space-1);
-  border-bottom: 1px solid var(--color-ink);
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin: 0;
+  color: var(--color-purple);
   font-size: 0.85rem;
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.stack__title::after {
+  content: '';
+  flex: 1;
+  min-width: 0.75rem;
+  border-bottom: 2px dotted var(--color-champagne-deep);
+  transform: translateY(-0.2em);
 }
 
 .stack__list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem 1.15rem;
   margin: 0;
   padding: 0;
   list-style: none;
+  font-size: 1.15rem;
+  line-height: 1.5;
 }
 
 .stack__list li {
-  display: flex;
-  align-items: center;
-  gap: 0.55em;
-  font-size: 1.15rem;
-  line-height: 1.35;
+  display: inline;
 }
 
-.stack__list li::before {
-  content: '';
-  flex: none;
-  width: 0.4em;
-  height: 0.4em;
-  background: var(--color-champagne-deep);
-  transform: rotate(45deg);
+.stack__list li:not(:last-child)::after {
+  content: ', ';
+}
+
+@media (max-width: 47.99rem) {
+  .stack__group {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 /* Contact */
