@@ -129,8 +129,12 @@ export function BackdropSweep() {
           // that fill, figures that count) start and reset on this mark, each piece on its own, so they
           // begin the moment their piece arrives and not when the whole section has.
           if (k > 0) {
-            if (shown >= 0.98) el.dataset.in = 'true';
-            else if (shown < 0.35) delete el.dataset.in;
+            // Only on a real change: writing the same value still counts as a mutation for any observer.
+            if (shown >= 0.98) {
+              if (!el.dataset.in) el.dataset.in = 'true';
+            } else if (shown < 0.35 && el.dataset.in) {
+              delete el.dataset.in;
+            }
           }
         });
         // The next section waits where it will end up, instead of coming up the screen with

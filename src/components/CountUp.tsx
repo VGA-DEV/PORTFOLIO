@@ -35,18 +35,22 @@ export function CountUp({
     const format = formatMetric(locale, unit);
     let raf = 0;
     let timer = 0;
+    /** Whether the card was already in on the last read: the count restarts only when it comes in again. */
+    let wasIn: boolean | null = null;
     const sync = () => {
-      cancelAnimationFrame(raf);
-      clearTimeout(timer);
       if (document.documentElement.dataset.sweep !== 'on') {
+        cancelAnimationFrame(raf);
+        clearTimeout(timer);
         node.textContent = format(to);
         return;
       }
-      if (!card.dataset.in) {
-        node.textContent = format(0);
-        return;
-      }
+      const isIn = !!card.dataset.in;
+      if (isIn === wasIn) return;
+      wasIn = isIn;
+      cancelAnimationFrame(raf);
+      clearTimeout(timer);
       node.textContent = format(0);
+      if (!isIn) return;
       timer = window.setTimeout(() => {
         const start = performance.now();
         const tick = (now: number) => {
