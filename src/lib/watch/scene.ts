@@ -238,6 +238,8 @@ type PoseState = {
   /** Portrait screens: how much of the width the view spans (bigger = smaller watch). */
   zoom?: number;
   show: Partial<Record<Group, number>>;
+  /** Extra despiece for some groups only, added to `explode` (the strap apart from an otherwise whole watch). */
+  apart?: Partial<Record<Group, number>>;
 };
 
 const ALL: Partial<Record<Group, number>> = {
@@ -251,7 +253,7 @@ const ALL: Partial<Record<Group, number>> = {
  */
 const STATES: readonly PoseState[] = [
   { anchor: [0, 0, 0.1], width: 2.4, rotation: [0.16, -0.45, 0], focus: [0, 0, 0], half: 2.9, explode: 0, zoom: 0.98, show: ALL },
-  { anchor: [0, 0, 0.1], width: 3.4, rotation: [0.2, -0.8, 0.03], focus: [0, 0, 0], half: 2.9, explode: 0, zoom: 0.98, show: { ...ALL, propCoaster: 1 } },
+  { anchor: [0, 0, 0.1], width: 3.4, rotation: [0.2, -0.8, 0.03], focus: [0, 0, 0], half: 2.9, explode: 0, zoom: 0.98, show: { ...ALL, propCoaster: 1 }, apart: { strap: 0.7 } },
   { anchor: [0, 0, 0.25], width: 2.6, rotation: [0.12, -0.4, 0], focus: [0, 0, 0.25], half: 2.4, explode: 0.55, show: { ...ALL, propCamera: 1 } },
   { anchor: [0, 0.1, -0.55], width: 2.4, rotation: [0.22, -0.9, 0.04], focus: [0, 0, -0.6], half: 2.8, explode: 0.85, show: { ...ALL, propGame: 1 } },
   // The strap: the camera comes in close on it, so the case and the dial stay above, behind it.
@@ -844,10 +846,11 @@ export async function createWatchScene({
       layer.node.visible = scale > 0.01;
       if (isProp && scale > 0.4 && (!leadProp || scale > leadProp.scale)) leadProp = { node: layer.node, group: layer.group, scale };
       layer.node.scale.set(scale, scale, scale);
+      const spread = explode + lerp(from.apart?.[layer.group] ?? 0, to.apart?.[layer.group] ?? 0, ease);
       layer.node.position.set(
-        layer.base[0] + layer.offset[0] * explode,
-        layer.base[1] + layer.offset[1] * explode,
-        layer.base[2] + layer.offset[2] * explode,
+        layer.base[0] + layer.offset[0] * spread,
+        layer.base[1] + layer.offset[1] * spread,
+        layer.base[2] + layer.offset[2] * spread,
       );
     }
 
