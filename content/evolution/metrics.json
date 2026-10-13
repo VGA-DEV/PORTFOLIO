@@ -1,0 +1,14 @@
+{
+  "measured": {
+    "v1": "2026-10-06",
+    "v2": "2026-10-13"
+  },
+  "rows": [
+    { "id": "performance", "unit": "score", "mobile": [45, 97], "desktop": [78, 100] },
+    { "id": "accessibility", "unit": "score", "mobile": [86, 100], "desktop": [86, 100] },
+    { "id": "bestPractices", "unit": "score", "mobile": [96, 100], "desktop": [100, 100] },
+    { "id": "seo", "unit": "score", "mobile": [91, 100], "desktop": [91, 100] },
+    { "id": "lcp", "unit": "seconds", "mobile": [11.6, 2.5], "desktop": [2.0, 0.6] },
+    { "id": "cls", "unit": "shift", "mobile": [0.927, 0], "desktop": [0.237, 0] }
+  ]
+}

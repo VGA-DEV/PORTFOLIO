@@ -1,3 +1,4 @@
+import { EvolutionMetrics } from '@/components/EvolutionMetrics';
 import { Hero } from '@/components/Hero';
 import { Section } from '@/components/Section';
 import { BackdropSweep } from '@/components/BackdropSweep';
@@ -122,22 +123,30 @@ export default async function HomePage() {
         part={dict.notes.evolution.part}
         tone='mist'
         title={dict.evolution.title}
-        intro={dict.evolution.intro}
         side='left'
       >
-        <ol className='ledger'>
+        <ol className='ledger ledger--entries'>
           {dict.evolution.versions.map((version) => (
-            <li key={version.tag} className='ledger__row'>
-              <h3 className='ledger__title'>{version.name}</h3>
+            <li key={version.name} className='ledger__row'>
+              <div className='ledger__head'>
+                <h3 className='ledger__title'>
+                  {version.name}
+                  {version.current ? <span className='ledger__badge'>{dict.evolution.currentLabel}</span> : null}
+                </h3>
+                {version.tag ? (
+                  <p className='ledger__period'>
+                    <span className='sr-only'>{dict.evolution.tagLabel}: </span>
+                    <code>{version.tag}</code>
+                  </p>
+                ) : null}
+              </div>
               <div className='ledger__body'>
                 <p>{version.summary}</p>
-                <p className='ledger__tag'>
-                  {dict.evolution.tagLabel}: <code>{version.tag}</code>
-                </p>
               </div>
             </li>
           ))}
         </ol>
+        <EvolutionMetrics locale={locale} labels={dict.evolution.metrics} />
       </Section>
 
       <Section

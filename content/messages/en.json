@@ -102,15 +102,38 @@
   },
   "evolution": {
     "title": "Evolution",
-    "intro": "TODO (Phase 3): design comparison by section, version archive and metrics.",
     "versions": [
+      {
+        "tag": "",
+        "name": "Version 2",
+        "current": true,
+        "summary": "Rebuilt from scratch with Next.js and TypeScript. A 3D watch goes with you down the page, the content is in Spanish and English, and there are no forms or third-party services. Performance and accessibility are measured."
+      },
       {
         "tag": "v1-angular",
         "name": "Version 1",
-        "summary": "First version of the portfolio, built with Angular."
+        "current": false,
+        "summary": "The first version, made with Angular 16 and Angular Material. All the content was written by hand in one template, with a contact form through EmailJS."
       }
     ],
-    "tagLabel": "Git tag"
+    "tagLabel": "Git tag",
+    "currentLabel": "Current",
+    "metrics": {
+      "title": "Before and now",
+      "mobile": "Mobile",
+      "desktop": "Desktop",
+      "to": "to",
+      "rows": {
+        "performance": "Performance",
+        "accessibility": "Accessibility",
+        "bestPractices": "Best practices",
+        "seo": "SEO",
+        "lcp": "Main content load (LCP)",
+        "cls": "Layout shifts (CLS)"
+      },
+      "note": "Lighthouse. Version 1: PageSpeed Insights, 6 Oct 2026. Version 2: run locally on the static export, 13 Oct 2026; it will be repeated on the published site.",
+      "from": "from"
+    }
   },
   "contact": {
     "title": "Contact",
