@@ -39,7 +39,9 @@ export type WatchPieces = {
   globeStand: Piece;
   plane: Piece;
   planeTrail: Piece;
-  petal: Piece;
+  deck: Piece;
+  record: Piece;
+  note: Piece;
 };
 
 /** The gears in a V, as the scene also needs their size to place them. */
@@ -411,7 +413,41 @@ function buildGlobe() {
   return { globeBall: ball, globeGrid: grid, globeStand: stand, plane, planeTrail: trail };
 }
 
+/**
+ * A record player in brass, kept to its silhouette: a rounded plinth, a record with a label, a
+ * tonearm and one music note. The record is a separate piece because it turns.
+ */
+function buildTurntable() {
+  const deck = merge(
+    loftX(
+      [
+        { x: -0.52, y0: -0.1, y1: 0.0, hw: 0.36 },
+        { x: -0.48, y0: -0.11, y1: 0.005, hw: 0.4 },
+        { x: 0.48, y0: -0.11, y1: 0.005, hw: 0.4 },
+        { x: 0.52, y0: -0.1, y1: 0.0, hw: 0.36 },
+      ],
+      5,
+      20,
+    ),
+    // The tonearm: a round base and one bent arm.
+    translateFlat(upright(lathe([[0, 0], [0.055, 0], [0.055, 0.05], [0, 0.05]], 16, 0)), 0.38, 0.0, -0.27),
+    tube([[0.38, 0.065, -0.27], [0.28, 0.08, -0.1], [0.12, 0.07, 0.1]], 0.012, 8, [0, 1, 0]),
+    ellipsoid(0.1, 0.06, 0.13, 0.03, 0.014, 0.018, 3, 8),
+  );
+  const record = merge(
+    upright(lathe([[0, 0], [0.27, 0], [0.27, 0.012], [0, 0.012]], 36, 0)),
+    upright(lathe([[0, 0.012], [0.09, 0.012], [0.09, 0.024], [0, 0.024]], 20, 0)),
+  );
+  const note = merge(
+    ellipsoid(0, 0, 0, 0.055, 0.04, 0.02, 4, 10),
+    tube([[0.046, 0.01, 0], [0.046, 0.25, 0]], 0.01, 6, [1, 0, 0]),
+    box(0.085, 0.225, 0, 0.08, 0.026, 0.014, -0.55),
+  );
+  return { deck, record, note };
+}
+
 export function buildWatchPieces(): WatchPieces {
+  const turntable = buildTurntable();
   const { rails, car, carTrim } = buildCoaster();
   const { cam, camSpokes } = buildCamera();
   const { globeBall, globeGrid, globeStand, plane, planeTrail } = buildGlobe();
@@ -475,7 +511,9 @@ export function buildWatchPieces(): WatchPieces {
     globeStand,
     plane,
     planeTrail,
-    petal: blossom(0.13, -0.006, 0.006),
+    deck: turntable.deck,
+    record: turntable.record,
+    note: turntable.note,
   };
 }
 

@@ -137,12 +137,13 @@
   },
   "contact": {
     "title": "Contacto",
-    "intro": "TODO: frase breve de contacto.",
+    "intro": "Si has llegado hasta aquí, me gustaría saber qué te ha parecido y hablar de lo que tengas entre manos.",
     "email": "Correo",
     "linkedin": "LinkedIn",
     "github": "GitHub",
     "cvTitle": "CV",
-    "cvPending": "TODO: añadir los PDF del CV (español e inglés) en /public/cv/."
+    "cvEs": "CV en español",
+    "cvEn": "CV en inglés"
   },
   "footer": {
     "rights": "Víctor Manuel Gómez Álvarez",
@@ -167,7 +168,7 @@
     },
     "contact": {
       "part": "Fondo de caja",
-      "text": "En el fondo de la caja el relojero deja su firma. Aquí queda la mía y la forma de escribirme."
+      "text": "En el fondo de la caja el relojero deja su firma. Aquí queda la mía y la forma de ponerte en contacto conmigo."
     }
   },
   "crown": {

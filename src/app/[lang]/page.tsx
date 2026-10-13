@@ -1,3 +1,5 @@
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 import { EvolutionMetrics } from '@/components/EvolutionMetrics';
 import { Hero } from '@/components/Hero';
 import { Section } from '@/components/Section';
@@ -11,10 +13,22 @@ const STATUS_LEVEL: Record<string, number> = { pending: 1, inDevelopment: 2, wor
 
 const displayUrl = (url: string) => url.replace(/^https?:\/\/(www\.)?/, '');
 
+/** The CV files that exist in `public/cv/`, the one in the page's language first. Nothing is shown for a missing file. */
+function cvLinks(locale: string, labels: { es: string; en: string }) {
+  const all = [
+    { lang: 'es', file: 'cv-victor-gomez-es.pdf', label: labels.es },
+    { lang: 'en', file: 'cv-victor-gomez-en.pdf', label: labels.en },
+  ];
+  return all
+    .filter((cv) => existsSync(join(process.cwd(), 'public', 'cv', cv.file)))
+    .sort((a, b) => Number(b.lang === locale) - Number(a.lang === locale));
+}
+
 export default async function HomePage() {
   const locale = await getLocale();
   const dict = await getDictionary();
   const profile = getProfile();
+  const cvs = cvLinks(locale, { es: dict.contact.cvEs, en: dict.contact.cvEn });
   const stack = getStack(locale);
 
   return (
@@ -159,7 +173,7 @@ export default async function HomePage() {
         dwell={false}
       >
         <ul className='contact-links'>
-          <li>
+          <li className='contact-links__main'>
             <a href={`mailto:${profile.email}`}>
               <span className='contact-links__label'>{dict.contact.email}</span>
               {profile.email}
@@ -178,8 +192,23 @@ export default async function HomePage() {
             </a>
           </li>
         </ul>
-        <h3 className='contact-cv__title'>{dict.contact.cvTitle}</h3>
-        <p>{dict.contact.cvPending}</p>
+        {cvs.length > 0 ? (
+          <div className='contact-cv'>
+            <h3 className='contact-cv__title'>{dict.contact.cvTitle}</h3>
+            <ul className='contact-cv__list'>
+              {cvs.map((cv) => (
+                <li key={cv.file}>
+                  <a className='cv-link' href={`/cv/${cv.file}`} download>
+                    {cv.label}
+                    <span className='cv-link__tag' aria-hidden='true'>
+                      PDF
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
       </Section>
     </>
   );

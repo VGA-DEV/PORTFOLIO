@@ -137,12 +137,13 @@
   },
   "contact": {
     "title": "Contact",
-    "intro": "TODO: short contact sentence.",
+    "intro": "If you have read this far, I would like to hear what you think, and to talk about what you are working on.",
     "email": "Email",
     "linkedin": "LinkedIn",
     "github": "GitHub",
     "cvTitle": "CV",
-    "cvPending": "TODO: add the CV PDFs (Spanish and English) in /public/cv/."
+    "cvEs": "CV in Spanish",
+    "cvEn": "CV in English"
   },
   "footer": {
     "rights": "Víctor Manuel Gómez Álvarez",
@@ -167,7 +168,7 @@
     },
     "contact": {
       "part": "Case back",
-      "text": "The watchmaker leaves a signature on the case back. Here is mine, and how to write to me."
+      "text": "The watchmaker leaves a signature on the case back. Here is mine, and how to get in touch with me."
     }
   },
   "crown": {

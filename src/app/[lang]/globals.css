@@ -1030,6 +1030,49 @@ html[data-watch='flat'] .hero__watch .watch__frame {
   }
 }
 
+/* The address leads: it is the way to write, so it is set larger than the rest. */
+.contact-links__main a {
+  font-size: clamp(1.4rem, 3.4vw, 2.2rem);
+}
+
+.contact-cv__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cv-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.7rem 1.1rem;
+  border: 1px solid rgb(214 189 138 / 0.6);
+  color: var(--color-stage-ink);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  transition: background-color 0.3s var(--ease-out), border-color 0.3s var(--ease-out), transform 0.3s var(--ease-out);
+}
+
+.cv-link:hover {
+  border-color: var(--color-champagne);
+  background: rgb(214 189 138 / 0.14);
+  transform: translateY(-2px);
+}
+
+.cv-link__tag {
+  padding: 0.05rem 0.4rem;
+  border: 1px solid var(--color-champagne);
+  color: var(--color-champagne);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
 .contact-cv__title {
   margin-bottom: var(--space-1);
   color: var(--color-champagne);
