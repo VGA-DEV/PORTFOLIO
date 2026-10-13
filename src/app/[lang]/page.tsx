@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { EvolutionMetrics } from '@/components/EvolutionMetrics';
+import { EvolutionArchive } from '@/components/EvolutionArchive';
 import { Hero } from '@/components/Hero';
 import { Section } from '@/components/Section';
 import { BackdropSweep } from '@/components/BackdropSweep';
@@ -141,28 +141,15 @@ export default async function HomePage() {
         title={dict.evolution.title}
         side='left'
       >
-        <ol className='ledger ledger--entries'>
-          {dict.evolution.versions.map((version) => (
-            <li key={version.name} className='ledger__row'>
-              <div className='ledger__head'>
-                <h3 className='ledger__title'>
-                  {version.name}
-                  {version.current ? <span className='ledger__badge'>{dict.evolution.currentLabel}</span> : null}
-                </h3>
-                {version.tag ? (
-                  <p className='ledger__period'>
-                    <span className='sr-only'>{dict.evolution.tagLabel}: </span>
-                    <code>{version.tag}</code>
-                  </p>
-                ) : null}
-              </div>
-              <div className='ledger__body'>
-                <p>{version.summary}</p>
-              </div>
-            </li>
-          ))}
-        </ol>
-        <EvolutionMetrics locale={locale} labels={dict.evolution.metrics} />
+        <EvolutionArchive
+          locale={locale}
+          versions={dict.evolution.versions}
+          labels={{
+            tagLabel: dict.evolution.tagLabel,
+            currentLabel: dict.evolution.currentLabel,
+            metrics: dict.evolution.metrics,
+          }}
+        />
       </Section>
 
       <Section

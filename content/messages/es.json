@@ -104,35 +104,36 @@
     "title": "Evolución",
     "versions": [
       {
+        "id": "v2",
         "tag": "",
         "name": "Versión 2",
         "current": true,
+        "measure": "Lighthouse en local · 13 oct 2026. Se repetirá con la web publicada.",
         "summary": "Rehecha desde cero con Next.js y TypeScript, con un reloj en 3D, dos idiomas y el rendimiento y la accesibilidad medidos."
       },
       {
+        "id": "v1",
         "tag": "v1-angular",
         "name": "Versión 1",
         "current": false,
+        "measure": "PageSpeed Insights · 6 oct 2026",
         "summary": "Primera versión, con Angular 16 y Angular Material. Contenido escrito a mano en una sola plantilla y formulario de contacto con EmailJS."
       }
     ],
     "tagLabel": "Etiqueta de git",
     "currentLabel": "Actual",
     "metrics": {
-      "title": "Antes y ahora",
       "mobile": "Móvil",
       "desktop": "Escritorio",
-      "to": "a",
+      "better": "Cambio respecto a la versión anterior: ",
       "rows": {
         "performance": "Rendimiento",
         "accessibility": "Accesibilidad",
         "bestPractices": "Buenas prácticas",
         "seo": "SEO",
-        "lcp": "Carga principal (LCP)",
-        "cls": "Saltos de diseño (CLS)"
-      },
-      "note": "Lighthouse. V1: PageSpeed Insights, 6 oct 2026. V2: en local sobre la exportación estática, 13 oct 2026; se repetirá con la web publicada.",
-      "from": "de"
+        "lcp": "Carga (LCP)",
+        "cls": "Saltos (CLS)"
+      }
     }
   },
   "contact": {

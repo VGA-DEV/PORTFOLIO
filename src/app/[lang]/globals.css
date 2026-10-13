@@ -850,93 +850,105 @@ html[data-watch='flat'] .hero__watch .watch__frame {
   vertical-align: middle;
 }
 
-/* Before and now: a small table of Lighthouse results, the old value fading into the new one. */
-.metrics {
-  margin-top: var(--space-3);
+/* Evolution: the archive of versions. One card per version with its own Lighthouse numbers, mobile
+   and desktop; the numbers that improved carry the change against the version before. The current
+   version leads with an ink border and full-colour figures; the older one is quieter. */
+.versions {
+  display: grid;
+  gap: 0.9rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.metrics table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.98rem;
+.version {
+  padding: 0.85rem 1.1rem 0.9rem;
+  border: 1px solid rgb(52 4 64 / 0.22);
+  border-radius: 3px;
+  background: rgb(255 255 255 / 0.4);
 }
 
-.metrics__title {
-  padding-bottom: var(--space-1);
-  color: var(--color-purple);
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-align: left;
-  text-transform: uppercase;
+.version--now {
+  border-color: var(--color-ink);
+  background: rgb(255 255 255 / 0.7);
 }
 
-.metrics th {
-  text-align: left;
+.version__summary {
+  margin: 0.3rem 0 0.7rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
 }
 
-.metrics thead th {
-  padding-bottom: 0.35rem;
+.version__devices {
+  display: grid;
+  gap: 0.7rem 1.3rem;
+}
+
+@media (min-width: 48rem) {
+  .version__devices {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.scores__device {
+  margin: 0 0 0.35rem;
+  padding-bottom: 0.2rem;
+  border-bottom: 1px solid rgb(52 4 64 / 0.16);
   color: var(--color-ink-soft);
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
 }
 
-.metrics tbody th {
-  padding-right: var(--space-2);
-  font-weight: 500;
+.version--now .scores__device {
+  color: var(--color-purple);
 }
 
-.metrics tbody th,
-.metrics tbody td {
-  padding-block: 0.3rem;
-  border-top: 1px solid rgb(52 4 64 / 0.16);
+.scores__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem 0.6rem;
+  margin: 0;
+}
+
+.score dt {
+  color: var(--color-ink-soft);
+  font-size: 0.7rem;
+  line-height: 1.25;
+}
+
+.score dd {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1.2;
   font-variant-numeric: tabular-nums;
 }
 
-.delta {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.15rem 0.55rem;
-}
-
-.delta__from {
+.version:not(.version--now) .score dd {
   color: var(--color-ink-soft);
+  font-weight: 600;
 }
 
-.delta__arrow {
-  position: relative;
-  width: 1rem;
-  height: 1px;
-  background: var(--color-champagne-deep);
-}
-
-.delta__arrow::after {
-  content: '';
-  position: absolute;
-  top: -2.5px;
-  right: 0;
-  width: 5px;
-  height: 5px;
-  border-top: 1px solid var(--color-champagne-deep);
-  border-right: 1px solid var(--color-champagne-deep);
-  transform: rotate(45deg);
-}
-
-.delta__to {
+.score__change {
+  margin-top: 0.1rem;
+  padding: 0 0.4rem;
+  background: rgb(88 17 159 / 0.1);
   color: var(--color-purple);
+  font-size: 0.72rem;
   font-weight: 700;
+  line-height: 1.5;
 }
 
-.metrics__note {
-  max-width: 36rem;
-  margin: 0.5rem 0 0;
+.version__measure {
+  margin: 0.6rem 0 0;
   color: var(--color-ink-soft);
-  font-size: 0.78rem;
-  line-height: 1.45;
+  font-size: 0.75rem;
+  line-height: 1.4;
 }
 
 @media (min-width: 48rem) {
