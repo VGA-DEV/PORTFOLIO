@@ -233,8 +233,6 @@ function buildCoaster() {
     tube([[0.31, 0.148, -0.1], [0.345, 0.148, 0], [0.31, 0.148, 0.1]], 0.015, 8, [0, 1, 0]),
     ...seat(-0.07),
     ...seat(-0.19),
-    // Hitch to the car behind.
-    tube([[-0.34, 0.165, 0], [-0.46, 0.165, 0]], 0.014, 8, [0, 0, 1]),
   );
   return { rails: merge(...parts), car, carTrim };
 }
