@@ -1110,11 +1110,39 @@ html[data-watch='flat'] .hero__watch .watch__frame {
    of light below and of shadow above, as if cut into the metal). */
 .engraving__links a {
   display: block;
-  color: color-mix(in srgb, var(--color-champagne) 40%, #fff);
+  color: var(--tone);
   font-family: var(--font-display-stack);
   font-size: clamp(1.1rem, 2.6vw, 1.45rem);
   line-height: 1.3;
-  text-shadow: 0 1px 0 rgb(0 0 0 / 0.55), 0 -1px 0 rgb(214 189 138 / 0.28);
+  text-shadow: 0 1px 0 rgb(0 0 0 / 0.55), 0 -1px 0 rgb(255 255 255 / 0.12);
+}
+
+/* Each way in has its own colour, label and address together: champagne for the mail, lavender for
+   LinkedIn and light violet for GitHub. They stay the same on hover, which only underlines. */
+.engraving__links li:nth-child(1) {
+  --tone: color-mix(in srgb, var(--color-champagne) 40%, #fff);
+  --tone-label: var(--color-champagne);
+}
+
+.engraving__links li:nth-child(2) {
+  --tone: #dfe2fb;
+  --tone-label: #9ea7ee;
+}
+
+.engraving__links li:nth-child(3) {
+  --tone: #e8cdff;
+  --tone-label: #b985f5;
+}
+
+.engraving__links a:hover {
+  color: var(--tone);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.3em;
+}
+
+.engraving__links .engraving__label {
+  color: var(--tone-label);
 }
 
 .contact-cv__list {
