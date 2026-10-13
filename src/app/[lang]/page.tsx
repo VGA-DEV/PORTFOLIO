@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { EvolutionMetrics } from '@/components/EvolutionMetrics';
 import { Hero } from '@/components/Hero';
+import { JobSpan } from '@/components/JobSpan';
 import { Section } from '@/components/Section';
 import { BackdropSweep } from '@/components/BackdropSweep';
 import { WatchBackdrop } from '@/components/WatchBackdrop';
@@ -92,27 +93,12 @@ export default async function HomePage() {
         title={dict.experience.title}
         side='left'
       >
-        <ol className='timeline'>
-          {dict.experience.items.map((job) => (
-            <li
-              key={job.company}
-              className={job.current ? 'timeline__entry timeline__entry--now' : 'timeline__entry'}
-            >
-              <div className='ledger__head'>
-                <h3 className='ledger__title'>{job.company}</h3>
-                <p className='ledger__period'>{job.period}</p>
-              </div>
-              <div className='ledger__body'>
-                <p className='ledger__role'>{job.role}</p>
-                <p>{job.summary}</p>
-                <p className='ledger__stack'>
-                  <span className='ledger__label'>{dict.experience.stackLabel}</span>
-                  {job.stack.join(' · ')}
-                </p>
-              </div>
-            </li>
-          ))}
-        </ol>
+        <JobSpan
+          jobs={dict.experience.items}
+          stackLabel={dict.experience.stackLabel}
+          axisLabel={dict.experience.axisLabel}
+          nowLabel={dict.experience.now}
+        />
       </Section>
 
       <Section id='stack' title={dict.stack.title} part={dict.notes.stack.part} side='right'>
