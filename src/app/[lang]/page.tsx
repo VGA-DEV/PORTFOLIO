@@ -58,32 +58,27 @@ export default async function HomePage() {
         title={dict.projects.title}
         side='right'
       >
-        <ol className='cards'>
+        <ol className='ledger ledger--entries'>
           {dict.projects.items.map((project) => (
-            <li key={project.name} className='card'>
-              <div className='card__face'>
-                <div className='card__fill'>
-                  <div className='ledger__head'>
-                    <h3 className='ledger__title'>{project.name}</h3>
-                    <p className='status'>
-                      <span className='sr-only'>{dict.projects.statusLabel}: </span>
-                      <span
-                        className='status__level'
-                        data-level={STATUS_LEVEL[project.status] ?? 1}
-                        aria-hidden='true'
-                      />
-                      {dict.projects.status[project.status as keyof typeof dict.projects.status]}
-                    </p>
-                  </div>
-                  <p className='card__summary'>{project.summary}</p>
-                  <ul className='tags' aria-label={dict.projects.stackLabel}>
-                    {project.stack.map((tech) => (
-                      <li key={tech} className='tag'>
-                        {tech}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+            <li key={project.name} className='ledger__row'>
+              <div className='ledger__head'>
+                <h3 className='ledger__title'>{project.name}</h3>
+                <p className='status'>
+                  <span className='sr-only'>{dict.projects.statusLabel}: </span>
+                  <span
+                    className='status__level'
+                    data-level={STATUS_LEVEL[project.status] ?? 1}
+                    aria-hidden='true'
+                  />
+                  {dict.projects.status[project.status as keyof typeof dict.projects.status]}
+                </p>
+              </div>
+              <div className='ledger__body'>
+                <p>{project.summary}</p>
+                <p className='ledger__stack'>
+                  <span className='ledger__label'>{dict.projects.stackLabel}</span>
+                  {project.stack.join(' · ')}
+                </p>
               </div>
             </li>
           ))}
