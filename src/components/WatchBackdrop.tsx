@@ -422,6 +422,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       if (!alive || scene) return;
 
       const sections = Array.from(document.querySelectorAll<HTMLElement>('[data-watch-section]'));
+      const footer = document.querySelector<HTMLElement>('.site-footer');
       sectionEls = sections;
       const gaps = Array.from(document.querySelectorAll<HTMLElement>('[data-gap]'));
       const moveState: { moved: boolean; passed: boolean; ready: boolean; last: number }[] = [];
@@ -456,6 +457,10 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       const update = () => {
         frame = 0;
         const viewport = window.innerHeight;
+        // The footer is an opaque band over the canvas. As it comes into view the canvas gives it that
+        // much room, so the watch and its miniature keep fitting the space above it instead of being cut off.
+        const footerTop = footer ? footer.getBoundingClientRect().top : viewport;
+        root.style.setProperty('--footer-in', `${Math.round(Math.min(Math.max(viewport - footerTop, 0), viewport * 0.4))}px`);
         // Each move to the next section is triggered in the second half of the dwell that ends the section before it.
         // The watch sets off at one point going down and goes back at another going up, so
         // that on the way up it returns just as the next section's content has left.
@@ -538,6 +543,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
         window.removeEventListener('scroll', onScroll);
         window.removeEventListener('resize', onResize);
         cancelAnimationFrame(frame);
+        root.style.removeProperty('--footer-in');
       });
 
       const sync = () => current.setRunning(!document.hidden);

@@ -470,6 +470,8 @@ code {
 .watch-bg {
   position: fixed;
   inset: 0;
+  /* The footer is opaque: the canvas ends where it begins, so nothing is cut off behind it. */
+  bottom: var(--footer-in, 0px);
   z-index: 1;
   opacity: 0;
   pointer-events: none;
@@ -1077,21 +1079,31 @@ html[data-watch='flat'] .hero__watch .watch__frame {
 
 .engraving__label {
   display: block;
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.4rem;
   color: var(--color-champagne);
   font-family: var(--font-sans-stack);
-  font-size: 0.74rem;
-  font-weight: 600;
-  letter-spacing: 0.3em;
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.26em;
+  text-shadow: none;
   text-transform: uppercase;
 }
 
 .engraving__links {
   display: grid;
-  gap: 1.1rem;
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+/* A short rule between the three, so each way of reaching me reads as its own entry. */
+.engraving__links li + li::before {
+  content: '';
+  display: block;
+  width: 2.4rem;
+  height: 1px;
+  margin: 1rem auto;
+  background: rgb(214 189 138 / 0.5);
 }
 
 /* The three ways to reach me carry the same weight: same size, same face, same engraving (a hairline
