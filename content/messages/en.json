@@ -65,6 +65,8 @@
         "company": "Devoteam",
         "role": "Full Stack Developer",
         "period": "May 2024 – present",
+        "start": "2024-05",
+        "end": "",
         "summary": "I take part in the migration of an internal application from .NET Framework 4.7 to .NET 10, and I lead its technical side. The modules move from MVC to a headless architecture, with an API and React, on a modular monolith. I set up the deployments and pipelines with GitLab CI, built the billing module and bring AI agents into the development workflow.",
         "stack": [
           "C#",
@@ -78,6 +80,8 @@
         "company": "WE DO THE BEST SL",
         "role": "Full Stack Developer",
         "period": "July 2023 – May 2024",
+        "start": "2023-07",
+        "end": "2024-05",
         "summary": "I modernised an accounting system in Angular, with .NET endpoints. I also wrote a Python server that collected BLE data from gym devices and relayed it over WebSockets, and a WPF desktop app that showed that activity in real time.",
         "stack": [
           "Angular",
@@ -89,7 +93,8 @@
         "current": false
       }
     ],
-    "stackLabel": "Technologies"
+    "stackLabel": "Technologies",
+    "durationLabel": "Duration"
   },
   "stack": {
     "title": "Stack",
@@ -153,7 +158,8 @@
     "github": "GitHub",
     "cvTitle": "CV",
     "cvEs": "CV in Spanish",
-    "cvEn": "CV in English"
+    "cvEn": "CV in English",
+    "cvStarted": "Download started"
   },
   "footer": {
     "rights": "Víctor Manuel Gómez Álvarez",

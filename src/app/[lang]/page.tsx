@@ -1,6 +1,8 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { CursorLight } from '@/components/CursorLight';
 import { DecoRule } from '@/components/DecoRule';
+import { DownloadLink } from '@/components/DownloadLink';
 import { EvolutionArchive } from '@/components/EvolutionArchive';
 import { Hero } from '@/components/Hero';
 import { Section } from '@/components/Section';
@@ -8,6 +10,7 @@ import { BackdropSweep } from '@/components/BackdropSweep';
 import { WatchBackdrop } from '@/components/WatchBackdrop';
 import { getProfile, getStack } from '@/i18n/content';
 import { getDictionary, getLocale } from '@/i18n/dictionaries';
+import { formatDuration, monthsBetween } from '@/lib/duration';
 
 /** Pending, in development, working: one, two or three of three. */
 const STATUS_LEVEL: Record<string, number> = { pending: 1, inDevelopment: 2, working: 3 };
@@ -31,10 +34,14 @@ export default async function HomePage() {
   const profile = getProfile();
   const cvs = cvLinks(locale, { es: dict.contact.cvEs, en: dict.contact.cvEn });
   const stack = getStack(locale);
+  // How long each job lasted (the full run of the longest one fills its bar), counted when the site is built.
+  const jobMonths = dict.experience.items.map((job) => monthsBetween(job.start, job.end));
+  const longestJob = Math.max(...jobMonths);
 
   return (
     <>
       <BackdropSweep />
+      <CursorLight />
       <WatchBackdrop
         logoUrl='/images/logo-vga-dev.webp'
         notes={[
@@ -94,7 +101,7 @@ export default async function HomePage() {
         side='left'
       >
         <ol className='timeline'>
-          {dict.experience.items.map((job) => (
+          {dict.experience.items.map((job, index) => (
             <li
               key={job.company}
               className={job.current ? 'timeline__entry timeline__entry--now' : 'timeline__entry'}
@@ -105,7 +112,16 @@ export default async function HomePage() {
                 <p className='ledger__period'>{job.period}</p>
               </div>
               <div className='ledger__body'>
-                <p className='ledger__role'>{job.role}</p>
+                <div className='timeline__meta'>
+                  <p className='ledger__role'>{job.role}</p>
+                  <p className='timeline__duration'>
+                    <span className='timeline__bar' aria-hidden='true'>
+                      <i style={{ ['--w' as string]: `${Math.round((jobMonths[index] / longestJob) * 100)}%` }} />
+                    </span>
+                    <span className='sr-only'>{dict.experience.durationLabel}: </span>
+                    {formatDuration(locale, jobMonths[index])}
+                  </p>
+                </div>
                 <p>{job.summary}</p>
                 <p className='ledger__stack'>
                   <span className='ledger__label'>{dict.experience.stackLabel}</span>
@@ -193,12 +209,7 @@ export default async function HomePage() {
               <ul className='contact-cv__list'>
                 {cvs.map((cv) => (
                   <li key={cv.file}>
-                    <a className='cv-link' href={`/cv/${cv.file}`} download>
-                      {cv.label}
-                      <span className='cv-link__tag' aria-hidden='true'>
-                        PDF
-                      </span>
-                    </a>
+                    <DownloadLink href={`/cv/${cv.file}`} label={cv.label} started={dict.contact.cvStarted} />
                   </li>
                 ))}
               </ul>

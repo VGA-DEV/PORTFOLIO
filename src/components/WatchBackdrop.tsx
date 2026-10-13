@@ -301,6 +301,8 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
         const el = sectionEls[nearest];
         const light = !!el && !el.classList.contains('hero') && !el.classList.contains('section--stage');
         callout.dataset.tone = light ? 'paper' : 'stage';
+        // The page knows whether it is on a dark section, for the soft light that follows the mouse.
+        root.dataset.tone = light ? 'paper' : 'stage';
         if (crownRef.current) crownRef.current.dataset.tone = light ? 'paper' : 'stage';
         measured = { key: '', w: 0, h: 0 };
         look = rollLook();
@@ -449,6 +451,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       }
       sceneHandle.current = scene;
       root.dataset.watch = '3d';
+      root.dataset.tone = 'stage'; // The page starts on the dark hero.
       setMoveLive(true);
       const cleanups: (() => void)[] = [];
       const current = scene;
@@ -457,10 +460,11 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       const update = () => {
         frame = 0;
         const viewport = window.innerHeight;
-        // The footer is an opaque band over the canvas. As it comes into view the canvas gives it that
-        // much room, so the watch and its miniature keep fitting the space above it instead of being cut off.
+        // The footer is an opaque band over the canvas. As it comes into view the scene is framed in the
+        // space above it (without resizing the canvas, which would make the watch flicker), so the watch and
+        // its miniature are not cut off.
         const footerTop = footer ? footer.getBoundingClientRect().top : viewport;
-        root.style.setProperty('--footer-in', `${Math.round(Math.min(Math.max(viewport - footerTop, 0), viewport * 0.4))}px`);
+        current.setBottomInset(Math.max(viewport - footerTop, 0));
         // Each move to the next section is triggered in the second half of the dwell that ends the section before it.
         // The watch sets off at one point going down and goes back at another going up, so
         // that on the way up it returns just as the next section's content has left.
@@ -543,7 +547,6 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
         window.removeEventListener('scroll', onScroll);
         window.removeEventListener('resize', onResize);
         cancelAnimationFrame(frame);
-        root.style.removeProperty('--footer-in');
       });
 
       // Pointing at (or focusing) a piece of content marked `data-excite` makes the miniature beside it livelier.

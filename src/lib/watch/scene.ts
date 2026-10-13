@@ -188,6 +188,8 @@ export type WatchScene = {
   setRunning: (running: boolean) => void;
   /** 0 or 1: the visitor is pointing at a piece of the content, and the miniature on screen livens up. */
   setExcite: (value: number) => void;
+  /** Pixels at the bottom of the canvas hidden by the footer: the scene is framed in the rest, without resizing the canvas. */
+  setBottomInset: (pixels: number) => void;
   resize: () => void;
   dispose: () => void;
 };
@@ -798,6 +800,26 @@ export async function createWatchScene({
   let frameAverage = 16;
   let slowFrames = 0;
 
+  /** Pixels at the bottom of the canvas covered by the footer: the scene is framed in the part above them. */
+  let inset = 0;
+  const viewHeight = () => Math.max(height - inset, 1);
+  /**
+   * The projection, with the scene squeezed into the top of the canvas when the footer covers the bottom.
+   * The canvas itself never changes size (resizing it clears it and makes the watch flicker): the
+   * vertical axis is scaled and shifted in the projection matrix instead, so everything the camera
+   * projects, and the coordinates the page reads back, stay in the pixels of the full canvas.
+   */
+  const applyProjection = () => {
+    camera.perspective({ aspect: width / viewHeight() });
+    const scale = viewHeight() / height;
+    if (scale < 0.9999) {
+      const m = camera.projectionMatrix;
+      for (let column = 0; column < 4; column += 1) {
+        m[column * 4 + 1] = scale * m[column * 4 + 1] + (1 - scale) * m[column * 4 + 3];
+      }
+    }
+  };
+
   const resize = () => {
     const parent = canvas.parentElement;
     if (!parent) return;
@@ -805,7 +827,7 @@ export async function createWatchScene({
     height = Math.max(parent.clientHeight, 1);
     rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
     renderer.setSize(width, height);
-    camera.perspective({ aspect: width / height });
+    applyProjection();
   };
 
   const applyPose = (t: number, dt: number) => {
@@ -822,7 +844,7 @@ export async function createWatchScene({
     const rotation = lerp3(from.rotation, to.rotation, ease);
     const focus = lerp3(from.focus, to.focus, ease);
     const wide = isWide ? isWide() : width >= 992;
-    const aspect = width / height;
+    const aspect = width / viewHeight();
     const widest = lerp(from.width, to.width, ease);
     modelUnits = widest;
     let half: number;
@@ -841,8 +863,8 @@ export async function createWatchScene({
     } else {
       // One column: a stage measured from the screen itself, the same rule on every device. The
       // watch is never wider than 75% of the width nor taller than 36% of the height.
-      const unit = Math.min((0.75 * width) / widest, (0.36 * height) / 2.8);
-      half = height / (2 * unit) + 1.1 * burst;
+      const unit = Math.min((0.75 * width) / widest, (0.36 * viewHeight()) / 2.8);
+      half = viewHeight() / (2 * unit) + 1.1 * burst;
     }
     const explode = lerp(from.explode, to.explode, ease) + 0.9 * burst;
     // Pieces leave late in the move, once they have flown apart.
@@ -1080,6 +1102,14 @@ export async function createWatchScene({
     setExcite: (value) => {
       exciteTarget = value > 0 ? 1 : 0;
       wake();
+    },
+    setBottomInset: (pixels) => {
+      const next = Math.min(Math.max(Math.round(pixels), 0), height * 0.4);
+      if (next === inset) return;
+      inset = next;
+      applyProjection();
+      wake();
+      if (still) redrawStill();
     },
     resize: () => {
       resize();

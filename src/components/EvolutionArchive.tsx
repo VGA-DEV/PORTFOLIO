@@ -2,6 +2,7 @@ import metrics from '@content/evolution/metrics.json';
 import type { Locale } from '@/i18n/config';
 import { formatMetric } from '@/lib/metric-format';
 import { CountUp } from './CountUp';
+import { Tilt } from './Tilt';
 
 type Version = {
   id: string;
@@ -90,11 +91,7 @@ export function EvolutionArchive({
                   </span>
                 </dt>
                 <dd>
-                  {before ? (
-                    <CountUp from={before[device][key]} to={value} unit={row.unit} locale={locale} />
-                  ) : (
-                    formatMetric(locale, row.unit)(value)
-                  )}
+                  <CountUp to={value} unit={row.unit} locale={locale} order={metrics.rows.indexOf(row)} />
                   {before === null ? null : better ? (
                     <span className='score__change'>
                       <span className='sr-only'>{labels.metrics.better}</span>
@@ -119,6 +116,7 @@ export function EvolutionArchive({
     <ol className='versions'>
       {versions.map((version) => (
         <li key={version.id} className={version.current ? 'version version--now' : 'version'} data-excite>
+          <Tilt className='version__card'>
           <div className='ledger__head'>
             <h3 className='ledger__title'>
               {version.name}
@@ -134,6 +132,7 @@ export function EvolutionArchive({
           <p className='version__summary'>{version.summary}</p>
           <div className='version__devices'>{devices.map((device) => <div key={device}>{scores(version, device)}</div>)}</div>
           <p className='version__measure'>{version.measure}</p>
+          </Tilt>
         </li>
       ))}
     </ol>
