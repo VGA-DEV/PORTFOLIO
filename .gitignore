@@ -19,7 +19,6 @@ Thumbs.db
 
 # local project context (personal data, solo project)
 CLAUDE*.md
-PENDIENTES.md
 
 # local tooling
 .codegraph/
