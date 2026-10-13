@@ -162,12 +162,12 @@
       "text": "Igual que el mecanismo hace que todo el reloj funcione, el stack de un desarrollador hace lo mismo con sus proyectos."
     },
     "evolution": {
-      "part": "Fondo de caja",
-      "text": "En el fondo de la caja se graban las revisiones del reloj. Aquí queda el registro de las versiones de esta web y de lo que cambió en cada una."
+      "part": "Correa",
+      "text": "La correa se cambia sin tocar el mecanismo. Así ha cambiado el aspecto de esta web, versión a versión, mientras por dentro seguía mejorando."
     },
     "contact": {
-      "part": "Corona",
-      "text": "La corona es por donde se da cuerda a un reloj. También es por donde puedes escribirme."
+      "part": "Fondo de caja",
+      "text": "En el fondo de la caja el relojero deja su firma. Aquí queda la mía y la forma de escribirme."
     }
   },
   "crown": {

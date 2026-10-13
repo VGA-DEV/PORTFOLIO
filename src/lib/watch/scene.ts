@@ -9,7 +9,7 @@ import {
   paintDial,
   paintEngraving,
 } from './dial';
-import { coasterAt, coasterPath, GEAR_SPECS, loadWatchPieces, OUTLINE_POINTS, type Piece } from './build';
+import { coasterAt, coasterPath, GEAR_SPECS, GLOBE, loadWatchPieces, OUTLINE_POINTS, type Piece } from './build';
 import { tonneauOutline } from './smooth';
 
 type Rgb = readonly [number, number, number];
@@ -254,8 +254,8 @@ const STATES: readonly PoseState[] = [
   { anchor: [0, 0, 0.1], width: 3.4, rotation: [0.2, -0.8, 0.03], focus: [0, 0, 0], half: 2.9, explode: 0, zoom: 0.98, show: { ...ALL, propCoaster: 1 } },
   { anchor: [0, 0, 0.25], width: 2.6, rotation: [0.12, -0.4, 0], focus: [0, 0, 0.25], half: 2.4, explode: 0.55, show: { ...ALL, propCamera: 1 } },
   { anchor: [0, 0.1, -0.55], width: 2.4, rotation: [0.22, -0.9, 0.04], focus: [0, 0, -0.6], half: 2.8, explode: 0.85, show: { ...ALL, propGame: 1 } },
-  { anchor: [0, 0, -0.9], width: 3.4, rotation: [0.04, Math.PI + 0.12, 0], focus: [0, 0, -0.8], half: 2.4, explode: 0.3, show: { ...ALL, propGlobe: 1 } },
-  { anchor: [1.045, 0.32, -0.255], width: 3.0, rotation: [0.1, -1.15, 0], focus: [0.9, 0.15, -0.2], half: 2.6, explode: 0.1, show: { ...ALL, propPetals: 1 } },
+  { anchor: [0, -2.4, -0.3], width: 3.4, rotation: [0.15, -0.5, 0], focus: [0, -0.9, 0], half: 3.0, explode: 0.2, show: { ...ALL, propGlobe: 1 } },
+  { anchor: [0, 0, -0.9], width: 3.4, rotation: [0.04, Math.PI + 0.12, 0], focus: [0, 0, -0.8], half: 2.4, explode: 0.3, show: { ...ALL, propPetals: 1 } },
 ];
 
 const damp = (current: number, target: number, rate: number, dt: number) =>
@@ -267,7 +267,7 @@ const PROP_EXTENT: Partial<Record<Group, [number, number]>> = {
   propCoaster: [1.3, 0.7],
   propCamera: [0.95, 0.9],
   propGame: [0.55, 0.45],
-  propGlobe: [0.6, 0.6],
+  propGlobe: [0.75, 0.8],
   propPetals: [0.6, 0.9],
 };
 
@@ -677,15 +677,29 @@ export async function createWatchScene({
   invaderMesh.setParent(gameNode);
   invaderMesh.scale.set(1.7, 1.7, 1.7);
 
-  // A globe with a paper plane circling it, next to the case back.
-  const globeNode = propGroup('propGlobe', [-1.3, 0.55, -0.5]);
-  globeNode.rotation.x = -1.2;
-  flatMesh(pieces.globe, gold(0.2)).setParent(globeNode);
-  flatMesh(pieces.globeRing, steel(COLORS.rhodium, 0.25)).setParent(globeNode);
+  // An antique desk globe on a stand, with a propeller plane flying round it on a dotted path.
+  const globeNode = propGroup('propGlobe', [-2.25, -0.55, 0.3], [0, 0, 0.3]);
+  const globeModel = new Transform();
+  globeModel.setParent(globeNode);
+  globeModel.scale.set(1.0, 1.0, 1.0);
+  flatMesh(pieces.globeStand, gold(0.14)).setParent(globeModel);
+  const globeTilt = new Transform();
+  globeTilt.setParent(globeModel);
+  globeTilt.rotation.z = 0.41;
+  const ballGroup = new Transform();
+  ballGroup.setParent(globeTilt);
+  flatMesh(pieces.globeBall, gold(0.14)).setParent(ballGroup);
+  flatMesh(pieces.globeGrid, steel(COLORS.roseGold, 0.16)).setParent(ballGroup);
+  const orbitTilt = new Transform();
+  orbitTilt.setParent(globeModel);
+  orbitTilt.rotation.x = 0.35;
+  flatMesh(pieces.planeTrail, steel(COLORS.roseGold, 0.16)).setParent(orbitTilt);
   const planePivot = new Transform();
-  planePivot.setParent(globeNode);
-  const planeMesh = flatMesh(pieces.plane, steel(COLORS.roseGold, 0.2));
-  planeMesh.position.set(0.58, 0, 0);
+  planePivot.setParent(orbitTilt);
+  const planeMesh = flatMesh(pieces.plane, steel(COLORS.roseGold, 0.16));
+  planeMesh.position.set(GLOBE.orbit, 0, 0);
+  planeMesh.rotation.y = Math.PI / 2;
+  planeMesh.rotation.x = 0.25;
   planeMesh.setParent(planePivot);
 
   // Blossom petals drift down past the crown.
@@ -876,7 +890,8 @@ export async function createWatchScene({
     });
     invaderMesh.position.y = Math.sin(t * 0.0018) * 0.05;
     invaderMesh.rotation.y = Math.sin(t * 0.0009) * 0.5;
-    planePivot.rotation.z += 0.9 * dt;
+    planePivot.rotation.y += 0.9 * dt;
+    ballGroup.rotation.y += 0.25 * dt;
     for (const petal of petals) {
       const fall = (t * 0.00008 * petal.spin + petal.phase) % 1;
       petal.mesh.position.set(petal.x, 0.9 - fall * 1.8, petal.z);

@@ -1,4 +1,4 @@
-import { blossom, box, ellipsoid, extrudeStar, gear, hand, lathe, loftX, merge, translateFlat, tube } from './geometry';
+import { blossom, box, ellipsoid, gear, hand, lathe, loftX, merge, translateFlat, tube } from './geometry';
 import { loft, roundedTrapezoid, strap, tonneauOutline, type SmoothMesh } from './smooth';
 
 /**
@@ -34,9 +34,11 @@ export type WatchPieces = {
   cam: Piece;
   camSpokes: Piece;
   invader: Piece;
-  globe: Piece;
-  globeRing: Piece;
+  globeBall: Piece;
+  globeGrid: Piece;
+  globeStand: Piece;
   plane: Piece;
+  planeTrail: Piece;
   petal: Piece;
 };
 
@@ -298,35 +300,121 @@ function buildInvader() {
   return merge(...cubes);
 }
 
-/** A faceted globe with an equator ring and a paper plane to orbit it. */
+/** A solid of revolution made about the z axis, stood up so its axis is y. */
+const upright = (data: Float32Array) => {
+  const out = new Float32Array(data.length);
+  for (let i = 0; i < data.length; i += 3) {
+    out[i] = data[i];
+    out[i + 1] = data[i + 2];
+    out[i + 2] = data[i + 1];
+  }
+  return out;
+};
+
+/** Where the globe's meridian arc and the plane's orbit are, shared with the scene. */
+export const GLOBE = { radius: 0.3, arc: 0.37, orbit: 0.56 };
+
+/**
+ * A desk globe and a propeller plane. The ball (with relief continents and a graticule of fine
+ * rings) turns inside a brass meridian arc on a stand; the plane flies round it along a dotted
+ * flight path. The ball and its grid are separate pieces from the stand because they turn.
+ */
 function buildGlobe() {
-  const radius = 0.3;
-  const steps = 7;
-  const profile = Array.from({ length: steps + 1 }, (_, i) => {
-    const a = (i / steps) * Math.PI;
-    return [Math.sin(a) * radius, Math.cos(a) * radius] as const;
+  const r = GLOBE.radius;
+  const ball = ellipsoid(0, 0, 0, r, r, r, 10, 22);
+
+  // Continents as raised blobs at (latitude, longitude, size) in degrees.
+  const land: [number, number, number][] = [
+    [48, -100, 0.075],
+    [-14, -60, 0.055],
+    [50, 12, 0.04],
+    [6, 20, 0.07],
+    [52, 90, 0.09],
+    [-25, 134, 0.042],
+  ];
+  const blobs = land.map(([lat, lon, size]) => {
+    const la = (lat * Math.PI) / 180;
+    const lo = (lon * Math.PI) / 180;
+    const d = r * 0.96;
+    return ellipsoid(d * Math.cos(la) * Math.cos(lo), d * Math.sin(la), d * Math.cos(la) * Math.sin(lo), size, size, size, 4, 8);
   });
-  const plane = extrudeStar(
-    [
-      [0, 0.12],
-      [0.08, -0.07],
-      [0, -0.035],
-      [-0.08, -0.07],
-    ],
-    -0.008,
-    0.008,
-  );
-  return {
-    globe: lathe(profile, 14, 0),
-    globeRing: lathe([[0.37, -0.014], [0.42, -0.014], [0.42, 0.014], [0.37, 0.014]], 40, 0),
-    plane,
+  // Latitude rings and two crossing meridians, as slim tubes just clear of the ball.
+  const ring = (lat: number) => {
+    const la = (lat * Math.PI) / 180;
+    return tube(
+      Array.from({ length: 25 }, (_, i) => {
+        const a = (i / 24) * Math.PI * 2;
+        const rr = (r + 0.004) * Math.cos(la);
+        return [rr * Math.cos(a), (r + 0.004) * Math.sin(la), rr * Math.sin(a)] as const;
+      }),
+      0.005,
+      5,
+      [0, 1, 0],
+    );
   };
+  const meridian = (lon: number) => {
+    const lo = (lon * Math.PI) / 180;
+    return tube(
+      Array.from({ length: 25 }, (_, i) => {
+        const la = (i / 24) * Math.PI * 2;
+        const rr = (r + 0.004) * Math.cos(la);
+        return [rr * Math.cos(lo), (r + 0.004) * Math.sin(la), rr * Math.sin(lo)] as const;
+      }),
+      0.005,
+      5,
+      [0, 0, 1],
+    );
+  };
+  const grid = merge(ring(0), ring(30), ring(-30), meridian(0), meridian(90), ...blobs);
+
+  // The stand: a stepped base, a stem, and the meridian arc with a pin at each pole.
+  const arc = tube(
+    Array.from({ length: 21 }, (_, i) => {
+      const a = -Math.PI / 2 + (i / 20) * Math.PI;
+      return [0.0, GLOBE.arc * Math.sin(a), -GLOBE.arc * Math.cos(a)] as const;
+    }).map(([x, y, z]) => [x, y, z] as const),
+    0.014,
+    8,
+    [1, 0, 0],
+  );
+  const baseY = -0.6;
+  const stand = merge(
+    translateFlat(upright(lathe([[0, 0], [0.24, 0], [0.24, 0.025], [0.19, 0.045], [0.05, 0.06], [0, 0.06]], 24, 0)), 0, baseY, 0),
+    arc,
+    // The stem rises from the base to the bottom of the arc; a pin at each pole holds the ball.
+    tube([[0, baseY + 0.06, 0], [0, -GLOBE.arc, 0]], 0.02, 10, [1, 0, 0]),
+    tube([[0, -r - 0.07, 0], [0, -r - 0.01, 0]], 0.012, 8, [1, 0, 0]),
+    tube([[0, r + 0.01, 0], [0, r + 0.07, 0]], 0.012, 8, [1, 0, 0]),
+  );
+
+  // A classic propeller plane, nose along +x: round fuselage, straight wings, tail, two engines.
+  const plane = merge(
+    ellipsoid(0, 0, 0, 0.12, 0.03, 0.03, 5, 10),
+    ellipsoid(0.115, 0, 0, 0.04, 0.026, 0.026, 4, 8),
+    box(0.01, 0.002, 0, 0.075, 0.008, 0.3),
+    box(-0.1, 0.004, 0, 0.04, 0.006, 0.12),
+    box(-0.105, 0.036, 0, 0.05, 0.055, 0.007, 0.5),
+    tube([[-0.01, -0.012, -0.08], [0.065, -0.012, -0.08]], 0.015, 8, [0, 1, 0]),
+    tube([[-0.01, -0.012, 0.08], [0.065, -0.012, 0.08]], 0.015, 8, [0, 1, 0]),
+    box(0.07, -0.012, -0.08, 0.004, 0.06, 0.008),
+    box(0.07, -0.012, -0.08, 0.004, 0.008, 0.06),
+    box(0.07, -0.012, 0.08, 0.004, 0.06, 0.008),
+    box(0.07, -0.012, 0.08, 0.004, 0.008, 0.06),
+  );
+  // The flight path: a ring of small beads, tilted by the scene.
+  const trail = merge(
+    ...Array.from({ length: 36 }, (_, i) => {
+      const a = (i / 36) * Math.PI * 2;
+      return ellipsoid(GLOBE.orbit * Math.cos(a), 0, GLOBE.orbit * Math.sin(a), 0.012, 0.012, 0.012, 3, 6);
+    }),
+  );
+  return { globeBall: ball, globeGrid: grid, globeStand: stand, plane, planeTrail: trail };
 }
 
 export function buildWatchPieces(): WatchPieces {
   const { rails, car, carTrim } = buildCoaster();
   const { cam, camSpokes } = buildCamera();
-  const { globe, globeRing, plane } = buildGlobe();
+  const { globeBall, globeGrid, globeStand, plane, planeTrail } = buildGlobe();
   const outline = tonneauOutline(OUTLINE_POINTS);
 
   // End pieces: straight-sided trapezoids with rounded corners that carry the strap.
@@ -382,9 +470,11 @@ export function buildWatchPieces(): WatchPieces {
     cam,
     camSpokes,
     invader: buildInvader(),
-    globe,
-    globeRing,
+    globeBall,
+    globeGrid,
+    globeStand,
     plane,
+    planeTrail,
     petal: blossom(0.13, -0.006, 0.006),
   };
 }
