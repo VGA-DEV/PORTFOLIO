@@ -59,8 +59,11 @@ export default async function HomePage() {
         side='right'
       >
         <ol className='ledger ledger--entries'>
-          {dict.projects.items.map((project) => (
-            <li key={project.name} className='ledger__row'>
+          {dict.projects.items.map((project, index) => (
+            <li
+              key={project.name}
+              className={index === 0 ? 'ledger__row ledger__row--lead' : 'ledger__row'}
+            >
               <div className='ledger__head'>
                 <h3 className='ledger__title'>{project.name}</h3>
                 <p className='status'>
