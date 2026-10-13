@@ -5,6 +5,10 @@ import { arriveProgress, dwellProgress, leaveProgress } from '@/lib/transition';
 import { arrivedAt, leftFrom, stillAt, subscribeMove } from '@/lib/watch/move';
 
 const REDUCED_QUERY = '(prefers-reduced-motion: reduce)';
+/** The two-column layout: text beside the watch, each section meant to fit one screen. */
+const WIDE_QUERY = '(min-width: 62rem) and (pointer: fine)';
+/** A section is scaled down to fit the screen, but never below this, so it stays readable. */
+const MIN_FIT = 0.8;
 
 /** The pieces of a section that come and go one after another: its heading, intro and each card or row. */
 function revealItems(pin: HTMLElement): HTMLElement[] {
@@ -180,7 +184,20 @@ export function BackdropSweep() {
       const viewport = window.innerHeight;
       const header = document.querySelector<HTMLElement>('.site-header')?.offsetHeight ?? 0;
       headerHeight = header;
+      const wide = window.matchMedia(WIDE_QUERY).matches;
       pins.forEach((pin) => {
+        // On the wide layout a section must show all of its content while it changes, so one
+        // taller than the screen is scaled down to fit (never below MIN_FIT).
+        const body = pin.querySelector<HTMLElement>('.section__body');
+        if (body) {
+          body.style.removeProperty('zoom');
+          if (wide) {
+            const style = getComputedStyle(pin);
+            const room = viewport - header - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+            const fit = Math.min(1, Math.max(room / body.getBoundingClientRect().height, MIN_FIT));
+            if (fit < 0.999) body.style.setProperty('zoom', fit.toFixed(3));
+          }
+        }
         // Every section fills at least the screen below the header, whatever the layout, so the
         // next one, pulled up by exactly that much, never starts its own dwell inside this one's.
         pin.style.minHeight = `${Math.max(viewport - header, 0)}px`;
@@ -215,6 +232,7 @@ export function BackdropSweep() {
         pin.style.removeProperty('transform');
         pin.style.removeProperty('height');
         pin.style.removeProperty('min-height');
+        pin.querySelector<HTMLElement>('.section__body')?.style.removeProperty('zoom');
         pin.querySelector<HTMLElement>(':scope > .container')?.removeAttribute('style');
       });
       items.flat().forEach((el) => {

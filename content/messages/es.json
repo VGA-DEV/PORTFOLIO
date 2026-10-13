@@ -107,13 +107,13 @@
         "tag": "",
         "name": "Versión 2",
         "current": true,
-        "summary": "Rehecha desde cero con Next.js y TypeScript. Un reloj en 3D acompaña el recorrido, el contenido está en español e inglés y no hay formularios ni servicios de terceros. Rendimiento y accesibilidad, medidos."
+        "summary": "Rehecha desde cero con Next.js y TypeScript, con un reloj en 3D, dos idiomas y el rendimiento y la accesibilidad medidos."
       },
       {
         "tag": "v1-angular",
         "name": "Versión 1",
         "current": false,
-        "summary": "Primera versión, hecha con Angular 16 y Angular Material. Todo el contenido estaba escrito a mano en una sola plantilla, con un formulario de contacto por EmailJS."
+        "summary": "Primera versión, con Angular 16 y Angular Material. Contenido escrito a mano en una sola plantilla y formulario de contacto con EmailJS."
       }
     ],
     "tagLabel": "Etiqueta de git",
@@ -131,7 +131,7 @@
         "lcp": "Carga principal (LCP)",
         "cls": "Saltos de diseño (CLS)"
       },
-      "note": "Lighthouse. Versión 1: PageSpeed Insights, 6 oct 2026. Versión 2: en local sobre la exportación estática, 13 oct 2026; se repetirá con la web publicada.",
+      "note": "Lighthouse. V1: PageSpeed Insights, 6 oct 2026. V2: en local sobre la exportación estática, 13 oct 2026; se repetirá con la web publicada.",
       "from": "de"
     }
   },

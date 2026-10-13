@@ -524,7 +524,8 @@ html[data-watch='flat'] .hero__watch .watch__frame {
 }
 
 .section__pin {
-  padding-block: var(--space-5);
+  /* Generous on tall screens, tighter on short ones so a whole section still fits. */
+  padding-block: clamp(1rem, 5svh, var(--space-5));
 }
 
 /* Art Deco fan: rays from the top-right corner, pure CSS. */
@@ -828,7 +829,7 @@ html[data-watch='flat'] .hero__watch .watch__frame {
 
 /* Before and now: a small table of Lighthouse results, the old value fading into the new one. */
 .metrics {
-  margin-top: var(--space-4);
+  margin-top: var(--space-3);
 }
 
 .metrics table {
@@ -867,7 +868,7 @@ html[data-watch='flat'] .hero__watch .watch__frame {
 
 .metrics tbody th,
 .metrics tbody td {
-  padding-block: 0.42rem;
+  padding-block: 0.3rem;
   border-top: 1px solid rgb(52 4 64 / 0.16);
   font-variant-numeric: tabular-nums;
 }
@@ -909,9 +910,9 @@ html[data-watch='flat'] .hero__watch .watch__frame {
 
 .metrics__note {
   max-width: 36rem;
-  margin: 0.7rem 0 0;
+  margin: 0.5rem 0 0;
   color: var(--color-ink-soft);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   line-height: 1.45;
 }
 
