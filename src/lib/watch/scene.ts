@@ -662,10 +662,10 @@ export async function createWatchScene({
   flatMesh(pieces.cam, gold(0.14)).setParent(cameraModel);
   // The two magazines turn slowly, as if the film were running.
   const magazineSpokes = [
-    [-0.2, 0.34, 0.088],
-    [0.0, 0.32, 0.093],
+    [-0.2, 0.34, -0.012],
+    [0.0, 0.32, 0.028],
   ].map(([x, y, z]) => {
-    const mesh = flatMesh(pieces.camSpokes, steel(COLORS.roseGold, 0.16));
+    const mesh = flatMesh(pieces.camSpokes, gold(0.14));
     mesh.position.set(x, y, z);
     mesh.setParent(cameraModel);
     return mesh;

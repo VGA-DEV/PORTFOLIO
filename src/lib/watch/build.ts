@@ -253,7 +253,12 @@ function buildCamera() {
     5,
     20,
   );
-  const drum = (x: number, y: number, r: number, half: number) => tube([[x, y, -half], [x, y, half]], r, 28, [0, 1, 0]);
+  // A magazine is a hollow ring (so the spokes and hub show through) with a thin flange on each face.
+  const drum = (x: number, y: number, r: number, half: number) => [
+    translateFlat(lathe([[r - 0.032, -half], [r, -half], [r, half], [r - 0.032, half]], 32, 0), x, y, 0),
+    translateFlat(lathe([[r - 0.05, -half], [r + 0.012, -half], [r + 0.012, -half + 0.012], [r - 0.05, -half + 0.012]], 32, 0), x, y, 0),
+    translateFlat(lathe([[r - 0.05, half - 0.012], [r + 0.012, half - 0.012], [r + 0.012, half], [r - 0.05, half]], 32, 0), x, y, 0),
+  ];
   const lens = [
     tube([[0.24, 0, 0], [0.5, 0, 0]], 0.08, 18, [0, 1, 0]),
     tube([[0.5, 0, 0], [0.62, 0, 0]], 0.108, 18, [0, 1, 0]),
@@ -265,10 +270,10 @@ function buildCamera() {
     tube([[0, -0.22, 0], [0, -0.66, -0.32]], 0.024, 8, [1, 0, 0]),
   ];
   const spokes = merge(
-    tube([[0, 0, 0], [0, 0, 0.03]], 0.04, 12, [0, 1, 0]),
-    ...[0, Math.PI / 3, (2 * Math.PI) / 3].map((a) => box(0, 0, 0.01, 0.26, 0.03, 0.02, a)),
+    tube([[0, 0, -0.04], [0, 0, 0.04]], 0.045, 14, [0, 1, 0]),
+    ...[0, Math.PI / 3, (2 * Math.PI) / 3].map((a) => box(0, 0, 0, 0.28, 0.034, 0.024, a)),
   );
-  return { cam: merge(body, drum(-0.2, 0.34, 0.17, 0.07), drum(0.0, 0.32, 0.15, 0.075), ...lens, ...tripod), camSpokes: spokes };
+  return { cam: merge(body, ...drum(-0.2, 0.34, 0.17, 0.07), ...drum(0.0, 0.32, 0.15, 0.075), ...lens, ...tripod), camSpokes: spokes };
 }
 
 /** A small pixel space-invader built from cubes. */
