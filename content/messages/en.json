@@ -60,21 +60,34 @@
   },
   "experience": {
     "title": "Experience",
-    "intro": "TODO: decide how much detail can be published about each job.",
     "items": [
       {
         "company": "Devoteam",
         "role": "TODO: exact job title",
         "period": "May 2024 – present",
-        "summary": "TODO: 2-3 sentences about the type of work and the technologies."
+        "summary": "I take part in the migration of an internal application from .NET Framework 4.7 to .NET 10, and I lead its technical side. The modules move from MVC to a headless architecture, with an API and React, on a modular monolith. I set up the deployments and pipelines with GitLab CI, built the billing module and bring AI agents into the development workflow.",
+        "stack": [
+          "C#",
+          ".NET",
+          "React",
+          "GitLab CI"
+        ]
       },
       {
         "company": "WE DO THE BEST SL",
         "role": "TODO: exact job title",
         "period": "July 2023 – May 2024",
-        "summary": "TODO: 2-3 sentences about the type of work and the technologies."
+        "summary": "I modernised an accounting system in Angular, with .NET endpoints. I also wrote a Python server that collected BLE data from gym devices and relayed it over WebSockets, and a WPF desktop app that showed that activity in real time.",
+        "stack": [
+          "Angular",
+          ".NET",
+          "Python",
+          "WebSockets",
+          "WPF"
+        ]
       }
-    ]
+    ],
+    "stackLabel": "Technologies"
   },
   "stack": {
     "title": "Stack",

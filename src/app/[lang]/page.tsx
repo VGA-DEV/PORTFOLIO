@@ -8,8 +8,6 @@ import { getDictionary, getLocale } from '@/i18n/dictionaries';
 /** Pending, in development, working: one, two or three of three. */
 const STATUS_LEVEL: Record<string, number> = { pending: 1, inDevelopment: 2, working: 3 };
 
-const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI'];
-
 const displayUrl = (url: string) => url.replace(/^https?:\/\/(www\.)?/, '');
 
 export default async function HomePage() {
@@ -45,7 +43,7 @@ export default async function HomePage() {
         title={dict.projects.title}
         side='right'
       >
-        <ol className='ledger ledger--projects'>
+        <ol className='ledger ledger--entries'>
           {dict.projects.items.map((project) => (
             <li key={project.name} className='ledger__row'>
               <div className='ledger__head'>
@@ -77,22 +75,22 @@ export default async function HomePage() {
         part={dict.notes.experience.part}
         tone='mist'
         title={dict.experience.title}
-        intro={dict.experience.intro}
         side='left'
       >
-        <ol className='ledger ledger--dated'>
-          {dict.experience.items.map((job, index) => (
+        <ol className='ledger ledger--entries'>
+          {dict.experience.items.map((job) => (
             <li key={job.company} className='ledger__row'>
-              <div className='ledger__when'>
-                <span className='ledger__numeral' aria-hidden='true'>
-                  {ROMAN[index]}
-                </span>
+              <div className='ledger__head'>
+                <h3 className='ledger__title'>{job.company}</h3>
                 <p className='ledger__period'>{job.period}</p>
               </div>
               <div className='ledger__body'>
-                <h3 className='ledger__title'>{job.company}</h3>
                 <p className='ledger__role'>{job.role}</p>
                 <p>{job.summary}</p>
+                <p className='ledger__stack'>
+                  <span className='ledger__label'>{dict.experience.stackLabel}</span>
+                  {job.stack.join(' · ')}
+                </p>
               </div>
             </li>
           ))}

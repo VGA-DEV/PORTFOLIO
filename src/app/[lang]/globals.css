@@ -622,20 +622,6 @@ html[data-watch='flat'] .hero__watch .watch__frame {
   letter-spacing: 0.04em;
 }
 
-.ledger__when {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
-}
-
-.ledger__numeral {
-  min-width: 2.2ch;
-  color: var(--color-champagne-deep);
-  font-family: var(--font-display-stack);
-  font-size: 2.4rem;
-  line-height: 1;
-}
-
 .ledger__period {
   margin: 0;
   color: var(--color-ink-soft);
@@ -676,9 +662,9 @@ html[data-watch='flat'] .hero__watch .watch__frame {
   font-weight: 600;
 }
 
-/* Projects: each entry is a short header (name and state), the summary across the whole column
+/* Projects and jobs: each entry is a short header (name and state), the summary across the whole column
    and a fine line of stack, so four entries still fit a screen beside the watch. */
-.ledger--projects .ledger__row {
+.ledger--entries .ledger__row {
   grid-template-columns: minmax(0, 1fr);
   gap: var(--space-1);
   padding-block: var(--space-2);
@@ -692,7 +678,7 @@ html[data-watch='flat'] .hero__watch .watch__frame {
   gap: 0.15rem var(--space-3);
 }
 
-.ledger--projects .ledger__body p {
+.ledger--entries .ledger__body p {
   margin-bottom: var(--space-1);
 }
 
@@ -752,21 +738,12 @@ html[data-watch='flat'] .hero__watch .watch__frame {
   color: var(--color-ink-soft);
 }
 
-@media (max-width: 47.99rem) {
-  .ledger--dated .ledger__when {
-    order: 2;
-  }
-}
-
 @media (min-width: 48rem) {
   .ledger__row {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
   }
-
-  .ledger--dated .ledger__row {
-    grid-template-columns: 13rem minmax(0, 1fr);
-  }
 }
+
 
 /* Stack */
 .stack {
