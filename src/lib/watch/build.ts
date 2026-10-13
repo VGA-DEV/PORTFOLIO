@@ -31,8 +31,10 @@ export type WatchPieces = {
   rails: Piece;
   car: Piece;
   carTrim: Piece;
-  reel: Piece;
-  film: Piece;
+  cam: Piece;
+  camTrim: Piece;
+  camSpokes: Piece;
+  camCrank: Piece;
   invader: Piece;
   globe: Piece;
   globeRing: Piece;
@@ -237,22 +239,63 @@ function buildCoaster() {
   return { rails: merge(...parts), car, carTrim };
 }
 
-/** A film reel with its strip trailing off to one side. */
-function buildReel() {
-  const spokes = [0, Math.PI / 3, (2 * Math.PI) / 3].map((a) => box(0, 0, 0, 0.5, 0.045, 0.03, a));
-  const reel = merge(
-    lathe([[0.1, -0.035], [0.26, -0.035], [0.26, 0.035], [0.1, 0.035]], 28, 0),
-    lathe([[0, -0.045], [0.1, -0.045], [0.1, 0.045], [0, 0.045]], 16, 0),
-    ...spokes,
+/**
+ * A classic hand-cranked cine camera, lens pointing along +x: a rounded body, two film
+ * magazines stacked on top like ears, a lens barrel with a hood, a viewfinder and a tripod.
+ * The body is brass; the fittings are a second piece; the magazine spokes and the crank are
+ * separate pieces because they turn.
+ */
+function buildCamera() {
+  const body = loftX(
+    [
+      { x: -0.34, y0: -0.14, y1: 0.15, hw: 0.115 },
+      { x: -0.3, y0: -0.16, y1: 0.17, hw: 0.14 },
+      { x: 0.12, y0: -0.16, y1: 0.17, hw: 0.14 },
+      { x: 0.24, y0: -0.14, y1: 0.15, hw: 0.115 },
+    ],
+    5,
+    20,
   );
-  const strips: Float32Array[] = [];
-  for (let i = 0; i < 14; i++) {
-    const x = 0.28 + i * 0.1;
-    const y = -0.24 - i * i * 0.0105;
-    const slope = -Math.atan(2 * i * 0.0105 / 0.1);
-    strips.push(box(x, y, 0, 0.11, 0.16, 0.012, slope));
-  }
-  return { reel, film: merge(...strips) };
+  // Two magazines, one a little behind the other, each a drum with a rim on both faces.
+  const drum = (x: number, y: number, r: number, half: number) => [
+    tube([[x, y, -half], [x, y, half]], r, 28, [0, 1, 0]),
+    tube([[x, y, half - 0.002], [x, y, half + 0.014]], r + 0.012, 28, [0, 1, 0]),
+    tube([[x, y, -half - 0.014], [x, y, -half + 0.002]], r + 0.012, 28, [0, 1, 0]),
+  ];
+  const drums = [...drum(-0.2, 0.34, 0.17, 0.07), ...drum(0.0, 0.32, 0.15, 0.075)];
+  // A lens barrel, a hood and a tripod with three legs.
+  const lens = [
+    tube([[0.24, 0, 0], [0.5, 0, 0]], 0.08, 18, [0, 1, 0]),
+    tube([[0.5, 0, 0], [0.62, 0, 0]], 0.108, 18, [0, 1, 0]),
+  ];
+  const tripod = [
+    tube([[0, -0.16, 0], [0, -0.22, 0]], 0.1, 14, [1, 0, 0]),
+    tube([[0, -0.22, 0], [0.3, -0.66, 0.16]], 0.024, 8, [0, 0, 1]),
+    tube([[0, -0.22, 0], [-0.3, -0.66, 0.16]], 0.024, 8, [0, 0, 1]),
+    tube([[0, -0.22, 0], [0, -0.66, -0.32]], 0.024, 8, [1, 0, 0]),
+  ];
+  const trim = merge(
+    // Collars round the barrel, a bright ring on the front of the hood, the viewfinder and a
+    // counter window on the side.
+    tube([[0.3, 0, 0], [0.322, 0, 0]], 0.09, 18, [0, 1, 0]),
+    tube([[0.42, 0, 0], [0.442, 0, 0]], 0.09, 18, [0, 1, 0]),
+    tube([[0.618, 0, 0], [0.636, 0, 0]], 0.078, 18, [0, 1, 0]),
+    tube([[-0.22, 0.1, 0.17], [0.12, 0.1, 0.17]], 0.022, 10, [0, 1, 0]),
+    tube([[0.12, 0.1, 0.17], [0.15, 0.1, 0.17]], 0.03, 10, [0, 1, 0]),
+    ellipsoid(0.02, -0.03, 0.14, 0.045, 0.045, 0.012, 5, 14),
+    ...[-0.26, 0.02].map((x) => tube([[x, 0.02, 0.14], [x, 0.02, 0.15]], 0.016, 8, [0, 1, 0])),
+  );
+  // What turns: the spokes on a magazine face, and the hand crank.
+  const spokes = merge(
+    tube([[0, 0, 0], [0, 0, 0.03]], 0.04, 12, [0, 1, 0]),
+    ...[0, Math.PI / 3, (2 * Math.PI) / 3].map((a) => box(0, 0, 0.01, 0.26, 0.03, 0.02, a)),
+  );
+  const crank = merge(
+    tube([[0, 0, 0], [0, 0, 0.05]], 0.03, 10, [0, 1, 0]),
+    tube([[0, 0, 0.05], [0.14, 0, 0.05]], 0.014, 8, [0, 1, 0]),
+    tube([[0.14, 0, 0.05], [0.14, 0, 0.12]], 0.022, 10, [1, 0, 0]),
+  );
+  return { cam: merge(body, ...drums, ...lens, ...tripod), camTrim: trim, camSpokes: spokes, camCrank: crank };
 }
 
 /** A small pixel space-invader built from cubes. */
@@ -304,7 +347,7 @@ function buildGlobe() {
 
 export function buildWatchPieces(): WatchPieces {
   const { rails, car, carTrim } = buildCoaster();
-  const { reel, film } = buildReel();
+  const { cam, camTrim, camSpokes, camCrank } = buildCamera();
   const { globe, globeRing, plane } = buildGlobe();
   const outline = tonneauOutline(OUTLINE_POINTS);
 
@@ -358,8 +401,10 @@ export function buildWatchPieces(): WatchPieces {
     rails,
     car,
     carTrim,
-    reel,
-    film,
+    cam,
+    camTrim,
+    camSpokes,
+    camCrank,
     invader: buildInvader(),
     globe,
     globeRing,

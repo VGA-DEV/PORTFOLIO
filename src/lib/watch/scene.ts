@@ -219,7 +219,7 @@ type Group =
   | 'strap'
   | 'crown'
   | 'propCoaster'
-  | 'propReel'
+  | 'propCamera'
   | 'propGame'
   | 'propGlobe'
   | 'propPetals';
@@ -252,7 +252,7 @@ const ALL: Partial<Record<Group, number>> = {
 const STATES: readonly PoseState[] = [
   { anchor: [0, 0, 0.1], width: 2.4, rotation: [0.16, -0.45, 0], focus: [0, 0, 0], half: 2.9, explode: 0, zoom: 0.98, show: ALL },
   { anchor: [0, 0, 0.1], width: 3.4, rotation: [0.2, -0.8, 0.03], focus: [0, 0, 0], half: 2.9, explode: 0, zoom: 0.98, show: { ...ALL, propCoaster: 1 } },
-  { anchor: [0, 0, 0.25], width: 2.6, rotation: [0.12, -0.4, 0], focus: [0, 0, 0.25], half: 2.4, explode: 0.55, show: { ...ALL, propReel: 1 } },
+  { anchor: [0, 0, 0.25], width: 2.6, rotation: [0.12, -0.4, 0], focus: [0, 0, 0.25], half: 2.4, explode: 0.55, show: { ...ALL, propCamera: 1 } },
   { anchor: [0, 0.1, -0.55], width: 2.4, rotation: [0.22, -0.9, 0.04], focus: [0, 0, -0.6], half: 2.8, explode: 0.85, show: { ...ALL, propGame: 1 } },
   { anchor: [0, 0, -0.9], width: 3.4, rotation: [0.04, Math.PI + 0.12, 0], focus: [0, 0, -0.8], half: 2.4, explode: 0.3, show: { ...ALL, propGlobe: 1 } },
   { anchor: [1.045, 0.32, -0.255], width: 3.0, rotation: [0.1, -1.15, 0], focus: [0.9, 0.15, -0.2], half: 2.6, explode: 0.1, show: { ...ALL, propPetals: 1 } },
@@ -265,7 +265,7 @@ const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 /** Half width and half height of each miniature, in scene units, for keeping notes off it. */
 const PROP_EXTENT: Partial<Record<Group, [number, number]>> = {
   propCoaster: [1.3, 0.7],
-  propReel: [1.0, 0.7],
+  propCamera: [0.95, 0.9],
   propGame: [0.55, 0.45],
   propGlobe: [0.6, 0.6],
   propPetals: [0.6, 0.9],
@@ -654,14 +654,26 @@ export async function createWatchScene({
   const crest = route.points.filter((p) => p.x < 0).reduce((top, p) => (p.y > top.y ? p : top));
   let carAt = 0;
 
-  // A film reel, with its strip, beside the dial.
-  const reelNode = propGroup('propReel', [0.98, -1.0, 0.2], [0, 0, 0.3]);
-  const reelMesh = flatMesh(pieces.reel, gold(0.18));
-  reelMesh.setParent(reelNode);
-  reelMesh.scale.set(1.3, 1.3, 1.3);
-  const filmMesh = flatMesh(pieces.film, steel(COLORS.violet, 0.3));
-  filmMesh.setParent(reelNode);
-  filmMesh.scale.set(1.3, 1.3, 1.3);
+  // A hand-cranked cine camera on a tripod, beside the dial and pointing at it.
+  const cameraNode = propGroup('propCamera', [-1.75, -0.2, 0.5], [0, 0, 0.3]);
+  const cameraModel = new Transform();
+  cameraModel.setParent(cameraNode);
+  cameraModel.scale.set(0.8, 0.8, 0.8);
+  flatMesh(pieces.cam, gold(0.14)).setParent(cameraModel);
+  flatMesh(pieces.camTrim, steel(COLORS.roseGold, 0.16)).setParent(cameraModel);
+  // The two magazines turn, and so does the crank on the side.
+  const magazineSpokes = [
+    [-0.2, 0.34, 0.088],
+    [0.0, 0.32, 0.093],
+  ].map(([x, y, z]) => {
+    const mesh = flatMesh(pieces.camSpokes, steel(COLORS.roseGold, 0.16));
+    mesh.position.set(x, y, z);
+    mesh.setParent(cameraModel);
+    return mesh;
+  });
+  const crankMesh = flatMesh(pieces.camCrank, steel(COLORS.roseGold, 0.16));
+  crankMesh.position.set(-0.12, -0.02, 0.14);
+  crankMesh.setParent(cameraModel);
 
   // A pixel space-invader floats among the loose parts.
   const gameNode = propGroup('propGame', [-1.25, 1.1, 0.1]);
@@ -852,8 +864,9 @@ export async function createWatchScene({
     minuteHand.rotation.z = -(minutes / 60) * tau - tau * ease;
     hourHand.rotation.z = -(hours / 12) * tau - (tau / 12) * ease;
 
-    // The miniatures are alive: a turning reel, a bobbing invader, a circling plane, falling petals.
-    reelMesh.rotation.z -= 0.9 * dt;
+    // The miniatures are alive: a cranking cine camera, a bobbing invader, a circling plane, falling petals.
+    for (const spokes of magazineSpokes) spokes.rotation.z -= 0.7 * dt;
+    crankMesh.rotation.z -= 2.2 * dt;
     // The car is hauled up the lift, then runs on its own: faster the lower it is.
     const here = coasterAt(carAt);
     carAt += dt * (carAt < crest.s ? 0.34 : 0.3 + 1.15 * Math.sqrt(Math.max(0, crest.y - here.y)));
