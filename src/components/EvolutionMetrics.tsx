@@ -21,8 +21,13 @@ function formatter(locale: Locale, unit: string) {
   return (value: number) => (unit === 'seconds' ? `${format.format(value)} s` : format.format(value));
 }
 
-/** Before and now, from the Lighthouse runs kept in `content/evolution/metrics.json`. */
+/**
+ * Before and now: the first measured version against the latest one, from the Lighthouse runs
+ * kept per version in `content/evolution/metrics.json`. Adding a version is adding its entry there.
+ */
 export function EvolutionMetrics({ locale, labels }: { locale: Locale; labels: Labels }) {
+  const first = metrics.versions[0];
+  const latest = metrics.versions[metrics.versions.length - 1];
   return (
     <div className='metrics'>
       <table>
@@ -37,20 +42,21 @@ export function EvolutionMetrics({ locale, labels }: { locale: Locale; labels: L
         <tbody>
           {metrics.rows.map((row) => {
             const format = formatter(locale, row.unit);
-            const cell = ([before, now]: number[]) => (
+            const key = row.id as keyof typeof first.mobile;
+            const cell = (device: 'mobile' | 'desktop') => (
               <span className='delta'>
                 <span className='sr-only'>{labels.from} </span>
-                <span className='delta__from'>{format(before)}</span>
+                <span className='delta__from'>{format(first[device][key])}</span>
                 <span className='delta__arrow' aria-hidden='true' />
                 <span className='sr-only'> {labels.to} </span>
-                <span className='delta__to'>{format(now)}</span>
+                <span className='delta__to'>{format(latest[device][key])}</span>
               </span>
             );
             return (
               <tr key={row.id}>
                 <th scope='row'>{labels.rows[row.id]}</th>
-                <td>{cell(row.mobile)}</td>
-                <td>{cell(row.desktop)}</td>
+                <td>{cell('mobile')}</td>
+                <td>{cell('desktop')}</td>
               </tr>
             );
           })}
