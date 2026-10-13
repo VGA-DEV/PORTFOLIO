@@ -654,14 +654,13 @@ export async function createWatchScene({
   const crest = route.points.filter((p) => p.x < 0).reduce((top, p) => (p.y > top.y ? p : top));
   let carAt = 0;
 
-  // A hand-cranked cine camera on a tripod, beside the dial and pointing at it.
-  const cameraNode = propGroup('propCamera', [-1.75, -0.2, 0.5], [0, 0, 0.3]);
+  // A cine camera on a tripod, to the right of the watch and pointing back at it.
+  const cameraNode = propGroup('propCamera', [1.4, -0.7, 0.4], [0, 0, 0.3]);
   const cameraModel = new Transform();
   cameraModel.setParent(cameraNode);
-  cameraModel.scale.set(0.8, 0.8, 0.8);
+  cameraModel.scale.set(-0.5, 0.5, 0.5);
   flatMesh(pieces.cam, gold(0.14)).setParent(cameraModel);
-  flatMesh(pieces.camTrim, steel(COLORS.roseGold, 0.16)).setParent(cameraModel);
-  // The two magazines turn, and so does the crank on the side.
+  // The two magazines turn slowly, as if the film were running.
   const magazineSpokes = [
     [-0.2, 0.34, 0.088],
     [0.0, 0.32, 0.093],
@@ -671,9 +670,6 @@ export async function createWatchScene({
     mesh.setParent(cameraModel);
     return mesh;
   });
-  const crankMesh = flatMesh(pieces.camCrank, steel(COLORS.roseGold, 0.16));
-  crankMesh.position.set(-0.12, -0.02, 0.14);
-  crankMesh.setParent(cameraModel);
 
   // A pixel space-invader floats among the loose parts.
   const gameNode = propGroup('propGame', [-1.25, 1.1, 0.1]);
@@ -864,9 +860,8 @@ export async function createWatchScene({
     minuteHand.rotation.z = -(minutes / 60) * tau - tau * ease;
     hourHand.rotation.z = -(hours / 12) * tau - (tau / 12) * ease;
 
-    // The miniatures are alive: a cranking cine camera, a bobbing invader, a circling plane, falling petals.
+    // The miniatures are alive: a cine camera with turning magazines, a bobbing invader, a circling plane, falling petals.
     for (const spokes of magazineSpokes) spokes.rotation.z -= 0.7 * dt;
-    crankMesh.rotation.z -= 2.2 * dt;
     // The car is hauled up the lift, then runs on its own: faster the lower it is.
     const here = coasterAt(carAt);
     carAt += dt * (carAt < crest.s ? 0.34 : 0.3 + 1.15 * Math.sqrt(Math.max(0, crest.y - here.y)));
