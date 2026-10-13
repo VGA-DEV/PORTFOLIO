@@ -794,7 +794,7 @@ html[data-watch='flat'] .hero__watch .watch__frame {
 .span__jobs {
   position: relative;
   display: grid;
-  gap: 1.1rem;
+  gap: 1.9rem;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -809,8 +809,24 @@ html[data-watch='flat'] .hero__watch .watch__frame {
   border-left-color: var(--color-purple);
 }
 
-.span .ledger__body p {
-  margin-bottom: var(--space-1);
+/* Each job reads in three clear steps: the heading, the paragraph, and the technologies set apart by a hairline. */
+.span .ledger__head {
+  margin-bottom: 0.4rem;
+}
+
+.span .ledger__role {
+  margin-bottom: 0.6rem;
+}
+
+.span .ledger__body > p:nth-child(2) {
+  margin-bottom: 0.85rem;
+  line-height: 1.55;
+}
+
+.span .ledger__stack {
+  margin: 0;
+  padding-top: 0.55rem;
+  border-top: 1px solid rgb(52 4 64 / 0.16);
 }
 
 /* The current job leads: larger name, full-size text. The earlier one is smaller and quieter. */
