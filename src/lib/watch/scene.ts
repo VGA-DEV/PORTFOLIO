@@ -240,6 +240,8 @@ type PoseState = {
   show: Partial<Record<Group, number>>;
   /** Extra despiece for some groups only, added to `explode` (the strap apart from an otherwise whole watch). */
   apart?: Partial<Record<Group, number>>;
+  /** Extra width the wide layout must keep in view beyond `width`: a miniature that sticks out on the far side. */
+  reach?: number;
 };
 
 const ALL: Partial<Record<Group, number>> = {
@@ -253,7 +255,7 @@ const ALL: Partial<Record<Group, number>> = {
  */
 const STATES: readonly PoseState[] = [
   { anchor: [0, 0, 0.1], width: 2.4, rotation: [0.16, -0.45, 0], focus: [0, 0, 0], half: 2.9, explode: 0, zoom: 0.98, show: ALL },
-  { anchor: [0, 0, 0.1], width: 3.4, rotation: [0.2, -0.8, 0.03], focus: [0, 0, 0], half: 2.9, explode: 0, zoom: 0.98, show: { ...ALL, propCoaster: 1 }, apart: { strap: 0.7 } },
+  { anchor: [0, 0, 0.1], width: 3.4, rotation: [0.2, -0.8, 0.03], focus: [0, 0, 0], half: 2.9, explode: 0, zoom: 0.98, show: { ...ALL, propCoaster: 1 }, apart: { strap: 0.7 }, reach: 0.6 },
   { anchor: [0, 0, 0.25], width: 2.6, rotation: [0.12, -0.4, 0], focus: [0, 0, 0.25], half: 2.4, explode: 0.55, show: { ...ALL, propCamera: 1 } },
   { anchor: [0, 0.1, -0.55], width: 2.4, rotation: [0.22, -0.9, 0.04], focus: [0, 0, -0.6], half: 2.8, explode: 0.85, show: { ...ALL, propGame: 1 } },
   // The strap: the camera comes in close on it, so the case and the dial stay above, behind it.
@@ -826,7 +828,8 @@ export async function createWatchScene({
       const strip = Math.min(Math.max(((width + container) / 2 - 36 * rem) / width, 0.34), 0.5);
       centre = Math.min(Math.max(strip / 2, 0.17), 0.27);
       const halfShare = Math.max(strip / 2 - 0.03, 0.12);
-      const fitHalf = Math.max(widest / (0.8 * aspect), widest / (4 * halfShare * aspect));
+      const fitWidth = widest + lerp(from.reach ?? 0, to.reach ?? 0, ease);
+      const fitHalf = Math.max(fitWidth / (0.8 * aspect), fitWidth / (4 * halfShare * aspect));
       half = Math.max(lerp(from.half, to.half, ease), fitHalf) + 1.1 * burst;
     } else {
       // One column: a stage measured from the screen itself, the same rule on every device. The
