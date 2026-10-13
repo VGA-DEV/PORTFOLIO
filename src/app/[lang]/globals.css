@@ -1037,58 +1037,83 @@ html[data-watch='flat'] .hero__watch .watch__frame {
 }
 
 /* Contact */
-.contact-links {
-  display: grid;
-  margin-bottom: var(--space-4);
-  border-top: 1px solid rgb(214 189 138 / 0.4);
+/* The section is centred, like an inscription on a case back: no boxes, only fine rules with a
+   stepped diamond between the lines, and the text engraved in champagne. */
+.section--center .section__head {
+  justify-items: center;
+  text-align: center;
 }
 
-.contact-links li {
-  border-bottom: 1px solid rgb(214 189 138 / 0.4);
+.section--center .section__intro {
+  margin-inline: auto;
+  text-align: center;
+  text-wrap: balance;
 }
 
-.contact-links a {
+.engraving {
   display: grid;
-  gap: 0.1rem var(--space-3);
-  padding-block: var(--space-2);
+  justify-items: center;
+  gap: 1.1rem;
+  text-align: center;
+}
+
+.engraving__rule {
+  width: min(100%, 20rem);
+  height: auto;
+  color: var(--color-champagne);
+  opacity: 0.75;
+}
+
+.engraving a {
   color: var(--color-stage-ink);
-  font-family: var(--font-display-stack);
-  font-size: clamp(1.15rem, 2.6vw, 1.7rem);
-  line-height: 1.2;
   text-decoration: none;
   overflow-wrap: anywhere;
-  transition: color 0.3s var(--ease-out), transform 0.4s var(--ease-out);
+  transition: color 0.3s var(--ease-out);
 }
 
-.contact-links a:hover {
-  transform: translateX(var(--space-2));
+.engraving a:hover {
   color: var(--color-champagne);
 }
 
-.contact-links__label {
+.engraving__label {
+  display: block;
+  margin-bottom: 0.3rem;
   color: var(--color-champagne);
   font-family: var(--font-sans-stack);
-  font-size: 0.8rem;
+  font-size: 0.74rem;
   font-weight: 600;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.3em;
   text-transform: uppercase;
 }
 
-@media (min-width: 48rem) {
-  .contact-links a {
-    grid-template-columns: 9rem 1fr;
-    align-items: baseline;
-  }
+/* Engraved: a hairline of light below and of shadow above, as if cut into the metal. */
+.engraving__address {
+  display: block;
+  color: color-mix(in srgb, var(--color-champagne) 40%, #fff);
+  font-family: var(--font-display-stack);
+  font-size: clamp(1.5rem, 3.4vw, 2.3rem);
+  line-height: 1.2;
+  text-shadow: 0 1px 0 rgb(0 0 0 / 0.55), 0 -1px 0 rgb(214 189 138 / 0.28);
 }
 
-/* The address leads: it is the way to write, so it is set larger than the rest. */
-.contact-links__main a {
-  font-size: clamp(1.4rem, 3.4vw, 2.2rem);
+.engraving__links {
+  display: grid;
+  gap: 0.9rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.engraving__links a {
+  display: block;
+  font-size: 1.1rem;
+  line-height: 1.3;
 }
 
 .contact-cv__list {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: var(--space-2);
   margin: 0;
   padding: 0;
@@ -1125,11 +1150,11 @@ html[data-watch='flat'] .hero__watch .watch__frame {
 }
 
 .contact-cv__title {
-  margin-bottom: var(--space-1);
+  margin: 0 0 var(--space-1);
   color: var(--color-champagne);
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.3em;
   text-transform: uppercase;
 }
 

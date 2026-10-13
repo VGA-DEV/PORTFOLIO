@@ -1,5 +1,6 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { DecoRule } from '@/components/DecoRule';
 import { EvolutionArchive } from '@/components/EvolutionArchive';
 import { Hero } from '@/components/Hero';
 import { Section } from '@/components/Section';
@@ -160,44 +161,50 @@ export default async function HomePage() {
         side='right'
         tone='stage'
         dwell={false}
+        align='center'
       >
-        <ul className='contact-links'>
-          <li className='contact-links__main'>
-            <a href={`mailto:${profile.email}`}>
-              <span className='contact-links__label'>{dict.contact.email}</span>
-              {profile.email}
-            </a>
-          </li>
-          <li>
-            <a href={profile.linkedin} rel='noopener noreferrer' target='_blank'>
-              <span className='contact-links__label'>{dict.contact.linkedin}</span>
-              {displayUrl(profile.linkedin)}
-            </a>
-          </li>
-          <li>
-            <a href={profile.github} rel='noopener noreferrer' target='_blank'>
-              <span className='contact-links__label'>{dict.contact.github}</span>
-              {displayUrl(profile.github)}
-            </a>
-          </li>
-        </ul>
-        {cvs.length > 0 ? (
-          <div className='contact-cv'>
-            <h3 className='contact-cv__title'>{dict.contact.cvTitle}</h3>
-            <ul className='contact-cv__list'>
-              {cvs.map((cv) => (
-                <li key={cv.file}>
-                  <a className='cv-link' href={`/cv/${cv.file}`} download>
-                    {cv.label}
-                    <span className='cv-link__tag' aria-hidden='true'>
-                      PDF
-                    </span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
+        <div className='engraving'>
+          <DecoRule className='engraving__rule' />
+          <a href={`mailto:${profile.email}`}>
+            <span className='engraving__label'>{dict.contact.email}</span>
+            <span className='engraving__address'>{profile.email}</span>
+          </a>
+          <DecoRule className='engraving__rule' />
+          <ul className='engraving__links'>
+            <li>
+              <a href={profile.linkedin} rel='noopener noreferrer' target='_blank'>
+                <span className='engraving__label'>{dict.contact.linkedin}</span>
+                {displayUrl(profile.linkedin)}
+              </a>
+            </li>
+            <li>
+              <a href={profile.github} rel='noopener noreferrer' target='_blank'>
+                <span className='engraving__label'>{dict.contact.github}</span>
+                {displayUrl(profile.github)}
+              </a>
+            </li>
+          </ul>
+          {cvs.length > 0 ? (
+            <>
+              <DecoRule className='engraving__rule' />
+              <div className='contact-cv'>
+                <h3 className='contact-cv__title'>{dict.contact.cvTitle}</h3>
+                <ul className='contact-cv__list'>
+                  {cvs.map((cv) => (
+                    <li key={cv.file}>
+                      <a className='cv-link' href={`/cv/${cv.file}`} download>
+                        {cv.label}
+                        <span className='cv-link__tag' aria-hidden='true'>
+                          PDF
+                        </span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </>
+          ) : null}
+        </div>
       </Section>
     </>
   );

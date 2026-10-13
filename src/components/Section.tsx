@@ -13,6 +13,8 @@ type SectionProps = {
   tone?: 'paper' | 'mist' | 'stage';
   /** Extra scroll after the section, during which it stays put while the watch moves on. */
   dwell?: boolean;
+  /** `center` sets the heading and the intro on the middle of the column. */
+  align?: 'start' | 'center';
   children?: ReactNode;
 };
 
@@ -24,13 +26,14 @@ export function Section({
   side = 'left',
   tone = 'paper',
   dwell = true,
+  align = 'start',
   children,
 }: SectionProps) {
   return (
     <section
       id={id}
       aria-labelledby={`${id}-title`}
-      className={`section section--${tone}`}
+      className={`section section--${tone}${align === 'center' ? ' section--center' : ''}`}
       data-watch-section
       data-side={side}
     >
