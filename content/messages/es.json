@@ -65,8 +65,6 @@
         "company": "Devoteam",
         "role": "Desarrollador Full Stack",
         "period": "Mayo 2024 – actualidad",
-        "start": "2024-05",
-        "end": "",
         "summary": "Participo en la migración de una aplicación interna de .NET Framework 4.7 a .NET 10 y llevo su liderazgo técnico. Los módulos pasan de MVC a una arquitectura headless, con API y React, sobre un monolito modular. Configuro los despliegues y pipelines con GitLab CI, desarrollé el módulo de facturación e integro agentes de IA en el flujo de desarrollo.",
         "stack": [
           "C#",
@@ -80,8 +78,6 @@
         "company": "WE DO THE BEST SL",
         "role": "Desarrollador Full Stack",
         "period": "Julio 2023 – mayo 2024",
-        "start": "2023-07",
-        "end": "2024-05",
         "summary": "Modernicé un sistema de contabilidad en Angular, con endpoints en .NET. También hice un servidor en Python que recogía datos BLE de dispositivos de un gimnasio y los retransmitía por WebSockets, y una aplicación de escritorio en WPF que mostraba esa actividad en tiempo real.",
         "stack": [
           "Angular",
@@ -93,9 +89,7 @@
         "current": false
       }
     ],
-    "stackLabel": "Tecnologías",
-    "axisLabel": "Línea de tiempo de los empleos",
-    "now": "Hoy"
+    "stackLabel": "Tecnologías"
   },
   "stack": {
     "title": "Stack",

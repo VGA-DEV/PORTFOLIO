@@ -720,149 +720,84 @@ html[data-watch='flat'] .hero__watch .watch__frame {
   white-space: nowrap;
 }
 
-/* Experience: the jobs on a time axis drawn to scale. One segment per job, as long as the job lasted,
-   with a month track and the years under it. Each job's text hangs from its own segment: the current
-   one starts under the segment on the right, the earlier one under the one on the left. */
-.span__axis {
-  margin-bottom: 0.45rem;
+/* Experience: a timeline. A hairline spine with a minute-track of ticks and a diamond for each
+   job, filled for the current one, so the order reads as time going by like the hands on a dial. */
+.timeline {
+  margin: 0;
+  padding: 0 0 0 2.4rem;
+  list-style: none;
 }
 
-.span__bar {
+.timeline__entry {
   position: relative;
-  height: 0.75rem;
+  padding-bottom: var(--space-4);
 }
 
-.span__seg {
+.timeline__entry:last-child {
+  padding-bottom: 0;
+}
+
+.timeline__entry::before {
+  content: '';
   position: absolute;
-  top: 0;
-  bottom: 0;
-  background: var(--color-champagne-deep);
-  opacity: 0.7;
+  top: 1.5rem;
+  bottom: -0.55rem;
+  left: -1.7rem;
+  width: 0.6rem;
+  margin-left: -0.3rem;
+  background:
+    linear-gradient(var(--color-champagne-deep), var(--color-champagne-deep)) center / 1px 100% no-repeat,
+    repeating-linear-gradient(to bottom, var(--color-champagne-deep) 0 1px, transparent 1px 7px);
 }
 
-.span__seg--now {
+.timeline__entry:last-child::before {
+  display: none;
+}
+
+.timeline__entry::after {
+  content: '';
+  position: absolute;
+  top: 0.6rem;
+  left: -1.7rem;
+  width: 0.72rem;
+  height: 0.72rem;
+  margin-left: -0.36rem;
+  border: 1px solid var(--color-champagne-deep);
+  background: var(--section-bg, var(--color-paper));
+  transform: rotate(45deg);
+}
+
+.timeline__entry--now::after {
+  border-color: var(--color-purple);
   background: var(--color-purple);
-  opacity: 1;
 }
 
-.span__track {
-  height: 0.4rem;
-  margin-top: 0.2rem;
-  background: repeating-linear-gradient(
-    to right,
-    var(--color-champagne-deep) 0 1px,
-    transparent 1px calc(100% / var(--months))
-  );
-}
-
-.span__years {
-  position: relative;
-  height: 1.3rem;
-  margin: 0.15rem 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.span__years li {
-  position: absolute;
-  top: 0;
-  transform: translateX(-50%);
-  color: var(--color-ink-soft);
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  font-variant-numeric: tabular-nums;
-}
-
-@media (max-width: 47.99rem) {
-  .span__years li {
-    font-size: 0.72rem;
-    letter-spacing: 0.04em;
-  }
-}
-
-.span__years li[data-edge='start'] {
-  transform: none;
-}
-
-.span__years li[data-edge='end'] {
-  transform: translateX(-100%);
-  color: var(--color-purple);
-}
-
-.span__jobs {
-  position: relative;
-  display: grid;
-  gap: 1.9rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.span__job {
-  padding-left: 1rem;
-  border-left: 2px solid var(--color-champagne-deep);
-}
-
-.span__job--now {
-  border-left-color: var(--color-purple);
-}
-
-/* Each job reads in three clear steps: the heading, the paragraph, and the technologies set apart by a hairline. */
-.span .ledger__head {
-  margin-bottom: 0.4rem;
-}
-
-.span .ledger__role {
-  margin-bottom: 0.6rem;
-}
-
-.span .ledger__body > p:nth-child(2) {
-  margin-bottom: 0.85rem;
-  line-height: 1.55;
-}
-
-.span .ledger__stack {
-  margin: 0;
-  padding-top: 0.55rem;
-  border-top: 1px solid rgb(52 4 64 / 0.16);
+.timeline .ledger__body p {
+  margin-bottom: var(--space-1);
 }
 
 /* The current job leads: larger name, full-size text. The earlier one is smaller and quieter. */
-.span__job--now .ledger__title {
-  font-size: clamp(1.8rem, 3vw, 2.2rem);
+.timeline__entry--now .ledger__title {
+  font-size: clamp(1.9rem, 3.4vw, 2.5rem);
 }
 
-.span__job:not(.span__job--now) .ledger__title {
+.timeline__entry:not(.timeline__entry--now) .ledger__title {
   font-size: clamp(1.35rem, 2.4vw, 1.7rem);
 }
 
-.span__job:not(.span__job--now) .ledger__body {
+.timeline__entry:not(.timeline__entry--now) .ledger__body {
   color: var(--color-ink-soft);
   font-size: 0.95rem;
 }
 
-/* Wide: each text starts under its own segment, and the earlier job's rule runs down from the axis
-   along the left edge, beside the current job. */
-@media (min-width: 48rem) {
-  .span__jobs::before {
-    content: '';
-    position: absolute;
-    top: -0.2rem;
-    bottom: 0;
-    left: 0;
-    width: 2px;
-    background: var(--color-champagne-deep);
+@media (max-width: 47.99rem) {
+  .timeline {
+    padding-left: 1.9rem;
   }
 
-  .span__job {
-    border-left: 0;
-  }
-
-  .span__job--now {
-    margin-left: var(--from);
-    border-left: 2px solid var(--color-purple);
+  .timeline__entry::before,
+  .timeline__entry::after {
+    left: -1.25rem;
   }
 }
 
