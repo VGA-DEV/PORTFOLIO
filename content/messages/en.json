@@ -63,7 +63,7 @@
     "items": [
       {
         "company": "Devoteam",
-        "role": "TODO: exact job title",
+        "role": "Full Stack Developer",
         "period": "May 2024 – present",
         "summary": "I take part in the migration of an internal application from .NET Framework 4.7 to .NET 10, and I lead its technical side. The modules move from MVC to a headless architecture, with an API and React, on a modular monolith. I set up the deployments and pipelines with GitLab CI, built the billing module and bring AI agents into the development workflow.",
         "stack": [
@@ -76,7 +76,7 @@
       },
       {
         "company": "WE DO THE BEST SL",
-        "role": "TODO: exact job title",
+        "role": "Full Stack Developer",
         "period": "July 2023 – May 2024",
         "summary": "I modernised an accounting system in Angular, with .NET endpoints. I also wrote a Python server that collected BLE data from gym devices and relayed it over WebSockets, and a WPF desktop app that showed that activity in real time.",
         "stack": [
@@ -138,7 +138,7 @@
     },
     "experience": {
       "part": "Dial and hands",
-      "text": "The dial and hands are what you read on a watch: time, in order. Experience is told the same way, chapter by chapter."
+      "text": "The hands go round the dial and time adds up. Experience builds in the same way: each job adds one more turn."
     },
     "stack": {
       "part": "Movement",
