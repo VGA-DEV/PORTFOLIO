@@ -144,6 +144,41 @@ export function tube(path: readonly Vec3[], radius: number, sides = 8, ref: Vec3
   return b.build();
 }
 
+/**
+ * A smooth body lofted along x: each section is a rounded rectangle (a superellipse) spanning
+ * y0..y1 and half-width hw, so noses, hoods and tubs sweep without any flat boxes.
+ */
+export function loftX(
+  sections: readonly { x: number; y0: number; y1: number; hw: number }[],
+  power = 3,
+  sides = 18,
+) {
+  const b = new TriangleBuilder();
+  const rings = sections.map(({ x, y0, y1, hw }) => {
+    const yc = (y0 + y1) / 2;
+    const hh = (y1 - y0) / 2;
+    return Array.from({ length: sides }, (_, k) => {
+      const a = (k / sides) * Math.PI * 2;
+      const c = Math.cos(a);
+      const sn = Math.sin(a);
+      const sx = Math.sign(c) * Math.abs(c) ** (2 / power);
+      const sy = Math.sign(sn) * Math.abs(sn) ** (2 / power);
+      return [x, yc + sy * hh, sx * hw] as const;
+    });
+  });
+  for (let i = 0; i < rings.length - 1; i++) {
+    for (let k = 0; k < sides; k++) {
+      const k2 = (k + 1) % sides;
+      b.quad(rings[i][k], rings[i][k2], rings[i + 1][k2], rings[i + 1][k]);
+    }
+  }
+  for (const i of [0, sections.length - 1]) {
+    const { x, y0, y1 } = sections[i];
+    for (let k = 0; k < sides; k++) b.tri([x, (y0 + y1) / 2, 0], rings[i][k], rings[i][(k + 1) % sides]);
+  }
+  return b.build();
+}
+
 /** A faceted ellipsoid: a rounded blob for cushions, bodies, lamps and the like. */
 export function ellipsoid(
   cx: number,

@@ -856,7 +856,7 @@ export async function createWatchScene({
     carAt += dt * (carAt < crest.s ? 0.34 : 0.3 + 1.15 * Math.sqrt(Math.max(0, crest.y - here.y)));
     if (carAt >= route.length) carAt = 0;
     cars.forEach((mesh, index) => {
-      const behind = carAt - index * 0.5;
+      const behind = carAt - index * 0.74;
       const place = coasterAt(behind);
       const pop = Math.max(0, Math.min(1, behind / 0.15, (route.length - behind) / 0.15));
       mesh.position.set(place.x, place.y, place.z);
