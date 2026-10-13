@@ -946,73 +946,113 @@ html[data-watch='flat'] .hero__watch .watch__frame {
 }
 
 
-/* Stack: a caliber specification sheet. One row per group: the label in purple, a dotted leader
-   and, in a column that starts at the same edge for every row, the technologies as running text. */
-.stack {
+/* Stack: the groups as gears that mesh in a chain, like the movement of a watch. Everything is sized
+   in `u`: one rem on wide screens, smaller on narrow ones so the whole chain always fits the width.
+   The toothed rings turn (neighbours in opposite directions, at speeds set by their teeth); the
+   text inside stays still. */
+.gears {
+  container-type: inline-size;
+}
+
+.gears__board {
+  --u: min(1rem, calc(100cqw / var(--w)));
+  position: relative;
+  width: calc(var(--w) * var(--u));
+  height: calc(var(--h) * var(--u));
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+}
+
+.gear {
+  position: absolute;
+  left: calc(var(--x) * var(--u));
+  top: calc(var(--y) * var(--u));
+  width: calc(var(--size) * var(--u));
+  height: calc(var(--size) * var(--u));
+}
+
+.gear__teeth {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transform: rotate(var(--from));
+  animation: gear-turn var(--turn-time) linear infinite;
+}
+
+.gear__teeth path {
+  fill: var(--color-surface);
+  stroke: var(--color-champagne-deep);
+  stroke-width: 0.08;
+  stroke-linejoin: round;
+}
+
+.gear--core .gear__teeth path {
+  fill: var(--color-lavender);
+}
+
+.gear__teeth circle {
+  fill: none;
+  stroke: var(--color-champagne-deep);
+  stroke-width: 0.06;
+  stroke-dasharray: 0.12 0.28;
+}
+
+@keyframes gear-turn {
+  to {
+    transform: rotate(var(--to));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gear__teeth {
+    animation: none !important;
+  }
+}
+
+.gear__text {
+  position: absolute;
+  inset: 0;
   display: grid;
+  align-content: center;
+  justify-items: center;
+  padding: calc(var(--size) * var(--u) * 0.17);
+  text-align: center;
 }
 
-.stack__group {
-  display: grid;
-  grid-template-columns: 13rem minmax(0, 1fr);
-  gap: var(--space-1) var(--space-2);
-  align-items: baseline;
-  padding-block: var(--space-2);
-  border-bottom: 1px solid rgb(52 4 64 / 0.16);
-}
-
-.stack__group:first-child {
-  border-top: 1px solid rgb(52 4 64 / 0.16);
-}
-
-.stack__title {
-  display: flex;
-  align-items: baseline;
-  gap: 0.6rem;
-  margin: 0;
+.gear__title {
+  margin: 0 0 calc(0.3 * var(--u));
   color: var(--color-purple);
-  font-size: 0.85rem;
+  font-size: max(calc(0.8 * var(--u)), 0.66rem);
   font-weight: 700;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.14em;
+  line-height: 1.3;
   text-transform: uppercase;
-  white-space: nowrap;
 }
 
-.stack__title::after {
-  content: '';
-  flex: 1;
-  min-width: 0.75rem;
-  border-bottom: 2px dotted var(--color-champagne-deep);
-  transform: translateY(-0.2em);
-}
-
-.stack__list {
+.gear__list {
   margin: 0;
   padding: 0;
   list-style: none;
-  font-size: 1.15rem;
-  line-height: 1.5;
+  font-size: max(calc(1.02 * var(--u)), 0.8rem);
+  line-height: 1.4;
 }
 
-.stack__list li {
+.gear__list li {
   display: inline;
   color: var(--color-ink-soft);
 }
 
-/* The base the profile is built on (.NET and React) reads first. */
-.stack__core {
-  color: var(--color-ink);
-  font-weight: 700;
-}
-
-.stack__list li:not(:last-child)::after {
+.gear__list li:not(:last-child)::after {
   content: ', ';
 }
 
-@media (max-width: 47.99rem) {
-  .stack__group {
-    grid-template-columns: minmax(0, 1fr);
-  }
+/* The base the profile is built on (.NET and React) reads first. */
+.gear__list .stack__core {
+  color: var(--color-ink);
+  font-weight: 700;
 }
 
 /* Contact */

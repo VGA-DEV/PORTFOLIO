@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { EvolutionMetrics } from '@/components/EvolutionMetrics';
 import { Hero } from '@/components/Hero';
 import { Section } from '@/components/Section';
+import { StackGears } from '@/components/StackGears';
 import { BackdropSweep } from '@/components/BackdropSweep';
 import { WatchBackdrop } from '@/components/WatchBackdrop';
 import { getProfile, getStack } from '@/i18n/content';
@@ -116,22 +117,15 @@ export default async function HomePage() {
       </Section>
 
       <Section id='stack' title={dict.stack.title} part={dict.notes.stack.part} side='right'>
-        <div className='stack'>
-          {stack.map((group) => (
-            <div key={group.id} className='stack__group'>
-              <h3 className='stack__title'>
-                {dict.stack.groups[group.id as keyof typeof dict.stack.groups]}
-              </h3>
-              <ul className='stack__list'>
-                {group.items.map((item) => (
-                  <li key={item.label} className={item.core ? 'stack__core' : undefined}>
-                    {item.label}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
+        <StackGears
+          label={dict.stack.title}
+          groups={stack.map((group) => ({
+            id: group.id,
+            label: dict.stack.groups[group.id as keyof typeof dict.stack.groups],
+            items: group.items,
+            core: group.items.some((item) => item.core),
+          }))}
+        />
       </Section>
 
       <Section
