@@ -546,6 +546,27 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
         root.style.removeProperty('--footer-in');
       });
 
+      // Pointing at (or focusing) a piece of content marked `data-excite` makes the miniature beside it livelier.
+      const exciteBy = (target: EventTarget | null) => {
+        const piece = target instanceof Element ? target.closest('[data-excite]') : null;
+        current.setExcite(piece ? 1 : 0);
+      };
+      const onOver = (event: PointerEvent) => {
+        if (event.pointerType === 'mouse') exciteBy(event.target);
+      };
+      const onFocusIn = (event: FocusEvent) => exciteBy(event.target);
+      const onRest = () => current.setExcite(0);
+      document.addEventListener('pointerover', onOver, { passive: true });
+      document.addEventListener('focusin', onFocusIn);
+      document.addEventListener('focusout', onRest);
+      root.addEventListener('pointerleave', onRest);
+      cleanups.push(() => {
+        document.removeEventListener('pointerover', onOver);
+        document.removeEventListener('focusin', onFocusIn);
+        document.removeEventListener('focusout', onRest);
+        root.removeEventListener('pointerleave', onRest);
+      });
+
       const sync = () => current.setRunning(!document.hidden);
       document.addEventListener('visibilitychange', sync);
       sync();

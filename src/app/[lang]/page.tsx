@@ -61,7 +61,7 @@ export default async function HomePage() {
       >
         <ol className='ledger ledger--entries'>
           {dict.projects.items.map((project) => (
-            <li key={project.name} className='ledger__row'>
+            <li key={project.name} className='ledger__row' data-excite>
               <div className='ledger__head'>
                 <h3 className='ledger__title'>{project.name}</h3>
                 <p className='status'>
@@ -98,6 +98,7 @@ export default async function HomePage() {
             <li
               key={job.company}
               className={job.current ? 'timeline__entry timeline__entry--now' : 'timeline__entry'}
+              data-excite
             >
               <div className='ledger__head'>
                 <h3 className='ledger__title'>{job.company}</h3>
@@ -119,7 +120,7 @@ export default async function HomePage() {
       <Section id='stack' title={dict.stack.title} part={dict.notes.stack.part} side='right'>
         <div className='stack'>
           {stack.map((group) => (
-            <div key={group.id} className='stack__group'>
+            <div key={group.id} className='stack__group' data-excite>
               <h3 className='stack__title'>
                 {dict.stack.groups[group.id as keyof typeof dict.stack.groups]}
               </h3>
@@ -166,19 +167,19 @@ export default async function HomePage() {
         <div className='engraving'>
           <DecoRule className='engraving__rule' />
           <ul className='engraving__links'>
-            <li>
+            <li data-excite>
               <a href={`mailto:${profile.email}`}>
                 <span className='engraving__label'>{dict.contact.email}</span>
                 {profile.email}
               </a>
             </li>
-            <li>
+            <li data-excite>
               <a href={profile.linkedin} rel='noopener noreferrer' target='_blank'>
                 <span className='engraving__label'>{dict.contact.linkedin}</span>
                 {displayUrl(profile.linkedin)}
               </a>
             </li>
-            <li>
+            <li data-excite>
               <a href={profile.github} rel='noopener noreferrer' target='_blank'>
                 <span className='engraving__label'>{dict.contact.github}</span>
                 {displayUrl(profile.github)}

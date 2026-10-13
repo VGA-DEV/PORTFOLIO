@@ -114,6 +114,10 @@ export function BackdropSweep() {
         const gate = arrivedAt(k);
         const leftGate = leftFrom(k);
         const present = stillAt(k);
+        // The section counts as shown once its last piece is fully in, and stops counting once it starts
+        // to leave (the margin between the two keeps it from flickering); the page's small animations
+        // (lines that draw, bars that fill, figures that count) start and reset on this mark.
+        let lastIn = 1;
         list.forEach((el, idx) => {
           const r = n > 1 ? idx / (n - 1) : 0;
           // Held at a third gone until the watch has set off, so the screen is never emptied.
@@ -123,7 +127,13 @@ export function BackdropSweep() {
           // The content of a section comes in only once the watch has moved on to its piece.
           const inn = (before < 0 ? 1 : arriveProgress(before, r)) * gate;
           setStyle(el, (1 - out) * inn, -34 * out + 46 * (1 - inn));
+          if (idx === n - 1) lastIn = (1 - out) * inn;
         });
+        if (k > 0) {
+          const section = sections[k];
+          if (lastIn >= 0.98) section.dataset.shown = 'true';
+          else if (lastIn < 0.5) delete section.dataset.shown;
+        }
         // The next section waits where it will end up, instead of coming up the screen with
         // the scroll, so its rows land exactly over the ones that leave. It is held with
         // `position: fixed`, which the scroll never moves, so there is nothing to keep up with
@@ -242,6 +252,7 @@ export function BackdropSweep() {
       html.style.removeProperty('--overlap');
       html.style.removeProperty('scroll-padding-top');
       nodes.forEach((node) => node.remove());
+      sections.forEach((section) => delete section.dataset.shown);
       delete html.dataset.sweep;
     };
   }, []);

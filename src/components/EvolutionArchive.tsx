@@ -1,5 +1,7 @@
 import metrics from '@content/evolution/metrics.json';
 import type { Locale } from '@/i18n/config';
+import { formatMetric } from '@/lib/metric-format';
+import { CountUp } from './CountUp';
 
 type Version = {
   id: string;
@@ -17,32 +19,24 @@ type Labels = {
     mobile: string;
     desktop: string;
     better: string;
+    whatIs: string;
     rows: Record<string, string>;
+    help: Record<string, string>;
   };
 };
 
 type Row = (typeof metrics.rows)[number];
 type Device = 'mobile' | 'desktop';
 
-/** The same numbers in either language: a decimal comma in Spanish, a point in English. */
-function formatter(locale: Locale, unit: string, signed = false) {
-  const digits = unit === 'score' ? 0 : unit === 'seconds' ? 1 : 3;
-  const format = new Intl.NumberFormat(locale, {
-    minimumFractionDigits: unit === 'shift' ? 0 : digits,
-    maximumFractionDigits: digits,
-    signDisplay: signed ? 'exceptZero' : 'auto',
-  });
-  return (value: number) => (unit === 'seconds' ? `${format.format(value)} s` : format.format(value));
-}
-
 /** Scores go up when they improve; times and layout shifts go down. */
 const improves = (unit: string, change: number) => (unit === 'score' ? change > 0 : change < 0);
 
 /**
  * The archive of versions: one card per version with its own Lighthouse numbers, mobile and desktop.
- * From the second version on, each number that got better carries the change against the version
- * before it. The runs are kept per version in `content/evolution/metrics.json`: adding a version is
- * adding its entry there and in the dictionaries.
+ * From the second version on, each number counts from its old value to the new one when the section
+ * arrives, and carries the change against the version before it. Each label has a small «?» that says
+ * in a sentence what it measures. The runs are kept per version in `content/evolution/metrics.json`:
+ * adding a version is adding its entry there and in the dictionaries.
  */
 export function EvolutionArchive({
   locale,
@@ -69,15 +63,42 @@ export function EvolutionArchive({
             const value = run[device][key];
             const change = before ? value - before[device][key] : 0;
             const better = before !== null && improves(row.unit, change);
+            const tipId = `tip-${version.id}-${device}-${row.id}`;
+            const name = labels.metrics.rows[row.id];
+            // The same six labels repeat in every column. Only the first set shows a «?», is in the tab
+            // order and is read out; in the others the label itself answers to the mouse, and a hidden
+            // placeholder keeps the labels wrapping the same way, so nothing adds noise or tab stops.
+            const first = version.current && device === 'mobile';
             return (
               <div key={row.id} className='score'>
-                <dt>{labels.metrics.rows[row.id]}</dt>
+                <dt>
+                  <span>{name}</span>
+                  {first ? (
+                    <button
+                      type='button'
+                      className='score__help'
+                      aria-label={`${labels.metrics.whatIs} ${name}`}
+                      aria-describedby={tipId}
+                    >
+                      ?
+                    </button>
+                  ) : (
+                    <span className='score__help score__help--ghost' aria-hidden='true' />
+                  )}
+                  <span id={tipId} role={first ? 'tooltip' : undefined} aria-hidden={first ? undefined : true} className='score__tip'>
+                    {labels.metrics.help[row.id]}
+                  </span>
+                </dt>
                 <dd>
-                  {formatter(locale, row.unit)(value)}
+                  {before ? (
+                    <CountUp from={before[device][key]} to={value} unit={row.unit} locale={locale} />
+                  ) : (
+                    formatMetric(locale, row.unit)(value)
+                  )}
                   {before === null ? null : better ? (
                     <span className='score__change'>
                       <span className='sr-only'>{labels.metrics.better}</span>
-                      {formatter(locale, row.unit, true)(change)}
+                      {formatMetric(locale, row.unit, true)(change)}
                     </span>
                   ) : (
                     // The slot stays, empty, so every figure in the grid sits on the same line.
@@ -97,7 +118,7 @@ export function EvolutionArchive({
   return (
     <ol className='versions'>
       {versions.map((version) => (
-        <li key={version.id} className={version.current ? 'version version--now' : 'version'}>
+        <li key={version.id} className={version.current ? 'version version--now' : 'version'} data-excite>
           <div className='ledger__head'>
             <h3 className='ledger__title'>
               {version.name}

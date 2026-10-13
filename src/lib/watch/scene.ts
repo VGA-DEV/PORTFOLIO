@@ -186,6 +186,8 @@ export type WatchScene = {
   /** Continuous position along the page: 0 = hero, 1 = projects, and so on. */
   setPosition: (value: number) => void;
   setRunning: (running: boolean) => void;
+  /** 0 or 1: the visitor is pointing at a piece of the content, and the miniature on screen livens up. */
+  setExcite: (value: number) => void;
   resize: () => void;
   dispose: () => void;
 };
@@ -765,6 +767,11 @@ export async function createWatchScene({
   let height = 1;
   /** The root font size in pixels: on large screens the text scales, and the content column with it. */
   let rem = 16;
+  /** How lively the miniatures are: 0 at rest, 1 while the visitor points at the content beside them. */
+  let exciteTarget = 0;
+  let excite = 0;
+  let invaderPhase = 0;
+  let notePhase = 0;
   /** How wide the watch is across the current pose, in scene units. */
   let modelUnits = 2.4;
   /** The miniature that is most in view this frame. */
@@ -892,10 +899,13 @@ export async function createWatchScene({
     hourHand.rotation.z = -(hours / 12) * tau - (tau / 12) * ease;
 
     // The miniatures are alive: a cine camera with turning magazines, a bobbing invader, a circling plane, a spinning record.
-    for (const spokes of magazineSpokes) spokes.rotation.z -= 0.7 * dt;
+    // Pointing at the content beside a miniature makes it livelier: everything below runs faster.
+    excite = damp(excite, exciteTarget, 5, dt);
+    const boost = 1 + 2.4 * excite;
+    for (const spokes of magazineSpokes) spokes.rotation.z -= 0.7 * dt * boost;
     // The car is hauled up the lift, then runs on its own: faster the lower it is.
     const here = coasterAt(carAt);
-    carAt += dt * (carAt < crest.s ? 0.34 : 0.3 + 1.15 * Math.sqrt(Math.max(0, crest.y - here.y)));
+    carAt += dt * boost * (carAt < crest.s ? 0.34 : 0.3 + 1.15 * Math.sqrt(Math.max(0, crest.y - here.y)));
     if (carAt >= route.length) carAt = 0;
     cars.forEach((mesh, index) => {
       const behind = carAt - index * 0.74;
@@ -905,13 +915,16 @@ export async function createWatchScene({
       mesh.rotation.z = place.a;
       mesh.scale.set(pop, pop, pop);
     });
-    invaderMesh.position.y = Math.sin(t * 0.0018) * 0.05;
-    invaderMesh.rotation.y = Math.sin(t * 0.0009) * 0.5;
-    planePivot.rotation.y += 0.9 * dt;
-    ballGroup.rotation.y += 0.25 * dt;
-    recordMesh.rotation.y -= 1.4 * dt;
-    const bob = Math.sin(t * 0.0016);
-    noteMesh.position.set(-0.1 + Math.sin(t * 0.0009) * 0.04, 0.55 + bob * 0.05, 0);
+    // Phases are accumulated, not read from the clock, so a change of pace never makes them jump.
+    invaderPhase += dt * 1.8 * boost;
+    notePhase += dt * 1.6 * boost;
+    invaderMesh.position.y = Math.sin(invaderPhase) * 0.05 * (1 + excite);
+    invaderMesh.rotation.y = Math.sin(invaderPhase * 0.5) * 0.5 * (1 + excite);
+    planePivot.rotation.y += 0.9 * dt * boost;
+    ballGroup.rotation.y += 0.25 * dt * boost;
+    recordMesh.rotation.y -= 1.4 * dt * boost;
+    const bob = Math.sin(notePhase);
+    noteMesh.position.set(-0.1 + Math.sin(notePhase * 0.56) * 0.04, 0.55 + bob * 0.05 * (1 + excite), 0);
     noteMesh.rotation.z = bob * 0.12;
 
     const spin = 1 + 5 * burst + (a === 1 && u < 0.5 ? 1.5 : 0);
@@ -1064,6 +1077,10 @@ export async function createWatchScene({
       wake();
     },
     setRunning,
+    setExcite: (value) => {
+      exciteTarget = value > 0 ? 1 : 0;
+      wake();
+    },
     resize: () => {
       resize();
       if (still) redrawStill();

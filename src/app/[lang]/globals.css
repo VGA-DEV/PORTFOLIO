@@ -1629,3 +1629,144 @@ html[data-sweep] .section {
 .callout[data-hidden='true'] {
   display: none !important;
 }
+
+/* Small animations that run when a section has arrived (the sweep marks it `data-shown`) and reset when
+   it leaves. They exist only with the sweep on: without it (no script, reduced motion) every line, bar
+   and figure simply sits in its final place. They act on inner pieces, never on the rows the sweep moves. */
+
+/* Lines that draw themselves: the rule under each title opens from the middle, and on the timeline of
+   Experience the spine runs down while each diamond pops in. */
+html[data-sweep] .section__rule,
+html[data-sweep] .engraving__rule {
+  transition: clip-path 1.1s var(--ease-out) 0.3s;
+}
+
+html[data-sweep] .section:not([data-shown]) .section__rule,
+html[data-sweep] .section:not([data-shown]) .engraving__rule {
+  clip-path: inset(0 50% 0 50%);
+  transition: none;
+}
+
+html[data-sweep] .timeline__entry::before {
+  transition: clip-path 1.2s var(--ease-out) 0.6s;
+}
+
+html[data-sweep] .timeline__entry::after {
+  transition: transform 0.6s var(--ease-out) 0.5s;
+}
+
+html[data-sweep] .timeline__entry:nth-child(2)::before {
+  transition-delay: 1.4s;
+}
+
+html[data-sweep] .timeline__entry:nth-child(2)::after {
+  transition-delay: 1.2s;
+}
+
+html[data-sweep] .section:not([data-shown]) .timeline__entry::before {
+  clip-path: inset(0 0 100% 0);
+  transition: none;
+}
+
+html[data-sweep] .section:not([data-shown]) .timeline__entry::after {
+  transform: rotate(45deg) scale(0);
+  transition: none;
+}
+
+/* The status bars of the projects fill up, one row after another. */
+html[data-sweep] .status__level {
+  transition: background-size 1s var(--ease-out) 0.5s;
+}
+
+html[data-sweep] .ledger__row:nth-child(2) .status__level {
+  transition-delay: 0.7s;
+}
+
+html[data-sweep] .ledger__row:nth-child(3) .status__level {
+  transition-delay: 0.9s;
+}
+
+html[data-sweep] .section:not([data-shown]) .status__level {
+  background-size: 0 100%, auto;
+  transition: none;
+}
+
+/* A small «?» beside each label of the version figures says in a sentence what it measures. */
+.score {
+  position: relative;
+}
+
+.score__help {
+  position: relative;
+  flex: none;
+  align-self: flex-end;
+  width: 1.05rem;
+  height: 1.05rem;
+  margin: 0 0 0.05rem 0.3rem;
+  padding: 0;
+  border: 1px solid rgb(52 4 64 / 0.4);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-ink-soft);
+  font: inherit;
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: help;
+}
+
+/* A bigger target than the circle itself. */
+.score__help::after {
+  content: '';
+  position: absolute;
+  inset: -0.45rem;
+}
+
+.score__help:hover,
+.score__help:focus {
+  border-color: var(--color-purple);
+  color: var(--color-purple);
+}
+
+.score__tip {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  z-index: 5;
+  width: 13.5rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 3px;
+  background: var(--color-ink);
+  color: var(--color-paper);
+  font-size: 0.78rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.4;
+  text-transform: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(4px);
+  transition: opacity 0.2s var(--ease-out), transform 0.2s var(--ease-out), visibility 0.2s;
+  pointer-events: none;
+}
+
+.score:nth-child(3n + 2) .score__tip {
+  left: 50%;
+  margin-left: -6.75rem;
+}
+
+.score:nth-child(3n) .score__tip {
+  right: 0;
+  left: auto;
+}
+
+.score__help--ghost {
+  visibility: hidden;
+}
+
+.score dt:hover .score__tip,
+.score__help:focus + .score__tip {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+}
