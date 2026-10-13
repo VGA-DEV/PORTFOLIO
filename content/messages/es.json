@@ -71,7 +71,8 @@
           ".NET",
           "React",
           "GitLab CI"
-        ]
+        ],
+        "current": true
       },
       {
         "company": "WE DO THE BEST SL",
@@ -84,7 +85,8 @@
           "Python",
           "WebSockets",
           "WPF"
-        ]
+        ],
+        "current": false
       }
     ],
     "stackLabel": "Tecnologías"

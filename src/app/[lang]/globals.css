@@ -710,6 +710,73 @@ html[data-watch='flat'] .hero__watch .watch__frame {
   white-space: nowrap;
 }
 
+/* Experience: a timeline. A hairline spine with a minute-track of ticks and a diamond for each
+   job, filled for the current one, so the order reads as time going by like the hands on a dial. */
+.timeline {
+  margin: 0;
+  padding: 0 0 0 2.4rem;
+  list-style: none;
+}
+
+.timeline__entry {
+  position: relative;
+  padding-bottom: var(--space-4);
+}
+
+.timeline__entry:last-child {
+  padding-bottom: 0;
+}
+
+.timeline__entry::before {
+  content: '';
+  position: absolute;
+  top: 1.5rem;
+  bottom: -0.55rem;
+  left: -1.7rem;
+  width: 0.6rem;
+  margin-left: -0.3rem;
+  background:
+    linear-gradient(var(--color-champagne-deep), var(--color-champagne-deep)) center / 1px 100% no-repeat,
+    repeating-linear-gradient(to bottom, var(--color-champagne-deep) 0 1px, transparent 1px 7px);
+}
+
+.timeline__entry:last-child::before {
+  display: none;
+}
+
+.timeline__entry::after {
+  content: '';
+  position: absolute;
+  top: 0.6rem;
+  left: -1.7rem;
+  width: 0.72rem;
+  height: 0.72rem;
+  margin-left: -0.36rem;
+  border: 1px solid var(--color-champagne-deep);
+  background: var(--section-bg, var(--color-paper));
+  transform: rotate(45deg);
+}
+
+.timeline__entry--now::after {
+  border-color: var(--color-purple);
+  background: var(--color-purple);
+}
+
+.timeline .ledger__body p {
+  margin-bottom: var(--space-1);
+}
+
+@media (max-width: 47.99rem) {
+  .timeline {
+    padding-left: 1.9rem;
+  }
+
+  .timeline__entry::before,
+  .timeline__entry::after {
+    left: -1.25rem;
+  }
+}
+
 /* A three-step level bar, like a game HUD: pending, in development, working. */
 .status__level {
   display: inline-block;

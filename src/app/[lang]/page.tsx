@@ -77,9 +77,12 @@ export default async function HomePage() {
         title={dict.experience.title}
         side='left'
       >
-        <ol className='ledger ledger--entries'>
+        <ol className='timeline'>
           {dict.experience.items.map((job) => (
-            <li key={job.company} className='ledger__row'>
+            <li
+              key={job.company}
+              className={job.current ? 'timeline__entry timeline__entry--now' : 'timeline__entry'}
+            >
               <div className='ledger__head'>
                 <h3 className='ledger__title'>{job.company}</h3>
                 <p className='ledger__period'>{job.period}</p>
