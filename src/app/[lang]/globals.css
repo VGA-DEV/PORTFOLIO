@@ -972,32 +972,94 @@ html[data-watch='flat'] .hero__watch .watch__frame {
   height: calc(var(--size) * var(--u));
 }
 
-.gear__teeth {
+/* Each gear is four stacked layers: a soft shadow, the metal with its jewel (the only part that
+   turns), a face with the light and the text plate, and the text. The metal is a radial gradient, so it
+   looks the same however it is turned; the light comes from a fixed sheen on the face layer. */
+.gear__layer {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   overflow: visible;
+}
+
+.gear__teeth {
   transform: rotate(var(--from));
   animation: gear-turn var(--turn-time) linear infinite;
 }
 
-.gear__teeth path {
-  fill: var(--color-surface);
+.gear__shade {
+  stop-color: #2a0b3a;
+}
+
+.gear__metal-in {
+  stop-color: color-mix(in srgb, var(--color-champagne) 45%, #fff);
+}
+
+.gear__metal-mid {
+  stop-color: var(--color-champagne);
+}
+
+.gear__metal-out {
+  stop-color: #a88f5a;
+}
+
+.gear--core .gear__metal-in {
+  stop-color: #e4def9;
+}
+
+.gear--core .gear__metal-mid {
+  stop-color: #b5a8ea;
+}
+
+.gear--core .gear__metal-out {
+  stop-color: #7a5fc4;
+}
+
+.gear__body {
   stroke: var(--color-champagne-deep);
-  stroke-width: 0.08;
+  stroke-width: 0.07;
   stroke-linejoin: round;
 }
 
-.gear--core .gear__teeth path {
-  fill: var(--color-lavender);
+.gear--core .gear__body {
+  stroke: var(--color-purple);
 }
 
-.gear__teeth circle {
+/* The minute track along the rim: fine radial ticks. */
+.gear__ticks {
+  fill: none;
+  stroke: rgb(52 4 64 / 0.45);
+  stroke-width: 0.2;
+  stroke-dasharray: 0.035 0.48;
+}
+
+.gear__jewel {
+  fill: var(--color-violet);
+  stroke: var(--color-champagne);
+  stroke-width: 0.1;
+}
+
+.gear__jewel-glint {
+  fill: #fff;
+  opacity: 0.7;
+}
+
+.gear__plate {
+  fill: var(--color-paper);
+  stroke: var(--color-champagne-deep);
+  stroke-width: 0.1;
+}
+
+.gear--core .gear__plate {
+  stroke: var(--color-purple);
+}
+
+.gear__plate-ring {
   fill: none;
   stroke: var(--color-champagne-deep);
-  stroke-width: 0.06;
-  stroke-dasharray: 0.12 0.28;
+  stroke-width: 0.03;
+  opacity: 0.6;
 }
 
 @keyframes gear-turn {
@@ -1012,13 +1074,14 @@ html[data-watch='flat'] .hero__watch .watch__frame {
   }
 }
 
+/* The text sits on the plate: a square as wide as the plate, padded so the lines stay inside the circle. */
 .gear__text {
   position: absolute;
-  inset: 0;
+  inset: calc((var(--size) / 2 - var(--disc)) * var(--u));
   display: grid;
   align-content: center;
   justify-items: center;
-  padding: calc(var(--size) * var(--u) * 0.17);
+  padding: calc(var(--disc) * var(--u) * 0.2);
   text-align: center;
 }
 
@@ -1036,7 +1099,7 @@ html[data-watch='flat'] .hero__watch .watch__frame {
   margin: 0;
   padding: 0;
   list-style: none;
-  font-size: max(calc(1.02 * var(--u)), 0.8rem);
+  font-size: max(calc(1.02 * var(--u)), 0.75rem);
   line-height: 1.4;
 }
 

@@ -9,7 +9,7 @@ type Group = {
 };
 
 /** Teeth per group. The pitch is the same for every gear, so more teeth means a bigger gear. */
-const TEETH: Record<string, number> = { backend: 26, frontend: 32, architecture: 28, devops: 22 };
+const TEETH: Record<string, number> = { backend: 26, frontend: 32, architecture: 28, devops: 24 };
 const DEFAULT_TEETH = 26;
 /** Gear module: pitch diameter per tooth, in layout units (`u`, one rem on wide screens). */
 const MODULE = 0.5;
@@ -17,6 +17,8 @@ const MODULE = 0.5;
 const SECONDS_PER_TOOTH = 2.4;
 /** The chain runs down the column, leaning right and left in turn (screen angles, y down). */
 const LEAN = (30 * Math.PI) / 180;
+/** How far the text plate sits inside the root of the teeth: the width of the metal rim. */
+const RIM = 1;
 
 type Gear = {
   group: Group;
@@ -28,24 +30,39 @@ type Gear = {
   turn: 1 | -1;
 };
 
-/** The outline of a gear with trapezoid teeth, centred on (0, 0). */
-function outline(teeth: number, pitch: number) {
+const fixed = (value: number) => value.toFixed(3);
+const polar = (radius: number, angle: number) => `${fixed(radius * Math.cos(angle))},${fixed(radius * Math.sin(angle))}`;
+
+/** A full circle as two arcs, to be cut out of a path with the even-odd rule. */
+const hole = (cx: number, cy: number, radius: number) =>
+  `M${fixed(cx - radius)},${fixed(cy)}a${radius},${radius} 0 1,0 ${fixed(2 * radius)},0a${radius},${radius} 0 1,0 ${fixed(-2 * radius)},0Z`;
+
+/**
+ * The metal of a gear, centred on (0, 0): the toothed outline, with a ring of round perforations
+ * cut out of the rim like a skeletonised watch. The jewel sits where the first perforation would be.
+ */
+function metal(teeth: number, pitch: number) {
   const root = pitch - 1.25 * MODULE;
   const tip = pitch + MODULE;
   const step = (Math.PI * 2) / teeth;
-  const point = (radius: number, angle: number) =>
-    `${(radius * Math.cos(angle)).toFixed(3)},${(radius * Math.sin(angle)).toFixed(3)}`;
   const parts: string[] = [];
   for (let k = 0; k < teeth; k += 1) {
     const centre = k * step;
     parts.push(
-      point(root, centre - 0.3 * step),
-      point(tip, centre - 0.14 * step),
-      point(tip, centre + 0.14 * step),
-      point(root, centre + 0.3 * step),
+      polar(root, centre - 0.3 * step),
+      polar(tip, centre - 0.14 * step),
+      polar(tip, centre + 0.14 * step),
+      polar(root, centre + 0.3 * step),
     );
   }
-  return `M${parts.join('L')}Z`;
+  const middle = root - RIM / 2 - 0.08;
+  const holes = Math.round(teeth * 0.75);
+  const cuts: string[] = [];
+  for (let k = 1; k < holes; k += 1) {
+    const angle = -Math.PI / 2 + (k * Math.PI * 2) / holes;
+    cuts.push(hole(middle * Math.cos(angle), middle * Math.sin(angle), 0.17));
+  }
+  return { d: `M${parts.join('L')}Z${cuts.join('')}`, root, tip, middle };
 }
 
 /**
@@ -97,9 +114,14 @@ export function StackGears({ groups, label }: { groups: Group[]; label: string }
       >
         {gears.map((gear) => {
           const size = outer(gear) * 2;
+          const view = `${-outer(gear)} ${-outer(gear)} ${size} ${size}`;
+          const { d, root, tip, middle } = metal(gear.teeth, gear.r);
+          const plate = root - RIM;
           const from = (gear.rot * 180) / Math.PI;
+          const id = `gear-${gear.group.id}`;
           const style = {
             ['--size' as string]: size.toFixed(2),
+            ['--disc' as string]: plate.toFixed(2),
             ['--x' as string]: (gear.x - outer(gear) - left).toFixed(2),
             ['--y' as string]: (gear.y - outer(gear) - top).toFixed(2),
             ['--from' as string]: `${from.toFixed(2)}deg`,
@@ -108,13 +130,39 @@ export function StackGears({ groups, label }: { groups: Group[]; label: string }
           } as CSSProperties;
           return (
             <li key={gear.group.id} className={gear.group.core ? 'gear gear--core' : 'gear'} style={style}>
-              <svg
-                className='gear__teeth'
-                viewBox={`${-outer(gear)} ${-outer(gear)} ${size} ${size}`}
-                aria-hidden='true'
-              >
-                <path d={outline(gear.teeth, gear.r)} />
-                <circle r={gear.r - 1.25 * MODULE - 0.35} />
+              <svg className='gear__layer' viewBox={view} aria-hidden='true'>
+                <defs>
+                  <radialGradient id={`${id}-shadow`}>
+                    <stop offset='70%' className='gear__shade' stopOpacity='0.3' />
+                    <stop offset='100%' className='gear__shade' stopOpacity='0' />
+                  </radialGradient>
+                </defs>
+                <circle cx='0.05' cy='0.2' r={tip + 0.35} fill={`url(#${id}-shadow)`} />
+              </svg>
+              <svg className='gear__layer gear__teeth' viewBox={view} aria-hidden='true'>
+                <defs>
+                  <radialGradient id={`${id}-metal`} r={tip} gradientUnits='userSpaceOnUse'>
+                    <stop offset='0%' className='gear__metal-in' />
+                    <stop offset='62%' className='gear__metal-mid' />
+                    <stop offset='100%' className='gear__metal-out' />
+                  </radialGradient>
+                </defs>
+                <path d={d} fillRule='evenodd' fill={`url(#${id}-metal)`} className='gear__body' />
+                <circle r={root - 0.1} className='gear__ticks' />
+                <circle cy={-middle} r='0.3' className='gear__jewel' />
+                <circle cx='-0.08' cy={-middle - 0.08} r='0.1' className='gear__jewel-glint' />
+              </svg>
+              <svg className='gear__layer' viewBox={view} aria-hidden='true'>
+                <defs>
+                  <linearGradient id={`${id}-sheen`} x1='0' y1='0' x2='1' y2='1'>
+                    <stop offset='0%' stopColor='#fff' stopOpacity='0.55' />
+                    <stop offset='45%' stopColor='#fff' stopOpacity='0' />
+                    <stop offset='100%' stopColor='#2a0b3a' stopOpacity='0.2' />
+                  </linearGradient>
+                </defs>
+                <circle r={root + 0.05} fill={`url(#${id}-sheen)`} />
+                <circle r={plate} className='gear__plate' />
+                <circle r={plate - 0.14} className='gear__plate-ring' />
               </svg>
               <div className='gear__text'>
                 <h3 className='gear__title'>{gear.group.label}</h3>
