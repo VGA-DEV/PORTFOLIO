@@ -30,6 +30,7 @@ export type WatchPieces = {
   /** Small gold miniatures, one per interest ("complications"). */
   rails: Piece;
   car: Piece;
+  carTrim: Piece;
   reel: Piece;
   film: Piece;
   invader: Piece;
@@ -162,41 +163,55 @@ function buildCoaster() {
   for (const e of ends) parts.push(tube([[e.x, e.y - 0.085, -GAUGE - 0.04], [e.x, e.y - 0.085, GAUGE + 0.04]], 0.026, 8, [0, 1, 0]));
 
   // The car, pointing along +x with its origin on the rails' line, in the style of a modern
-  // coaster car: one smooth bullet-shaped body whose hood slopes down to a blunt nose, almond
-  // lamps, a handrail over the hood, two seats with twin-humped backs, and wheels on each rail.
-  // Only the shapes that read at a small size are kept.
+  // coaster car: a smooth bullet-shaped body with a raised hood that slopes down to a blunt nose,
+  // an open cockpit sunk between two rolled rims with two contoured seats, a handrail over the
+  // hood and wheels on each rail. The body and the fittings are two pieces so they can be two tones.
   const wheel = (x: number, side: number) =>
-    tube([[x, 0.074, side * (GAUGE + 0.025)], [x, 0.074, side * (GAUGE - 0.025)]], 0.045, 14, [0, 1, 0]);
+    tube([[x, 0.074, side * (GAUGE + 0.02)], [x, 0.074, side * (GAUGE - 0.02)]], 0.038, 14, [0, 1, 0]);
   const axle = (x: number) => tube([[x, 0.074, -GAUGE - 0.045], [x, 0.074, GAUGE + 0.045]], 0.016, 8, [0, 1, 0]);
   const seat = (x: number) => [
-    ellipsoid(x, 0.255, 0, 0.05, 0.02, 0.1),
-    // The back: two rounded humps side by side on a low base, like a contoured shell.
-    ellipsoid(x - 0.05, 0.285, 0, 0.026, 0.045, 0.125),
-    ellipsoid(x - 0.052, 0.33, -0.058, 0.028, 0.055, 0.052),
-    ellipsoid(x - 0.052, 0.33, 0.058, 0.028, 0.055, 0.052),
+    ellipsoid(x, 0.228, 0, 0.05, 0.02, 0.1),
+    ellipsoid(x - 0.05, 0.262, 0, 0.024, 0.04, 0.12),
+    ellipsoid(x - 0.052, 0.312, -0.056, 0.027, 0.05, 0.05),
+    ellipsoid(x - 0.052, 0.312, 0.056, 0.027, 0.05, 0.05),
   ];
-  const car = merge(
+  const rim = (side: number) =>
+    tube(
+      [
+        [-0.3, 0.2, side * 0.115],
+        [-0.25, 0.217, side * 0.148],
+        [-0.1, 0.223, side * 0.158],
+        [0.0, 0.225, side * 0.158],
+        [0.035, 0.232, side * 0.154],
+      ],
+      0.013,
+      8,
+      [0, 1, 0],
+    );
+  const car = loftX(
+    [
+      { x: -0.34, y0: 0.15, y1: 0.195, hw: 0.1 },
+      { x: -0.3, y0: 0.125, y1: 0.205, hw: 0.145 },
+      { x: -0.25, y0: 0.12, y1: 0.21, hw: 0.16 },
+      { x: 0.0, y0: 0.12, y1: 0.215, hw: 0.165 },
+      { x: 0.04, y0: 0.12, y1: 0.305, hw: 0.165 },
+      { x: 0.14, y0: 0.12, y1: 0.295, hw: 0.165 },
+      { x: 0.24, y0: 0.125, y1: 0.265, hw: 0.155 },
+      { x: 0.315, y0: 0.135, y1: 0.23, hw: 0.125 },
+      { x: 0.345, y0: 0.15, y1: 0.215, hw: 0.085 },
+    ],
+    5,
+    24,
+  );
+  const carTrim = merge(
     axle(-0.15),
     axle(0.15),
     wheel(-0.15, -1),
     wheel(-0.15, 1),
     wheel(0.15, -1),
     wheel(0.15, 1),
-    // The body: slim at the tail, full through the cockpit, a high hood sloping to the nose.
-    loftX(
-      [
-        { x: -0.3, y0: 0.15, y1: 0.19, hw: 0.09 },
-        { x: -0.25, y0: 0.13, y1: 0.23, hw: 0.14 },
-        { x: -0.05, y0: 0.12, y1: 0.235, hw: 0.16 },
-        { x: 0.04, y0: 0.12, y1: 0.3, hw: 0.16 },
-        { x: 0.14, y0: 0.12, y1: 0.29, hw: 0.155 },
-        { x: 0.24, y0: 0.13, y1: 0.24, hw: 0.12 },
-        { x: 0.31, y0: 0.15, y1: 0.2, hw: 0.07 },
-        { x: 0.34, y0: 0.16, y1: 0.18, hw: 0.03 },
-      ],
-      3,
-      20,
-    ),
+    rim(-1),
+    rim(1),
     // A handrail over the hood, with a post at each end.
     tube(
       [
@@ -212,15 +227,16 @@ function buildCoaster() {
       8,
       [1, 0, 0],
     ),
-    // Almond lamps on the nose.
-    ellipsoid(0.275, 0.205, -0.05, 0.035, 0.02, 0.032, 4, 10),
-    ellipsoid(0.275, 0.205, 0.05, 0.035, 0.02, 0.032, 4, 10),
+    // Almond lamps on the nose and a curved bumper under it.
+    ellipsoid(0.3, 0.205, -0.075, 0.04, 0.026, 0.04, 4, 10),
+    ellipsoid(0.3, 0.205, 0.075, 0.04, 0.026, 0.04, 4, 10),
+    tube([[0.31, 0.148, -0.1], [0.345, 0.148, 0], [0.31, 0.148, 0.1]], 0.015, 8, [0, 1, 0]),
     ...seat(-0.07),
     ...seat(-0.19),
     // Hitch to the car behind.
-    tube([[-0.3, 0.165, 0], [-0.42, 0.165, 0]], 0.014, 8, [0, 0, 1]),
+    tube([[-0.34, 0.165, 0], [-0.46, 0.165, 0]], 0.014, 8, [0, 0, 1]),
   );
-  return { rails: merge(...parts), car };
+  return { rails: merge(...parts), car, carTrim };
 }
 
 /** A film reel with its strip trailing off to one side. */
@@ -289,7 +305,7 @@ function buildGlobe() {
 }
 
 export function buildWatchPieces(): WatchPieces {
-  const { rails, car } = buildCoaster();
+  const { rails, car, carTrim } = buildCoaster();
   const { reel, film } = buildReel();
   const { globe, globeRing, plane } = buildGlobe();
   const outline = tonneauOutline(OUTLINE_POINTS);
@@ -343,6 +359,7 @@ export function buildWatchPieces(): WatchPieces {
     crystal: loft(outline, [[0.92, 0.0], [0.91, 0.05], [0.66, 0.078], [0.32, 0.09], [0, 0.094]]),
     rails,
     car,
+    carTrim,
     reel,
     film,
     invader: buildInvader(),

@@ -642,10 +642,13 @@ export async function createWatchScene({
   coasterTrack.position.set(0, -0.3, 0);
   flatMesh(pieces.rails, gold(0.12)).setParent(coasterTrack);
   // A train of two cars, the second one behind the first.
+  // Each car is a body in brass and its fittings in a coppery tone, moved as one.
   const cars = [0, 1].map(() => {
-    const mesh = flatMesh(pieces.car, gold(0.12));
-    mesh.setParent(coasterTrack);
-    return mesh;
+    const node = new Transform();
+    node.setParent(coasterTrack);
+    flatMesh(pieces.car, gold(0.12)).setParent(node);
+    flatMesh(pieces.carTrim, steel(COLORS.roseGold, 0.16)).setParent(node);
+    return node;
   });
   const route = coasterPath();
   const crest = route.points.filter((p) => p.x < 0).reduce((top, p) => (p.y > top.y ? p : top));
