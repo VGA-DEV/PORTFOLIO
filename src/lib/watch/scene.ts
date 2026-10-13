@@ -761,6 +761,8 @@ export async function createWatchScene({
   let shownY = 0;
   let width = 1;
   let height = 1;
+  /** The root font size in pixels: on large screens the text scales, and the content column with it. */
+  let rem = 16;
   /** How wide the watch is across the current pose, in scene units. */
   let modelUnits = 2.4;
   /** The miniature that is most in view this frame. */
@@ -792,6 +794,7 @@ export async function createWatchScene({
     if (!parent) return;
     width = Math.max(parent.clientWidth, 1);
     height = Math.max(parent.clientHeight, 1);
+    rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
     renderer.setSize(width, height);
     camera.perspective({ aspect: width / height });
   };
@@ -819,8 +822,8 @@ export async function createWatchScene({
       // Two columns: the content column is a fixed 36rem, so on narrower windows the strip left
       // for the watch shrinks. Centre the watch in that strip and zoom out if the model would
       // still not fit it.
-      const container = Math.min(1120, width - 32);
-      const strip = Math.min(Math.max(((width + container) / 2 - 576) / width, 0.34), 0.5);
+      const container = Math.min(70 * rem, width - 32);
+      const strip = Math.min(Math.max(((width + container) / 2 - 36 * rem) / width, 0.34), 0.5);
       centre = Math.min(Math.max(strip / 2, 0.17), 0.27);
       const halfShare = Math.max(strip / 2 - 0.03, 0.12);
       const fitHalf = Math.max(widest / (0.8 * aspect), widest / (4 * halfShare * aspect));

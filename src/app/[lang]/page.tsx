@@ -124,7 +124,9 @@ export default async function HomePage() {
               </h3>
               <ul className='stack__list'>
                 {group.items.map((item) => (
-                  <li key={item}>{item}</li>
+                  <li key={item.label} className={item.core ? 'stack__core' : undefined}>
+                    {item.label}
+                  </li>
                 ))}
               </ul>
             </div>

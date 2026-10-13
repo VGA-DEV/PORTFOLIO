@@ -1,8 +1,9 @@
 [
-  { "id": "backend", "items": ["C#", ".NET", "SQL Server", "MySQL"] },
+  { "id": "backend", "items": ["C#", ".NET", "SQL Server", "MySQL"], "core": ["C#", ".NET"] },
   {
     "id": "frontend",
-    "items": ["React", "Angular", "TypeScript", "JavaScript", "HTML/CSS", "WPF"]
+    "items": ["React", "Angular", "TypeScript", "JavaScript", "HTML/CSS", "WPF"],
+    "core": ["React"]
   },
   {
     "id": "architecture",

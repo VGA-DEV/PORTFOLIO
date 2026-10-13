@@ -131,6 +131,8 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
 
     let text: Rect[] = [];
     let lastScan = -1e9;
+    /** Root font size in px; on large screens the text scales, and the note's width with it. */
+    let remPx = 16;
     let measured = { key: '', w: 0, h: 0 };
     let target = { x: 0, y: 0, key: '' };
     let shown: { x: number; y: number } | null = null;
@@ -287,6 +289,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       const rethink = now - lastScan > RETHINK_MS;
       if (rethink) {
         text = scanText(!narrow.matches);
+        remPx = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
         lastScan = now;
       }
 
@@ -317,7 +320,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
         const beside = watchRight ? textLeft - 2 * MARGIN : vw - textRight - 2 * MARGIN;
         if (beside > 0) free = Math.min(free, Math.max(beside, 200));
       }
-      const w = Math.min(phone ? 20 * 16 : 22 * 16, free);
+      const w = Math.min((phone ? 20 : 22) * remPx, free);
 
       const key = `${nearest}|${Math.round(w)}`;
       if (measured.key !== key) {

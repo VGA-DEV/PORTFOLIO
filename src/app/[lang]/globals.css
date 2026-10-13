@@ -56,6 +56,15 @@ html {
   background: #08030c;
 }
 
+/* Large screens: everything is set in rem, so scaling the root scales the text, the content column
+   and the spacing together. 16px up to 1280x720, then it grows with whichever of width or height is
+   tighter, so a section keeps fitting its screen, and stops at 22px. */
+@media (min-width: 62rem) and (pointer: fine) {
+  html {
+    font-size: clamp(16px, min(1.25vw, 2.22vh), 22px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -767,6 +776,20 @@ html[data-watch='flat'] .hero__watch .watch__frame {
   margin-bottom: var(--space-1);
 }
 
+/* The current job leads: larger name, full-size text. The earlier one is smaller and quieter. */
+.timeline__entry--now .ledger__title {
+  font-size: clamp(1.9rem, 3.4vw, 2.5rem);
+}
+
+.timeline__entry:not(.timeline__entry--now) .ledger__title {
+  font-size: clamp(1.35rem, 2.4vw, 1.7rem);
+}
+
+.timeline__entry:not(.timeline__entry--now) .ledger__body {
+  color: var(--color-ink-soft);
+  font-size: 0.95rem;
+}
+
 @media (max-width: 47.99rem) {
   .timeline {
     padding-left: 1.9rem;
@@ -973,6 +996,13 @@ html[data-watch='flat'] .hero__watch .watch__frame {
 
 .stack__list li {
   display: inline;
+  color: var(--color-ink-soft);
+}
+
+/* The base the profile is built on (.NET and React) reads first. */
+.stack__core {
+  color: var(--color-ink);
+  font-weight: 700;
 }
 
 .stack__list li:not(:last-child)::after {
