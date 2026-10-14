@@ -1,10 +1,17 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { CrownControl } from '@/components/CrownControl';
 import { clamp01, lerp } from '@/lib/math';
 import { NARROW_QUERY, REDUCED_QUERY } from '@/lib/media';
-import { MOVE_AT, MOVE_BACK_AT, SWAP_AT, arriveProgress, dwellProgress, leaveProgress } from '@/lib/transition';
 import { arrivedAt, setMove, setMoveLive, stillAt } from '@/lib/watch/move';
+import { chooseCrownGoal, crownButtonSize, fitCrown } from '@/lib/watch/placement/crown';
+import { deviceIsTooWeak } from '@/lib/watch/placement/device';
+import { bindExcite } from '@/lib/watch/placement/excite';
+import { calloutPath, chooseNoteSpot, noteWidth, rollLook, type NoteSpot } from '@/lib/watch/placement/note';
+import { noteStateAt, watchPosition, type MoveState, type NoteState } from '@/lib/watch/placement/progress';
+import { scanText } from '@/lib/watch/placement/scan';
+import { squareAround, type Point, type Rect } from '@/lib/watch/placement/space';
 import type { AnchorInfo, WatchScene } from '@/lib/watch/scene';
 
 type WatchBackdropProps = {
@@ -18,73 +25,6 @@ type WatchBackdropProps = {
 
 /** Notes and the crown re-think where to sit this often, in milliseconds. */
 const RETHINK_MS = 140;
-const HEADER = 84;
-const MARGIN = 14;
-
-/** Every time the watch settles on a section the note draws a fresh look: where it likes to sit and how its line bends. */
-const rollLook = () => ({
-  /** Which side of the watch the note likes to sit on, as an angle round it. */
-  phi: Math.random() * Math.PI * 2,
-  hookAngle: ((35 + Math.random() * 45) * Math.PI) / 180,
-  sideAngle: ((25 + Math.random() * 35) * Math.PI) / 180,
-  curved: Math.random() < 0.4,
-  bow: Math.random() < 0.5 ? 1 : -1,
-});
-
-type Rect = { l: number; t: number; r: number; b: number };
-
-const overlap = (a: Rect, b: Rect) =>
-  Math.max(0, Math.min(a.r, b.r) - Math.max(a.l, b.l)) * Math.max(0, Math.min(a.b, b.b) - Math.max(a.t, b.t));
-
-type Navigator3D = Navigator & {
-  connection?: { saveData?: boolean };
-  deviceMemory?: number;
-};
-
-/** Skip the 3D on data saver or on clearly weak devices; the flat watch stays. */
-function deviceIsTooWeak() {
-  const nav = navigator as Navigator3D;
-  if (nav.connection?.saveData) return true;
-  if (nav.deviceMemory !== undefined && nav.deviceMemory < 4) return true;
-  if (navigator.hardwareConcurrency !== undefined && navigator.hardwareConcurrency < 4) return true;
-  return false;
-}
-
-/**
- * The safe areas notes and the crown keep out of: on wide screens, the column each
- * section's content sits in, whole, however its lines happen to wrap; on a phone,
- * where the text fills the width, the line boxes themselves.
- */
-function scanText(wide: boolean): Rect[] {
-  const vh = window.innerHeight;
-  const out: Rect[] = [];
-  if (wide) {
-    const pad = 14;
-    document.querySelectorAll<HTMLElement>('[data-watch-section] :is(.section__body, .hero__text)').forEach((el) => {
-      if (el.closest<HTMLElement>('.pin')?.style.visibility === 'hidden') return;
-      const r = el.getBoundingClientRect();
-      if (r.width > 0 && r.bottom > 0 && r.top < vh) {
-        out.push({ l: r.left - pad, t: r.top - pad, r: r.right + pad, b: r.bottom + pad });
-      }
-    });
-    return out;
-  }
-  const pad = 6;
-  const range = document.createRange();
-  document
-    .querySelectorAll<HTMLElement>('[data-watch-section] :is(h1, h2, h3, p, li, dt, dd)')
-    .forEach((el) => {
-      const box = el.getBoundingClientRect();
-      if (box.bottom < 0 || box.top > vh) return;
-      range.selectNodeContents(el);
-      for (const r of range.getClientRects()) {
-        if (r.width > 0 && r.height > 0 && r.bottom > 0 && r.top < vh) {
-          out.push({ l: r.left - pad, t: r.top - pad, r: r.right + pad, b: r.bottom + pad });
-        }
-      }
-    });
-  return out;
-}
 
 /**
  * A full-screen canvas fixed behind the page content. Its scene is the watch, which
@@ -92,6 +32,9 @@ function scanText(wide: boolean): Rect[] {
  * piece by a line, explains why; it looks for free background to sit on, away from the
  * text and from the watch. The crown of the 3D watch is the page control; when the
  * watch puts it under the text, the control steps aside and stays tied to the crown.
+ *
+ * This component only wires the page to the scene. The rules (where a note sits, where the crown
+ * control sits, how far along the watch is) live in `lib/watch/placement/`, the scene in `lib/watch/scene/`.
  */
 export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -103,7 +46,6 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
   const dotRef = useRef<SVGCircleElement>(null);
   const crownRef = useRef<HTMLButtonElement>(null);
   const sceneHandle = useRef<WatchScene | null>(null);
-  const drag = useRef({ active: false, moved: 0, lastY: 0, over: 0 });
   const [index, setIndex] = useState(0);
   const indexRef = useRef(0);
 
@@ -122,129 +64,27 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
     let lastScrollY = window.scrollY;
     let sectionEls: HTMLElement[] = [];
     let look = rollLook();
-    /** Which note is up, and how far in or out it is, read from the scroll through the dwells. */
-    let noteState: { index: number; out: number; inn: number } | null = null;
+    let noteState: NoteState | null = null;
 
     let text: Rect[] = [];
     let lastScan = -1e9;
     /** Root font size in px; on large screens the text scales, and the note's width with it. */
     let remPx = 16;
     let measured = { key: '', w: 0, h: 0 };
-    let target = { x: 0, y: 0, key: '' };
-    let shown: { x: number; y: number } | null = null;
-    let crownGoal: { x: number; y: number } | null = null;
-    let crownShown: { x: number; y: number } | null = null;
+    let target: NoteSpot = { x: 0, y: 0, key: '' };
+    let shown: Point | null = null;
+    let crownGoal: Point | null = null;
+    let crownShown: Point | null = null;
     let crownSize = 52;
 
-    /** How bad a place is for a note: overlap with text, the watch and the crown, and distance. */
-    const boxCost = (box: Rect, a: AnchorInfo, crownRect: Rect | null) => {
-      const model: Rect = {
-        l: a.model.x - a.model.halfW,
-        r: a.model.x + a.model.halfW,
-        t: a.model.y - a.model.halfH,
-        b: a.model.y + a.model.halfH,
-      };
-      let cost = overlap(box, model) * 1.6;
-      // Over the text is worse than over the watch: it hides what is being read.
-      for (const r of text) cost += overlap(box, r) * 30;
-      if (crownRect) cost += overlap(box, crownRect) * 3;
-      if (a.prop) {
-        cost += overlap(box, {
-          l: a.prop.x - a.prop.halfW,
-          r: a.prop.x + a.prop.halfW,
-          t: a.prop.y - a.prop.halfH,
-          b: a.prop.y + a.prop.halfH,
-        }) * 2.5;
-      }
-      const dx = (box.l + box.r) / 2 - a.x;
-      const dy = (box.t + box.b) / 2 - a.y;
-      // Stay close to the watch, on the side this look prefers.
-      const gapX = Math.max(0, box.l - model.r, model.l - box.r);
-      const gapY = Math.max(0, box.t - model.b, model.t - box.b);
-      const wx = (box.l + box.r) / 2 - (a.model.x + Math.cos(look.phi) * (a.model.halfW + (box.r - box.l) / 2 + 20));
-      const wy = (box.t + box.b) / 2 - (a.model.y + Math.sin(look.phi) * (a.model.halfH + (box.b - box.t) / 2 + 20));
-      return cost + Math.hypot(dx, dy) * 6 + Math.hypot(gapX, gapY) * 45 + Math.hypot(wx, wy) * 22;
-    };
-
-    /** Look for the freest background around, and keep the choice unless a clearly better one appears. */
-    const thinkNote = (a: AnchorInfo, w: number, h: number, crownRect: Rect | null) => {
-      const vw = window.innerWidth;
-      // The footer is an opaque band over the canvas: when it has scrolled into view, the notes stay above it.
-      const footerTop = document.querySelector('.site-footer')?.getBoundingClientRect().top ?? Infinity;
-      const vh = Math.min(window.innerHeight, footerTop);
-      if (narrow.matches) {
-        target = { x: (vw - w) / 2, y: vh - h - 18, key: 'phone' };
-        return;
-      }
-      let best = { x: target.x, y: target.y, cost: Infinity, key: target.key };
-      const xs = 8;
-      const ys = 9;
-      for (let i = 0; i <= xs; i++) {
-        for (let j = 0; j <= ys; j++) {
-          const x = MARGIN + ((vw - 2 * MARGIN - w) * i) / xs;
-          const y = HEADER + ((vh - HEADER - MARGIN - h) * j) / ys;
-          const cost = boxCost({ l: x, t: y, r: x + w, b: y + h }, a, crownRect);
-          if (cost < best.cost) best = { x, y, cost, key: `${i}:${j}` };
-        }
-      }
-      const current = boxCost({ l: target.x, t: target.y, r: target.x + w, b: target.y + h }, a, crownRect);
-      if (target.key === '' || best.cost < current * 0.7 - 500) target = { x: best.x, y: best.y, key: best.key };
-      // The note may have grown since the spot was chosen: it must never hang off the screen.
-      target = {
-        ...target,
-        x: Math.min(Math.max(target.x, MARGIN), Math.max(vw - MARGIN - w, MARGIN)),
-        y: Math.min(Math.max(target.y, HEADER), Math.max(vh - MARGIN - h, HEADER)),
-      };
-    };
-
     /** Move the real button over the 3D crown, or just beside it when the text covers it. */
-    const placeCrown = (a: AnchorInfo, rethink: boolean, boxRect: Rect | null) => {
+    const placeCrown = (a: AnchorInfo, rethink: boolean, noteRect: Rect | null) => {
       const button = crownRef.current;
       if (!button) return;
-      const size = Math.max(a.crown.radius * 2.6, 52);
-      const vw = window.innerWidth;
-      const vh = window.innerHeight;
-      const fit = (x: number, y: number) => ({
-        x: Math.min(Math.max(x, size / 2 + 4), vw - size / 2 - 4),
-        y: Math.min(Math.max(y, HEADER + size / 2), vh - size / 2 - 4),
-      });
-      const at = fit(a.crown.x, a.crown.y);
-      const rectAt = (p: { x: number; y: number }): Rect => ({
-        l: p.x - size / 2,
-        r: p.x + size / 2,
-        t: p.y - size / 2,
-        b: p.y + size / 2,
-      });
-      const spotCost = (p: { x: number; y: number }) => {
-        const rect = rectAt(p);
-        let cost = 0;
-        for (const r of text) cost += overlap(rect, r);
-        if (boxRect) cost += overlap(rect, boxRect) * 3;
-        return cost;
-      };
-
-      if (rethink) {
-        const free = size * size * 0.02;
-        const reach = size * 3;
-        const stillGood =
-          crownGoal !== null &&
-          Math.hypot(crownGoal.x - at.x, crownGoal.y - at.y) < reach &&
-          spotCost(crownGoal) <= free;
-        if (spotCost(at) <= free) {
-          crownGoal = null;
-        } else if (!stillGood) {
-          let best = { p: at, cost: Infinity };
-          for (const radius of [size * 0.9, size * 1.5, size * 2.2, size * 3, size * 4]) {
-            for (let k = 0; k < 20; k++) {
-              const angle = (k / 20) * Math.PI * 2;
-              const p = fit(at.x + Math.cos(angle) * radius, at.y + Math.sin(angle) * radius);
-              const cost = spotCost(p) * 4 + Math.hypot(p.x - at.x, p.y - at.y) * 12;
-              if (cost < best.cost) best = { p, cost };
-            }
-          }
-          crownGoal = best.p;
-        }
-      }
+      const size = crownButtonSize(a.crown.radius);
+      const viewport = { w: window.innerWidth, h: window.innerHeight };
+      const at = fitCrown(a.crown, size, viewport);
+      if (rethink) crownGoal = chooseCrownGoal({ previous: crownGoal, at, size, viewport, text, noteRect });
 
       const goal = crownGoal ?? at;
       crownShown = crownShown
@@ -261,7 +101,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       const behind = narrow.matches && a.position > 0.35;
       button.dataset.behind = behind ? 'true' : 'false';
       // The hint sits to the right of the crown, or under it when the edge of the screen is too close.
-      button.dataset.hint = p.x + size / 2 + 170 > vw ? 'below' : 'right';
+      button.dataset.hint = p.x + size / 2 + 170 > viewport.w ? 'below' : 'right';
 
       // A thin thread ties the stepped-aside control back to the crown it belongs to.
       const tether = tetherRef.current;
@@ -275,11 +115,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       }
     };
 
-    /**
-     * Tie the note to the part. Above or below it the line leaves the part at 60 degrees
-     * and turns at the knee to run along the note's edge; to one side it leaves at 45
-     * degrees and meets the note's edge, which then carries the rule.
-     */
+    /** Called after every frame the scene draws: place the note, tie it to the part, and move the crown control. */
     const placeCallout = (a: AnchorInfo) => {
       const callout = calloutRef.current;
       const box = boxRef.current;
@@ -314,16 +150,13 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       const settle = noteState ? (1 - noteState.out) * noteIn : clamp01(1.6 - Math.abs(a.position - nearest) * 4);
       const vw = window.innerWidth;
       const phone = narrow.matches;
-      // On wide screens the note takes the free strip beside the content column, however narrow.
-      let free = vw - 2 * MARGIN;
-      if (!phone && text.length > 0) {
-        const textLeft = Math.min(...text.map((r) => r.l));
-        const textRight = Math.max(...text.map((r) => r.r));
-        const watchRight = sectionEls[nearest]?.dataset.side !== 'right';
-        const beside = watchRight ? textLeft - 2 * MARGIN : vw - textRight - 2 * MARGIN;
-        if (beside > 0) free = Math.min(free, Math.max(beside, 200));
-      }
-      const w = Math.min((phone ? 20 : 22) * remPx, free);
+      const w = noteWidth({
+        phone,
+        viewportW: vw,
+        remPx,
+        text,
+        watchOnRight: sectionEls[nearest]?.dataset.side !== 'right',
+      });
 
       const key = `${nearest}|${Math.round(w)}`;
       if (measured.key !== key) {
@@ -334,70 +167,38 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       if (rethink) measured.h = box.offsetHeight;
       const h = measured.h;
 
-      const crownRect: Rect | null = crownShown
-        ? {
-            l: crownShown.x - crownSize / 2,
-            r: crownShown.x + crownSize / 2,
-            t: crownShown.y - crownSize / 2,
-            b: crownShown.y + crownSize / 2,
-          }
-        : null;
-      if (rethink || target.key === '') thinkNote(a, w, h, crownRect);
+      if (rethink || target.key === '') {
+        // The footer is an opaque band over the canvas: when it has scrolled into view, the notes stay above it.
+        const footerTop = document.querySelector('.site-footer')?.getBoundingClientRect().top ?? Infinity;
+        target = chooseNoteSpot({
+          anchor: a,
+          look,
+          text,
+          crownRect: crownShown ? squareAround(crownShown, crownSize) : null,
+          w,
+          h,
+          current: target,
+          viewport: { w: vw, h: Math.min(window.innerHeight, footerTop) },
+          phone,
+        });
+      }
       shown = shown && Math.abs(shown.x - target.x) + Math.abs(shown.y - target.y) < 1200
         ? { x: lerp(shown.x, target.x, 0.18), y: lerp(shown.y, target.y, 0.18) }
         : { x: target.x, y: target.y };
 
-      const L = shown.x;
-      const T = shown.y;
-      const R = L + w;
-      const B = T + h;
-      const bcx = (L + R) / 2;
-      const bcy = (T + B) / 2;
-      const f = (n: number) => n.toFixed(1);
-      // The first leg of the line is straight, or bows a little to one side.
-      const leg = (x1: number, y1: number, x2: number, y2: number) => {
-        if (!look.curved) return `L${f(x2)},${f(y2)}`;
-        const mx = (x1 + x2) / 2;
-        const my = (y1 + y2) / 2;
-        const bow = Math.hypot(x2 - x1, y2 - y1) * 0.22 * look.bow;
-        const nx = -(y2 - y1) / (Math.hypot(x2 - x1, y2 - y1) || 1);
-        const ny = (x2 - x1) / (Math.hypot(x2 - x1, y2 - y1) || 1);
-        return `Q${f(mx + nx * bow)},${f(my + ny * bow)} ${f(x2)},${f(y2)}`;
-      };
-      let d: string;
-      let edge: 'top' | 'bottom' | 'left' | 'right';
-
-      if (bcx - w / 2 > a.x + 24 || bcx + w / 2 < a.x - 24) {
-        const dirx = bcx > a.x ? 1 : -1;
-        const edgeX = dirx > 0 ? L : R;
-        const attachY = T + 14;
-        const dy = attachY - a.y;
-        let kneeX = a.x + dirx * (Math.abs(dy) / Math.tan(look.sideAngle));
-        if (dirx * (edgeX - kneeX) < 10) kneeX = edgeX - dirx * 10;
-        d = `M${f(a.x)},${f(a.y)} ${leg(a.x, a.y, kneeX, attachY)} L${f(edgeX)},${f(attachY)} L${f(edgeX)},${f(B)}`;
-        edge = dirx > 0 ? 'left' : 'right';
-      } else {
-        const below = bcy > a.y;
-        const edgeY = below ? T : B;
-        const dy = Math.max(Math.abs(edgeY - a.y), 24);
-        const angleTo = (end: number) => Math.atan2(dy, Math.max(Math.abs(a.x - end), 1));
-        const kneeAtLeft = Math.abs(angleTo(L) - look.hookAngle) < Math.abs(angleTo(R) - look.hookAngle);
-        const kneeX = kneeAtLeft ? L : R;
-        const farX = kneeAtLeft ? R : L;
-        d = `M${f(a.x)},${f(a.y)} ${leg(a.x, a.y, kneeX, edgeY)} L${f(farX)},${f(edgeY)}`;
-        edge = below ? 'top' : 'bottom';
-      }
+      const noteRect: Rect = { l: shown.x, t: shown.y, r: shown.x + w, b: shown.y + h };
+      const { d, edge } = calloutPath(a, noteRect, look);
 
       callout.dataset.edge = edge;
-      callout.style.setProperty('--box-x', `${f(L)}px`);
-      callout.style.setProperty('--box-y', `${f(T)}px`);
+      callout.style.setProperty('--box-x', `${noteRect.l.toFixed(1)}px`);
+      callout.style.setProperty('--box-y', `${noteRect.t.toFixed(1)}px`);
       callout.style.setProperty('--settle', settle.toFixed(3));
       callout.style.setProperty('--shift', `${(noteState ? -34 * noteState.out + 46 * (1 - noteIn) : 0).toFixed(1)}px`);
       line.setAttribute('d', d);
-      dot.setAttribute('cx', f(a.x));
-      dot.setAttribute('cy', f(a.y));
+      dot.setAttribute('cx', a.x.toFixed(1));
+      dot.setAttribute('cy', a.y.toFixed(1));
 
-      placeCrown(a, rethink, { l: L, t: T, r: R, b: B });
+      placeCrown(a, rethink, noteRect);
       callout.dataset.hidden = narrow.matches ? 'true' : 'false';
     };
 
@@ -428,7 +229,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       const footer = document.querySelector<HTMLElement>('.site-footer');
       sectionEls = sections;
       const gaps = Array.from(document.querySelectorAll<HTMLElement>('[data-gap]'));
-      const moveState: { moved: boolean; passed: boolean; ready: boolean; last: number }[] = [];
+      const moveState: MoveState[] = [];
       // Text on the left puts the watch on the right, and the other way round.
       const sides = sections.map((el) => (el.dataset.side === 'right' ? -1 : 1));
 
@@ -466,56 +267,9 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
         // its miniature are not cut off.
         const footerTop = footer ? footer.getBoundingClientRect().top : viewport;
         current.setBottomInset(Math.max(viewport - footerTop, 0));
-        // Each move to the next section is triggered in the second half of the dwell that ends the section before it.
-        // The watch sets off at one point going down and goes back at another going up, so
-        // that on the way up it returns just as the next section's content has left.
-        let position = 0;
-        for (let i = 1; i < sections.length; i++) {
-          const gap = gaps[i - 1];
-          const progress = gap ? dwellProgress(gap, viewport) : -1;
-          if (progress >= 0) {
-            const state = moveState[i] ?? { moved: false, passed: false, ready: false, last: progress };
-            moveState[i] = state;
-            if (!state.ready || Math.abs(progress - state.last) > 0.3) {
-              // First reading, or a jump (a link, or a resize that moved everything): take the
-              // state that matches where we are, as if we had got here by scrolling.
-              const up = state.ready && progress < state.last;
-              state.moved = progress > (up ? MOVE_BACK_AT : MOVE_AT);
-              state.passed = progress > 0.6;
-              state.ready = true;
-            } else if (progress < MOVE_AT) {
-              state.moved = false;
-              state.passed = false;
-            } else if (progress > 0.6) {
-              state.moved = true;
-              state.passed = true;
-            } else if (state.passed && progress < MOVE_BACK_AT) {
-              state.moved = false;
-              state.passed = false;
-            } else if (!state.moved && !state.passed && progress > state.last) {
-              state.moved = true;
-            }
-            state.last = progress;
-            position += state.moved ? 1 : 0;
-          } else {
-            const top = sections[i].getBoundingClientRect().top;
-            position += clamp01((viewport * 0.8 - top) / (viewport * 0.5));
-          }
-        }
+        const position = watchPosition(sections, gaps, viewport, moveState);
         current.setPosition(position);
-        // The note moves like the content does: it leaves as the last piece of the section,
-        // and arrives as the last piece of the next one, so the two feel the same.
-        const progress = gaps.map((gap) => dwellProgress(gap, viewport));
-        if (progress.every((p) => p >= 0)) {
-          const index = progress.filter((p) => p > SWAP_AT).length;
-          const own = progress[index] ?? 0;
-          const before = index > 0 ? progress[index - 1] : 1;
-          const out = leaveProgress(own, 1);
-          const inn = arriveProgress(before, 1);
-          noteState = { index, out, inn };
-        } else {
-          noteState = null;
-        }
+        noteState = noteStateAt(gaps, viewport);
         // The crown on the watch turns with the page.
         const y = window.scrollY;
         current.spinCrown((y - lastScrollY) * 0.006);
@@ -550,26 +304,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
         cancelAnimationFrame(frame);
       });
 
-      // Pointing at (or focusing) a piece of content marked `data-excite` makes the miniature beside it livelier.
-      const exciteBy = (target: EventTarget | null) => {
-        const piece = target instanceof Element ? target.closest('[data-excite]') : null;
-        current.setExcite(piece ? 1 : 0);
-      };
-      const onOver = (event: PointerEvent) => {
-        if (event.pointerType === 'mouse') exciteBy(event.target);
-      };
-      const onFocusIn = (event: FocusEvent) => exciteBy(event.target);
-      const onRest = () => current.setExcite(0);
-      document.addEventListener('pointerover', onOver, { passive: true });
-      document.addEventListener('focusin', onFocusIn);
-      document.addEventListener('focusout', onRest);
-      root.addEventListener('pointerleave', onRest);
-      cleanups.push(() => {
-        document.removeEventListener('pointerover', onOver);
-        document.removeEventListener('focusin', onFocusIn);
-        document.removeEventListener('focusout', onRest);
-        root.removeEventListener('pointerleave', onRest);
-      });
+      cleanups.push(bindExcite(current, root));
 
       const sync = () => current.setRunning(!document.hidden);
       document.addEventListener('visibilitychange', sync);
@@ -608,43 +343,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
     };
   }, []);
 
-  // If the lock is released some other way (Escape), the drag ends with it.
-  useEffect(() => {
-    const onLockChange = () => {
-      if (document.pointerLockElement) return;
-      drag.current.active = false;
-      if (crownRef.current) delete crownRef.current.dataset.held;
-    };
-    document.addEventListener('pointerlockchange', onLockChange);
-    return () => document.removeEventListener('pointerlockchange', onLockChange);
-  }, []);
-
   const note = notes[index] ?? '';
-
-  // Winding the crown: dragging it scrolls the page, a tap moves to the next section.
-  const goToNext = () => {
-    const sections = Array.from(document.querySelectorAll<HTMLElement>('[data-watch-section]'));
-    const line = window.innerHeight * 0.4;
-    const next = sections.find((section) => section.getBoundingClientRect().top > line);
-    if (next) next.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    else window.scrollTo({ top: 0, behavior: 'smooth' });
-    sceneHandle.current?.spinCrown(Math.PI * 2);
-  };
-
-  /** Winding past either end of the page carries on round to the other end, like a crown does. */
-  const wind = (dy: number) => {
-    const max = document.documentElement.scrollHeight - window.innerHeight;
-    const before = window.scrollY;
-    window.scrollBy({ top: dy * 2.4, behavior: 'instant' });
-    const moved = Math.abs(window.scrollY - before) > 0.5;
-    const state = drag.current;
-    state.over = moved ? 0 : state.over + dy;
-    if (Math.abs(state.over) > 140) {
-      const forward = state.over > 0;
-      state.over = 0;
-      window.scrollTo({ top: forward ? 0 : max, behavior: 'smooth' });
-    }
-  };
 
   return (
     <>
@@ -663,70 +362,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       <svg className='crown-tether' aria-hidden='true' focusable='false'>
         <line ref={tetherRef} />
       </svg>
-      <button
-        type='button'
-        className='crown-control'
-        ref={crownRef}
-        aria-label={crown.label}
-        onPointerDown={(event) => {
-          event.currentTarget.setPointerCapture(event.pointerId);
-          drag.current = { active: true, moved: 0, lastY: event.clientY, over: 0 };
-          event.currentTarget.dataset.held = 'true';
-        }}
-        onPointerMove={(event) => {
-          if (!drag.current.active) return;
-          // With the pointer locked the cursor can no longer reach the edge of the screen,
-          // so the crown keeps turning however far the mouse travels.
-          const locked = document.pointerLockElement === event.currentTarget;
-          const dy = locked ? event.movementY : event.clientY - drag.current.lastY;
-          drag.current.lastY = event.clientY;
-          drag.current.moved += Math.abs(dy);
-          if (drag.current.moved > 4) {
-            if (event.pointerType === 'mouse' && !locked && !document.pointerLockElement) {
-              try {
-                void Promise.resolve(event.currentTarget.requestPointerLock()).catch(() => undefined);
-              } catch {
-                // Without pointer lock the drag still works up to the edge of the screen.
-              }
-            }
-            wind(dy);
-            sceneHandle.current?.spinCrown(dy * 0.05);
-          }
-        }}
-        onPointerUp={(event) => {
-          const wasTap = drag.current.active && drag.current.moved <= 4;
-          drag.current.active = false;
-          delete event.currentTarget.dataset.held;
-          if (document.pointerLockElement === event.currentTarget) document.exitPointerLock();
-          if (wasTap) goToNext();
-        }}
-        onPointerCancel={(event) => {
-          drag.current.active = false;
-          delete event.currentTarget.dataset.held;
-          if (document.pointerLockElement === event.currentTarget) document.exitPointerLock();
-        }}
-        onKeyDown={(event) => {
-          if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-            event.preventDefault();
-            const down = event.key === 'ArrowDown';
-            window.scrollBy({ top: (down ? 1 : -1) * window.innerHeight * 0.6, behavior: 'smooth' });
-            sceneHandle.current?.spinCrown(down ? 0.8 : -0.8);
-          }
-        }}
-        onClick={(event) => {
-          // Keyboard activation only: pointer taps are handled on release.
-          if (event.detail === 0) goToNext();
-        }}
-      >
-        <svg className='crown-control__progress' viewBox='0 0 100 100' aria-hidden='true' focusable='false'>
-          <circle className='crown-control__track' cx='50' cy='50' r='46' />
-          <circle className='crown-control__fill' cx='50' cy='50' r='46' pathLength='1' />
-        </svg>
-        <span className='crown-control__ticks' aria-hidden='true' />
-        <span className='crown-control__hint' aria-hidden='true'>
-          {crown.hint}
-        </span>
-      </button>
+      <CrownControl buttonRef={crownRef} sceneRef={sceneHandle} label={crown.label} hint={crown.hint} />
     </>
   );
 }
