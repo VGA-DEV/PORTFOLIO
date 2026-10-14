@@ -1,0 +1,152 @@
+/* Section backgrounds, fixed behind the page and swept in like a clock hand. */
+html[data-sweep] .plate {
+  display: none;
+}
+
+.sweep {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.sweep__layer {
+  position: absolute;
+  inset: 0;
+  --sweep: 0deg;
+}
+
+.sweep__layer[data-state='hidden'] {
+  display: none;
+}
+
+.sweep__fill {
+  position: absolute;
+  inset: 0;
+  background: var(--color-paper);
+}
+
+.sweep__layer[data-tone='mist'] .sweep__fill {
+  background: var(--color-mist);
+}
+
+.sweep__layer[data-tone='stage'] .sweep__fill {
+  background: var(--color-stage);
+}
+
+.sweep__layer[data-hero] .sweep__fill {
+  background:
+    radial-gradient(56% 64% at 72% 46%, rgb(88 17 159 / 0.34), transparent 72%),
+    radial-gradient(40% 40% at 8% 100%, rgb(214 189 138 / 0.07), transparent 70%),
+    var(--color-stage);
+}
+
+.sweep__layer[data-state='sweeping'] .sweep__fill {
+  -webkit-mask-image: conic-gradient(from 180deg at 50% 50%, #000 calc(var(--sweep) - 1deg), transparent var(--sweep));
+  mask-image: conic-gradient(from 180deg at 50% 50%, #000 calc(var(--sweep) - 1deg), transparent var(--sweep));
+}
+
+/* Art Deco fan in the corner on the watch's side, behind the model. */
+.sweep__fill::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: min(34rem, 80vw);
+  aspect-ratio: 1;
+  pointer-events: none;
+}
+
+.sweep__layer[data-side='left'] .sweep__fill::before {
+  right: 0;
+  background: repeating-conic-gradient(from 180deg at 100% 0, rgb(143 122 80 / 0.55) 0 0.55deg, transparent 0.5deg 6deg);
+  mask-image: radial-gradient(circle at 100% 0, #000 0, transparent 68%);
+}
+
+.sweep__layer[data-side='right'] .sweep__fill::before {
+  left: 0;
+  background: repeating-conic-gradient(from 90deg at 0 0, rgb(143 122 80 / 0.55) 0 0.55deg, transparent 0.5deg 6deg);
+  mask-image: radial-gradient(circle at 0 0, #000 0, transparent 68%);
+}
+
+.sweep__layer[data-tone='stage'][data-side='left'] .sweep__fill::before {
+  background: repeating-conic-gradient(from 180deg at 100% 0, rgb(214 189 138 / 0.34) 0 0.55deg, transparent 0.55deg 6deg);
+}
+
+.sweep__layer[data-tone='stage'][data-side='right'] .sweep__fill::before {
+  background: repeating-conic-gradient(from 90deg at 0 0, rgb(214 189 138 / 0.34) 0 0.55deg, transparent 0.55deg 6deg);
+}
+
+/* The hand itself, a thin wedge at the sweeping edge. */
+.sweep__edge {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: conic-gradient(
+    from 180deg at 50% 50%,
+    transparent calc(var(--sweep) - 0.6deg),
+    rgb(214 189 138 / 0.7) calc(var(--sweep) - 0.6deg) var(--sweep),
+    transparent var(--sweep)
+  );
+}
+
+.sweep__layer[data-state='sweeping'] .sweep__edge {
+  opacity: 1;
+}
+
+/* Extra scroll at the end of a section. The content is held in place meanwhile, so
+   nothing seems to scroll while the watch moves on; it is only there when the sweep is. */
+.dwell {
+  display: none;
+  pointer-events: none;
+}
+
+html[data-sweep] .dwell {
+  display: block;
+  height: clamp(22rem, 90svh, 56rem);
+}
+
+html[data-sweep] .pin {
+  position: sticky;
+  z-index: 2;
+}
+
+@media (min-width: 62rem) and (pointer: fine) {
+  html[data-sweep] .dwell {
+    height: clamp(32rem, 140svh, 90rem);
+  }
+}
+
+/* Each section is pulled up over the end of the dwell before it, so its content is in
+   place just as the dwell ends; until then it is hidden. */
+html[data-sweep] .section {
+  margin-top: calc(-1 * var(--overlap, 0px));
+  /* The section itself is never painted; its content shows only when it has arrived. */
+  visibility: hidden;
+}
+
+/* On small screens the watch is only a faint background: its notes and miniatures are not
+   shown, and the name of the part it is told through becomes a small label above the title. */
+.section__eyebrow {
+  margin: 0 0 var(--space-1);
+  color: var(--color-champagne-deep);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.section--stage .section__eyebrow {
+  color: var(--color-champagne);
+}
+
+@media (min-width: 62rem) and (pointer: fine) {
+  .section__eyebrow {
+    display: none;
+  }
+}
+
+.callout[data-hidden='true'] {
+  display: none !important;
+}
+

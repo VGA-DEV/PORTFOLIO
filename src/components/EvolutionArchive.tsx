@@ -117,21 +117,25 @@ export function EvolutionArchive({
       {versions.map((version) => (
         <li key={version.id} className={version.current ? 'version version--now' : 'version'} data-excite>
           <Tilt className='version__card'>
-          <div className='ledger__head'>
-            <h3 className='ledger__title'>
-              {version.name}
-              {version.current ? <span className='ledger__badge'>{labels.currentLabel}</span> : null}
-            </h3>
-            {version.tag ? (
-              <p className='ledger__period'>
-                <span className='sr-only'>{labels.tagLabel}: </span>
-                <code>{version.tag}</code>
-              </p>
-            ) : null}
-          </div>
-          <p className='version__summary'>{version.summary}</p>
-          <div className='version__devices'>{devices.map((device) => <div key={device}>{scores(version, device)}</div>)}</div>
-          <p className='version__measure'>{version.measure}</p>
+            <div className='ledger__head'>
+              <h3 className='ledger__title'>
+                {version.name}
+                {version.current ? <span className='ledger__badge'>{labels.currentLabel}</span> : null}
+              </h3>
+              {version.tag ? (
+                <p className='ledger__period'>
+                  <span className='sr-only'>{labels.tagLabel}: </span>
+                  <code>{version.tag}</code>
+                </p>
+              ) : null}
+            </div>
+            <p className='version__summary'>{version.summary}</p>
+            <div className='version__devices'>
+              {devices.map((device) => (
+                <div key={device}>{scores(version, device)}</div>
+              ))}
+            </div>
+            <p className='version__measure'>{version.measure}</p>
           </Tilt>
         </li>
       ))}

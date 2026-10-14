@@ -1,0 +1,570 @@
+/* Ledger: rows separated by Art Deco double rules. */
+.ledger__row {
+  display: grid;
+  gap: var(--space-1) var(--space-4);
+  padding-block: var(--space-3);
+  border-top: 1px solid var(--color-ink);
+  box-shadow: inset 0 3px 0 -2px var(--section-bg, var(--color-paper)), inset 0 4px 0 -2px var(--color-ink);
+}
+
+.ledger__row:last-child {
+  border-bottom: 1px solid var(--color-ink);
+}
+
+.ledger__title {
+  margin: 0;
+  font-family: var(--font-display-stack);
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.ledger__role {
+  margin-bottom: var(--space-1);
+  color: var(--color-purple);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.ledger__period {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+
+.ledger__body p:last-child {
+  margin-bottom: 0;
+}
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  color: var(--color-purple);
+  font-weight: 600;
+}
+
+/* Projects and jobs: each entry is a short header (name and state), the summary across the whole column
+   and a fine line of stack, so four entries still fit a screen beside the watch. */
+.ledger--entries .ledger__row {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-1);
+  padding-block: var(--space-2);
+}
+
+.ledger__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.15rem var(--space-3);
+}
+
+.ledger--entries .ledger__body p {
+  margin-bottom: var(--space-1);
+}
+
+.ledger__stack {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 0.9em;
+  color: var(--color-ink-soft);
+  font-size: 0.95rem;
+}
+
+.ledger__label {
+  color: var(--color-ink-soft);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Experience: a timeline. A hairline spine with a minute-track of ticks and a diamond for each
+   job, filled for the current one, so the order reads as time going by like the hands on a dial. */
+.timeline {
+  margin: 0;
+  padding: 0 0 0 2.4rem;
+  list-style: none;
+}
+
+.timeline__entry {
+  position: relative;
+  padding-bottom: var(--space-4);
+}
+
+.timeline__entry:last-child {
+  padding-bottom: 0;
+}
+
+.timeline__entry::before {
+  content: '';
+  position: absolute;
+  top: 1.5rem;
+  bottom: -0.55rem;
+  left: -1.7rem;
+  width: 0.6rem;
+  margin-left: -0.3rem;
+  background:
+    linear-gradient(var(--color-champagne-deep), var(--color-champagne-deep)) center / 1px 100% no-repeat,
+    repeating-linear-gradient(to bottom, var(--color-champagne-deep) 0 1px, transparent 1px 7px);
+}
+
+.timeline__entry:last-child::before {
+  display: none;
+}
+
+.timeline__entry::after {
+  content: '';
+  position: absolute;
+  top: 0.6rem;
+  left: -1.7rem;
+  width: 0.72rem;
+  height: 0.72rem;
+  margin-left: -0.36rem;
+  border: 1px solid var(--color-champagne-deep);
+  background: var(--section-bg, var(--color-paper));
+  transform: rotate(45deg);
+}
+
+.timeline__entry--now::after {
+  border-color: var(--color-purple);
+  background: var(--color-purple);
+}
+
+.timeline .ledger__body p {
+  margin-bottom: var(--space-1);
+}
+
+/* The current job leads: larger name, full-size text. The earlier one is smaller and quieter. */
+.timeline__entry--now .ledger__title {
+  font-size: clamp(1.9rem, 3.4vw, 2.5rem);
+}
+
+.timeline__entry:not(.timeline__entry--now) .ledger__title {
+  font-size: clamp(1.35rem, 2.4vw, 1.7rem);
+}
+
+.timeline__entry:not(.timeline__entry--now) .ledger__body {
+  color: var(--color-ink-soft);
+  font-size: 0.95rem;
+}
+
+@media (max-width: 47.99rem) {
+  .timeline {
+    padding-left: 1.9rem;
+  }
+
+  .timeline__entry::before,
+  .timeline__entry::after {
+    left: -1.25rem;
+  }
+}
+
+/* A three-step level bar, like a game HUD: pending, in development, working. */
+.status__level {
+  display: inline-block;
+  width: 2.5em;
+  height: 0.7em;
+  background:
+    linear-gradient(var(--color-purple), var(--color-purple)) 0 0 / calc(var(--lv, 1) * 33.34%) 100% no-repeat,
+    var(--color-lavender);
+  mask: repeating-linear-gradient(90deg, #000 0 0.75em, transparent 0.75em 0.875em);
+}
+
+.status__level[data-level='1'] {
+  --lv: 1;
+}
+
+.status__level[data-level='2'] {
+  --lv: 2;
+}
+
+.status__level[data-level='3'] {
+  --lv: 3;
+}
+
+.ledger__period code {
+  font-size: 0.9em;
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+
+.ledger__badge {
+  display: inline-block;
+  margin-left: 0.8rem;
+  padding: 0.12rem 0.55rem;
+  border: 1px solid var(--color-purple);
+  color: var(--color-purple);
+  font-family: var(--font-sans-stack);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+/* Evolution: the archive of versions. One card per version with its own Lighthouse numbers, mobile
+   and desktop; the numbers that improved carry the change against the version before. The current
+   version leads with an ink border and full-colour figures; the older one is quieter. */
+.versions {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.version__card {
+  padding: 0.7rem 1.1rem 0.7rem;
+  border: 1px solid rgb(52 4 64 / 0.22);
+  border-radius: 3px;
+  background: rgb(255 255 255 / 0.4);
+}
+
+.version--now .version__card {
+  border-color: var(--color-ink);
+  background: rgb(255 255 255 / 0.7);
+}
+
+/* On a phone the card gives the three figures per row the width they need. */
+@media (max-width: 47.99rem) {
+  .version__card {
+    padding-inline: 0.9rem;
+  }
+}
+
+.version__summary {
+  margin: 0.3rem 0 0.7rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.version__devices {
+  display: grid;
+  gap: 0.7rem 1.3rem;
+}
+
+@media (min-width: 48rem) {
+  .version__devices {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.scores__device {
+  margin: 0 0 0.35rem;
+  padding-bottom: 0.2rem;
+  border-bottom: 1px solid rgb(52 4 64 / 0.16);
+  color: var(--color-ink-soft);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.version--now .scores__device {
+  color: var(--color-purple);
+}
+
+.scores__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem 0.6rem;
+  margin: 0;
+}
+
+/* Every label takes two lines and every figure a slot for its change, so the grid reads as a grid:
+   the numbers sit on the same line across the row and across both columns. */
+.score dt {
+  display: flex;
+  align-items: flex-end;
+  min-height: 2.5em;
+  color: var(--color-ink-soft);
+  font-size: 0.74rem;
+  line-height: 1.25;
+}
+
+.score dd {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.version:not(.version--now) .score dd {
+  color: var(--color-ink-soft);
+  font-weight: 600;
+}
+
+.score__change {
+  margin-top: 0.1rem;
+  padding: 0 0.4rem;
+  background: rgb(88 17 159 / 0.1);
+  color: var(--color-purple);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.score__change--none {
+  background: transparent;
+}
+
+.version__measure {
+  margin: 0.6rem 0 0;
+  color: var(--color-ink-soft);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+@media (min-width: 48rem) {
+  .ledger__row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+  }
+}
+
+
+/* Stack: a caliber specification sheet. One row per group: the label in purple, a dotted leader
+   and, in a column that starts at the same edge for every row, the technologies as running text. */
+.stack {
+  display: grid;
+}
+
+.stack__group {
+  display: grid;
+  grid-template-columns: 13rem minmax(0, 1fr);
+  gap: var(--space-1) var(--space-2);
+  align-items: baseline;
+  padding-block: var(--space-2);
+  border-bottom: 1px solid rgb(52 4 64 / 0.16);
+}
+
+.stack__group:first-child {
+  border-top: 1px solid rgb(52 4 64 / 0.16);
+}
+
+.stack__title {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin: 0;
+  color: var(--color-purple);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.stack__title::after {
+  content: '';
+  flex: 1;
+  min-width: 0.75rem;
+  border-bottom: 2px dotted var(--color-champagne-deep);
+  transform: translateY(-0.2em);
+}
+
+.stack__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 1.15rem;
+  line-height: 1.5;
+}
+
+.stack__list li {
+  display: inline;
+  color: var(--color-ink-soft);
+}
+
+/* The base the profile is built on (.NET and React) reads first. */
+.stack__core {
+  color: var(--color-ink);
+  font-weight: 700;
+}
+
+.stack__list li:not(:last-child)::after {
+  content: ', ';
+}
+
+@media (max-width: 47.99rem) {
+  .stack__group {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Contact */
+/* The section is centred, like an inscription on a case back: no boxes, only fine rules with a
+   stepped diamond between the lines, and the text engraved in champagne. */
+.section--center .section__head {
+  justify-items: center;
+  text-align: center;
+}
+
+.section--center .section__intro {
+  margin-inline: auto;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.engraving {
+  display: grid;
+  justify-items: center;
+  gap: 1.1rem;
+  text-align: center;
+}
+
+.engraving__rule {
+  width: min(100%, 20rem);
+  height: auto;
+  color: var(--color-champagne);
+  opacity: 0.75;
+}
+
+.engraving a {
+  color: var(--color-stage-ink);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  transition: color 0.3s var(--ease-out);
+}
+
+.engraving a:hover {
+  color: var(--color-champagne);
+}
+
+.engraving__label {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: var(--color-champagne);
+  font-family: var(--font-sans-stack);
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.26em;
+  text-shadow: none;
+  text-transform: uppercase;
+}
+
+.engraving__links {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* A short rule between the three, so each way of reaching me reads as its own entry. */
+.engraving__links li + li::before {
+  content: '';
+  display: block;
+  width: 2.4rem;
+  height: 1px;
+  margin: 1rem auto;
+  background: rgb(214 189 138 / 0.5);
+}
+
+/* The three ways to reach me carry the same weight: same size, same face, same engraving (a hairline
+   of light below and of shadow above, as if cut into the metal). */
+.engraving__links a {
+  display: block;
+  color: var(--tone);
+  font-family: var(--font-display-stack);
+  font-size: clamp(1.1rem, 2.6vw, 1.45rem);
+  line-height: 1.3;
+  text-shadow: 0 1px 0 rgb(0 0 0 / 0.55), 0 -1px 0 rgb(255 255 255 / 0.12);
+}
+
+/* Each way in has its own colour, label and address together: champagne for the mail, lavender for
+   LinkedIn and light violet for GitHub. They stay the same on hover, which only underlines. */
+.engraving__links li:nth-child(1) {
+  --tone: color-mix(in srgb, var(--color-champagne) 40%, #fff);
+  --tone-label: var(--color-champagne);
+}
+
+.engraving__links li:nth-child(2) {
+  --tone: #dfe2fb;
+  --tone-label: #9ea7ee;
+}
+
+.engraving__links li:nth-child(3) {
+  --tone: #e8cdff;
+  --tone-label: #b985f5;
+}
+
+.engraving__links a:hover {
+  color: var(--tone);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.3em;
+}
+
+.engraving__links .engraving__label {
+  color: var(--tone-label);
+}
+
+.contact-cv__list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cv-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.7rem 1.1rem;
+  border: 1px solid rgb(214 189 138 / 0.6);
+  color: var(--color-stage-ink);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  transition: background-color 0.3s var(--ease-out), border-color 0.3s var(--ease-out), transform 0.3s var(--ease-out);
+}
+
+.cv-link:hover {
+  border-color: var(--color-champagne);
+  background: rgb(214 189 138 / 0.14);
+  transform: translateY(-2px);
+}
+
+.cv-link__tag {
+  padding: 0.05rem 0.4rem;
+  border: 1px solid var(--color-champagne);
+  color: var(--color-champagne);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.contact-cv__title {
+  margin: 0 0 var(--space-1);
+  color: var(--color-champagne);
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+

@@ -1,0 +1,307 @@
+/* Small animations that run as each piece of a section arrives (the sweep marks it `data-in`) and reset
+   when it leaves. They exist only with the sweep on: without it (no script, reduced motion) every line,
+   bar and figure simply sits in its final place. They act on inner pieces, never on the rows the sweep
+   moves. A clip-path can only be animated between two shapes, never between a shape and `none`, so the
+   arrived state is spelled out as `inset(0)`. */
+
+/* Lines that draw themselves: the rule under each title opens from the middle, and on the timeline of
+   Experience the spine runs down while each diamond pops in. */
+html[data-sweep] .section__rule,
+html[data-sweep] .engraving__rule {
+  clip-path: inset(0 0 0 0);
+  transition: clip-path 1.4s var(--ease-out) 0.15s;
+}
+
+html[data-sweep] .section__head:not([data-in]) .section__rule,
+html[data-sweep] .engraving:not([data-in]) .engraving__rule {
+  clip-path: inset(0 50% 0 50%);
+  transition: none;
+}
+
+html[data-sweep] .timeline__entry::before {
+  clip-path: inset(0 0 0 0);
+  transition: clip-path 1.5s var(--ease-out) 0.5s;
+}
+
+html[data-sweep] .timeline__entry::after {
+  transition: transform 0.7s var(--ease-out) 0.35s;
+}
+
+html[data-sweep] .timeline__entry:not([data-in])::before {
+  clip-path: inset(0 0 100% 0);
+  transition: none;
+}
+
+html[data-sweep] .timeline__entry:not([data-in])::after {
+  transform: rotate(45deg) scale(0);
+  transition: none;
+}
+
+/* The status bars of the projects fill up, each as its row arrives, slowly enough to be seen. */
+html[data-sweep] .status__level {
+  transition: background-size 1.8s var(--ease-out) 0.35s;
+}
+
+html[data-sweep] .ledger__row:not([data-in]) .status__level {
+  background-size: 0 100%, auto;
+  transition: none;
+}
+
+/* A small «?» beside each label of the version figures says in a sentence what it measures. */
+.score {
+  position: relative;
+}
+
+.score__help {
+  position: relative;
+  flex: none;
+  align-self: flex-end;
+  width: 1.05rem;
+  height: 1.05rem;
+  margin: 0 0 0.05rem 0.3rem;
+  padding: 0;
+  border: 1px solid rgb(52 4 64 / 0.4);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-ink-soft);
+  font: inherit;
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: help;
+}
+
+/* A bigger target than the circle itself. */
+.score__help::after {
+  content: '';
+  position: absolute;
+  inset: -0.45rem;
+}
+
+.score__help:hover,
+.score__help:focus-visible,
+.score__help[aria-expanded='true'] {
+  border-color: var(--color-purple);
+  color: var(--color-purple);
+}
+
+.score__tip {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  z-index: 5;
+  width: 13.5rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 3px;
+  background: var(--color-ink);
+  color: var(--color-paper);
+  font-size: 0.78rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.4;
+  text-transform: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(4px);
+  transition: opacity 0.2s var(--ease-out), transform 0.2s var(--ease-out), visibility 0.2s;
+  pointer-events: none;
+}
+
+.score:nth-child(3n + 2) .score__tip {
+  left: 50%;
+  margin-left: -6.75rem;
+}
+
+.score:nth-child(3n) .score__tip {
+  right: 0;
+  left: auto;
+}
+
+.score__help--ghost {
+  visibility: hidden;
+}
+
+.score__helpbox {
+  display: contents;
+}
+
+.score dt:hover .score__tip,
+.score__help:focus-visible + .score__tip,
+.score__help[aria-expanded='true'] + .score__tip {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+}
+
+/* The change next to each figure appears once the count has run. */
+html[data-sweep] .score__change {
+  transition: opacity 0.7s var(--ease-out) 2.3s;
+}
+
+html[data-sweep] .version:not([data-in]) .score__change {
+  opacity: 0;
+  transition: none;
+}
+
+/* Focus on what you are looking at: pointing at (or focusing) a row, group, card or link dims the others
+   in its list and brings that one forward a little. It acts on the pieces' contents, never on the
+   pieces themselves, which the section choreography moves. */
+[data-excite] > * {
+  transition: opacity 0.3s var(--ease-out), transform 0.3s var(--ease-out);
+}
+
+/* Only where there is a real hover (mouse): on a touch screen a tap leaves the hover stuck on the piece, and
+   the others would stay dimmed until the next tap. */
+@media (hover: hover) {
+  :has(> [data-excite]:is(:hover, :focus-within)) > [data-excite]:not(:hover, :focus-within) > * {
+    opacity: 0.36;
+  }
+}
+
+/* The version cards already lean towards the mouse, so they are not also pushed sideways. */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  :has(> [data-excite]:is(:hover, :focus-within)) > [data-excite]:not(.version):is(:hover, :focus-within) > * {
+    transform: translateX(0.3rem);
+  }
+}
+
+/* Experience: how long each job lasted, in words and as a bar to scale that grows as the job arrives. */
+.timeline__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0 var(--space-2);
+}
+
+.timeline__duration {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: 0.88rem;
+}
+
+.timeline__bar {
+  display: block;
+  width: 3.2rem;
+  height: 4px;
+  background: var(--color-lavender);
+}
+
+.timeline__bar i {
+  display: block;
+  width: var(--w);
+  height: 100%;
+  background: var(--color-champagne-deep);
+  transition: width 1.8s var(--ease-out) 0.5s;
+}
+
+.timeline__entry--now .timeline__bar i {
+  background: var(--color-purple);
+}
+
+html[data-sweep] .timeline__entry:not([data-in]) .timeline__bar i {
+  width: 0;
+  transition: none;
+}
+
+/* The version cards lean a few degrees towards the mouse, with a soft sheen that follows it. */
+.tilt {
+  position: relative;
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform 0.25s var(--ease-out), opacity 0.3s var(--ease-out);
+  will-change: transform;
+}
+
+.tilt::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle at var(--mx, 50%) var(--my, 0%), rgb(255 255 255 / 0.55), transparent 55%);
+  opacity: 0;
+  transition: opacity 0.3s var(--ease-out);
+  pointer-events: none;
+}
+
+.tilt:hover::after {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tilt {
+    transform: none;
+  }
+
+  .tilt::after {
+    display: none;
+  }
+}
+
+/* A very soft champagne halo that follows the mouse on the dark sections, above the watch and below the text. */
+.cursor-light {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  width: 36rem;
+  height: 36rem;
+  margin: -18rem 0 0 -18rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(214 189 138 / 0.16), rgb(214 189 138 / 0.05) 42%, transparent 68%);
+  mix-blend-mode: screen;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.8s var(--ease-out);
+}
+
+html[data-tone='stage'] .cursor-light[data-live] {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce), (pointer: coarse) {
+  .cursor-light {
+    display: none;
+  }
+}
+
+/* The download button of the CV: its arrow bobs when pointed at, and turns into a tick when clicked. */
+.cv-link__icon {
+  flex: none;
+  fill: none;
+  stroke: var(--color-champagne);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.cv-link__tick {
+  display: none;
+}
+
+.cv-link[data-done] .cv-link__arrow {
+  display: none;
+}
+
+.cv-link[data-done] .cv-link__tick {
+  display: inline;
+}
+
+@keyframes cv-arrow {
+  0%,
+  100% {
+    transform: translateY(-1px);
+  }
+  50% {
+    transform: translateY(2.5px);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cv-link:hover .cv-link__arrow,
+  .cv-link:focus-visible .cv-link__arrow {
+    animation: cv-arrow 0.9s ease-in-out infinite;
+  }
+}

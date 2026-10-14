@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, type PointerEvent, type ReactNode } from 'react';
+import { prefersReducedMotion } from '@/lib/media';
 
 /** The most a card leans, in degrees, towards the pointer. */
 const LEAN_Y = 5;
@@ -16,7 +17,7 @@ export function Tilt({ className, children }: { className?: string; children: Re
 
   const lean = (event: PointerEvent<HTMLDivElement>) => {
     const node = ref.current;
-    if (!node || event.pointerType !== 'mouse' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (!node || event.pointerType !== 'mouse' || prefersReducedMotion()) return;
     const box = node.getBoundingClientRect();
     const x = (event.clientX - box.left) / box.width;
     const y = (event.clientY - box.top) / box.height;

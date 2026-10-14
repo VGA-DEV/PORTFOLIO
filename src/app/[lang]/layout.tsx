@@ -6,7 +6,17 @@ import { SiteHeader } from '@/components/SiteHeader';
 import { defaultLocale, locales } from '@/i18n/config';
 import { getProfile } from '@/i18n/content';
 import { getDictionary, getLocale } from '@/i18n/dictionaries';
-import './globals.css';
+// The stylesheet is split by area. The order of these imports IS the cascade order (later files override
+// earlier ones, and some rules rely on it), so keep it.
+import './styles/base.css';
+import './styles/header.css';
+import './styles/hero.css';
+import './styles/layout.css';
+import './styles/content.css';
+import './styles/footer.css';
+import './styles/watch-controls.css';
+import './styles/sweep.css';
+import './styles/interactions.css';
 
 // Self-hosted at build time by next/font: no third-party request at runtime.
 const display = Poiret_One({

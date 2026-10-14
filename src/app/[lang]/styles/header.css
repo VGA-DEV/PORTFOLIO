@@ -1,0 +1,147 @@
+/* Header */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgb(18 8 24 / 0.99);
+  color: var(--color-stage-ink);
+  border-bottom: 1px solid rgb(214 189 138 / 0.35);
+}
+
+.site-header__inner {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0 var(--space-3);
+  padding-block: 0.15rem;
+}
+
+.site-header__brand {
+  color: var(--color-stage-ink);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.site-header__nav {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent);
+}
+
+.site-header__nav::-webkit-scrollbar {
+  display: none;
+}
+
+.site-header__nav ul,
+.lang-switcher ul {
+  display: flex;
+  gap: 0.25rem var(--space-2);
+}
+
+.site-header__nav ul {
+  flex-wrap: nowrap;
+  gap: 1.1rem;
+  padding-right: 2rem;
+}
+
+/* On phones every link of the header is a target of at least 40 px: the labels are small, so the box is
+   made big around them instead of the text. */
+.site-header__brand {
+  display: flex;
+  align-items: center;
+  min-height: 2.5rem;
+}
+
+.site-header__nav a {
+  display: flex;
+  align-items: center;
+  min-height: 2.25rem;
+  white-space: nowrap;
+}
+
+.lang-switcher a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+}
+
+.site-header__nav a,
+.lang-switcher a {
+  color: var(--color-stage-ink);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.site-header__nav a:hover,
+.lang-switcher a:hover {
+  color: var(--color-champagne);
+}
+
+.lang-switcher a[aria-current='true'] {
+  color: var(--color-champagne);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.4em;
+}
+
+@media (min-width: 58rem) {
+  .site-header__inner {
+    grid-template-columns: auto 1fr auto;
+    padding-block: 0.4rem;
+  }
+
+  /* The header is a single row here, with a mouse: the large touch targets are not needed. */
+  .site-header__brand,
+  .site-header__nav a,
+  .lang-switcher a {
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .site-header__nav a {
+    display: block;
+    padding-block: 0.3rem;
+  }
+
+  .lang-switcher a {
+    display: block;
+  }
+
+  .site-header__brand {
+    display: block;
+    font-size: 0.9rem;
+    letter-spacing: 0.16em;
+  }
+
+  .site-header__nav {
+    grid-column: auto;
+    grid-row: auto;
+    justify-self: end;
+    overflow: visible;
+    mask-image: none;
+  }
+
+  .site-header__nav ul {
+    justify-content: flex-end;
+    gap: var(--space-3);
+    padding-right: 0;
+  }
+
+  .site-header__nav a,
+  .lang-switcher a {
+    font-size: 0.82rem;
+  }
+}
+

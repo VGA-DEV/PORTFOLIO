@@ -1,12 +1,10 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { WIDE_QUERY, prefersReducedMotion } from '@/lib/media';
 import { arriveProgress, dwellProgress, leaveProgress } from '@/lib/transition';
 import { arrivedAt, leftFrom, stillAt, subscribeMove } from '@/lib/watch/move';
 
-const REDUCED_QUERY = '(prefers-reduced-motion: reduce)';
-/** The two-column layout: text beside the watch, each section meant to fit one screen. */
-const WIDE_QUERY = '(min-width: 62rem) and (pointer: fine)';
 /** A section is scaled down to fit the screen, but never below this, so it stays readable. */
 const MIN_FIT = 0.8;
 
@@ -41,7 +39,7 @@ export function BackdropSweep() {
 
   useEffect(() => {
     const root = rootRef.current;
-    if (!root || window.matchMedia(REDUCED_QUERY).matches) return;
+    if (!root || prefersReducedMotion()) return;
     const html = document.documentElement;
     const sections = Array.from(document.querySelectorAll<HTMLElement>('[data-watch-section]'));
     const pins = Array.from(document.querySelectorAll<HTMLElement>('.pin'));

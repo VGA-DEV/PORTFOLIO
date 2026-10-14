@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { prefersReducedMotion } from '@/lib/media';
 
 /**
  * A very soft champagne halo that follows the mouse over the dark sections (the hero and the case
@@ -13,7 +14,7 @@ export function CursorLight() {
 
   useEffect(() => {
     const node = ref.current;
-    if (!node || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (!node || prefersReducedMotion()) return;
     let targetX = 0;
     let targetY = 0;
     let x = 0;

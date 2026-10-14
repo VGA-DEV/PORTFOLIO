@@ -1,4 +1,4 @@
-const clamp01 = (n: number) => Math.min(Math.max(n, 0), 1);
+import { clamp01, smooth } from './math';
 
 /**
  * How far the move from one section to the next has got, from 0 to 1. Each section
@@ -16,8 +16,6 @@ export function dwellProgress(dwell: HTMLElement, viewport: number) {
   // section, say) still finishes the move instead of leaving the sweep's edge showing.
   return clamp01(((viewport - rect.top) / rect.height - 0.04) / 0.92);
 }
-
-const smooth = (t: number) => t * t * (3 - 2 * t);
 
 /**
  * The change of section works row by row, top to bottom, so something is always on

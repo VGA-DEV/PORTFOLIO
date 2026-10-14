@@ -1,4 +1,6 @@
 import { Camera, Geometry, Mesh, Program, Renderer, Texture, Transform, Vec3 } from 'ogl';
+import { COARSE_QUERY } from '../media';
+import { damp, lerp, smooth } from '../math';
 import {
   BACK_HALF_X,
   BACK_HALF_Y,
@@ -15,7 +17,7 @@ import { tonneauOutline } from './smooth';
 type Rgb = readonly [number, number, number];
 type V3 = readonly [number, number, number];
 
-/** Palette, kept in step with globals.css. */
+/** Palette, kept in step with styles/base.css. */
 const COLORS = {
   gold: [1.0, 0.72, 0.3],
   rhodium: [0.78, 0.8, 0.88],
@@ -267,10 +269,6 @@ const STATES: readonly PoseState[] = [
   { anchor: [0, 0, -0.9], width: 3.4, rotation: [0.04, Math.PI + 0.12, 0], focus: [0, 0, -0.8], half: 2.4, explode: 0, show: { ...ALL, propTurntable: 1 } },
 ];
 
-const damp = (current: number, target: number, rate: number, dt: number) =>
-  current + (target - current) * (1 - Math.exp(-rate * dt));
-const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
-/** Ease out with a small overshoot, so the miniatures spring up. */
 /** Half width and half height of each miniature, in scene units, for keeping notes off it. */
 const PROP_EXTENT: Partial<Record<Group, [number, number]>> = {
   propCoaster: [1.3, 0.7],
@@ -280,8 +278,8 @@ const PROP_EXTENT: Partial<Record<Group, [number, number]>> = {
   propTurntable: [0.6, 0.6],
 };
 
+/** Ease out with a small overshoot, so the miniatures spring up. */
 const popIn = (x: number) => 1 + 2.7 * (x - 1) ** 3 + 1.7 * (x - 1) ** 2;
-const smooth = (t: number) => t * t * (3 - 2 * t);
 const lerp3 = (a: V3, b: V3, t: number): V3 => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
 
 /**
@@ -361,7 +359,7 @@ export async function createWatchScene({
     alpha: true,
     premultipliedAlpha: true,
     antialias: true,
-    dpr: Math.min(window.devicePixelRatio || 1, window.matchMedia('(pointer: coarse)').matches ? 1.25 : 1.5),
+    dpr: Math.min(window.devicePixelRatio || 1, window.matchMedia(COARSE_QUERY).matches ? 1.25 : 1.5),
     webgl: 2,
   });
   const { gl } = renderer;

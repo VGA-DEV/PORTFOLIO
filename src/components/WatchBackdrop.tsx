@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { clamp01, lerp } from '@/lib/math';
+import { NARROW_QUERY, REDUCED_QUERY } from '@/lib/media';
 import { MOVE_AT, MOVE_BACK_AT, SWAP_AT, arriveProgress, dwellProgress, leaveProgress } from '@/lib/transition';
 import { arrivedAt, setMove, setMoveLive, stillAt } from '@/lib/watch/move';
 import type { AnchorInfo, WatchScene } from '@/lib/watch/scene';
@@ -14,16 +16,10 @@ type WatchBackdropProps = {
   crown: { label: string; hint: string };
 };
 
-const REDUCED_QUERY = '(prefers-reduced-motion: reduce)';
-/** Anything but the two-column layout (text beside the watch): the page is one column and the watch sits behind the text. */
-const NARROW_QUERY = 'not all and (min-width: 62rem) and (pointer: fine)';
 /** Notes and the crown re-think where to sit this often, in milliseconds. */
 const RETHINK_MS = 140;
 const HEADER = 84;
 const MARGIN = 14;
-
-const clamp01 = (n: number) => Math.min(Math.max(n, 0), 1);
-const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
 /** Every time the watch settles on a section the note draws a fresh look: where it likes to sit and how its line bends. */
 const rollLook = () => ({

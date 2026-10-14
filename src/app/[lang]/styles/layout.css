@@ -1,0 +1,139 @@
+/* The 3D watch: a full-screen canvas behind the content, so it lives in the page
+   backgrounds instead of in a box. Section backgrounds sit under it; text above. */
+.watch-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.9s var(--ease-out);
+}
+
+html[data-watch='3d'] .watch-bg {
+  opacity: var(--watch-opacity, 1);
+}
+
+/* The flat watch only appears when the 3D cannot run (or without JavaScript). */
+.hero__watch .dial,
+.hero__watch .watch__frame {
+  opacity: 0;
+}
+
+html[data-watch='flat'] .hero__watch .dial,
+html[data-watch='flat'] .hero__watch .watch__frame {
+  opacity: 1;
+}
+
+.watch-bg__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Content above the canvas, section backgrounds below it. */
+.hero__grid,
+.section__pin > .container {
+  position: relative;
+  z-index: 2;
+}
+
+.site-footer__inner {
+  position: relative;
+  z-index: 2;
+}
+
+/* Wide screens with a precise pointer: the text takes one half of the screen and
+   the watch the other, and each section fills one screen. */
+@media (min-width: 62rem) and (pointer: fine) {
+  .section__body {
+    width: min(100%, 36rem);
+  }
+
+  .section[data-side='right'] .section__body {
+    margin-left: auto;
+  }
+
+  .section__pin {
+    display: grid;
+    align-content: center;
+    min-height: calc(100svh - var(--header-h));
+  }
+}
+
+/* Sections */
+.section {
+  position: relative;
+}
+
+.section__pin {
+  /* Generous on tall screens, tighter on short ones so a whole section still fits. */
+  padding-block: clamp(1rem, 5svh, var(--space-5));
+}
+
+/* Art Deco fan: rays from the top-right corner, pure CSS. */
+.plate::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: min(34rem, 80vw);
+  aspect-ratio: 1;
+  background: repeating-conic-gradient(
+    from 180deg at 100% 0,
+    rgb(143 122 80 / 0.55) 0 0.55deg,
+    transparent 0.5deg 6deg
+  );
+  mask-image: radial-gradient(circle at 100% 0, #000 0, transparent 68%);
+  pointer-events: none;
+}
+
+.section--stage .plate::before {
+  background: repeating-conic-gradient(
+    from 180deg at 100% 0,
+    rgb(214 189 138 / 0.34) 0 0.55deg,
+    transparent 0.55deg 6deg
+  );
+}
+
+.section__pin > .container {
+  position: relative;
+}
+
+.section__head {
+  display: grid;
+  gap: var(--space-1);
+  margin-bottom: var(--space-3);
+}
+
+.section__title {
+  margin: 0;
+  font-family: var(--font-display-stack);
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+.section__rule {
+  width: min(100%, 20rem);
+  height: auto;
+  color: var(--color-champagne-deep);
+}
+
+.section__intro {
+  max-width: 42rem;
+  margin-bottom: var(--space-4);
+  color: var(--color-ink-soft);
+}
+
+.section--stage {
+  color: var(--color-stage-ink);
+}
+
+.section--stage .section__rule {
+  color: var(--color-champagne);
+}
+
+.section--stage .section__intro {
+  color: var(--color-stage-soft);
+}
+
