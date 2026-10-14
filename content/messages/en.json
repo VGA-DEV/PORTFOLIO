@@ -179,7 +179,7 @@
     }
   },
   "crown": {
-    "label": "Wind the crown: go to the next section",
+    "label": "Turn the crown: go to the next section",
     "hint": "Turn the crown"
   }
 }

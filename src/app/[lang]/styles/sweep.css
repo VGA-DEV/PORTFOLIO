@@ -118,17 +118,29 @@ html[data-sweep] .pin {
 }
 
 /* Each section is pulled up over the end of the dwell before it, so its content is in
-   place just as the dwell ends; until then it is hidden. */
+   place just as the dwell ends. The section itself is never painted (its plate and the like); only its
+   content (the .pin) shows, and only when it has arrived. */
 html[data-sweep] .section {
   margin-top: calc(-1 * var(--overlap, 0px));
+  visibility: hidden;
 }
 
-/* A section's content shows only while it has arrived (`data-away` is put on it by the sweep). It is made
-   transparent, not `visibility: hidden`, so screen readers still find it and the tab order still reaches it;
-   it cannot be clicked, and focusing something in it brings the page to the section. */
+html[data-sweep] .pin {
+  visibility: visible;
+}
+
+/* A section whose content has not arrived is marked data-away by the sweep. It is made transparent, not
+   hidden, so screen readers still find it and the tab order still reaches it; it cannot be clicked, and
+   focusing something in it brings the page to the section. */
 html[data-sweep] .pin[data-away] {
   opacity: 0;
   pointer-events: none;
+}
+
+/* Only for the first frames after the sweep switches on, so that its first rearrangement of the page is not
+   counted as layout shift (the browser ignores what is hidden). */
+html[data-settling] .pin[data-away] {
+  visibility: hidden;
 }
 
 /* On small screens the watch is only a faint background: its notes and miniatures are not

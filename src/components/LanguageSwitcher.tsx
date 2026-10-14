@@ -41,7 +41,7 @@ export function LanguageSwitcher({ current, label }: LanguageSwitcherProps) {
               href={`/${locale}/`}
               hrefLang={locale}
               lang={locale}
-              aria-label={localeNames[locale]}
+              aria-label={`${locale.toUpperCase()} · ${localeNames[locale]}`}
               aria-current={locale === current ? 'true' : undefined}
               onClick={locale === current ? undefined : rememberPosition}
             >

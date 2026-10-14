@@ -64,6 +64,13 @@ export function BackdropSweep() {
       return layer;
     });
     html.dataset.sweep = 'on';
+    // The sweep moves the page about when it switches on. For those first frames the sections that are not
+    // up are still `visibility: hidden` (see the CSS), which is what keeps that move from counting as layout
+    // shift; then they become transparent instead, so they stay in the accessibility tree.
+    html.dataset.settling = 'true';
+    let settle = requestAnimationFrame(() => {
+      settle = requestAnimationFrame(() => delete html.dataset.settling);
+    });
 
     const lastAngle: number[] = nodes.map(() => -1);
     const lastStyle = new Map<HTMLElement, string>();
@@ -266,6 +273,8 @@ export function BackdropSweep() {
       html.style.removeProperty('scroll-padding-top');
       nodes.forEach((node) => node.remove());
       items.flat().forEach((el) => delete el.dataset.in);
+      cancelAnimationFrame(settle);
+      delete html.dataset.settling;
       delete html.dataset.sweep;
     };
   }, []);
