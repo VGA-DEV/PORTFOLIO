@@ -2,6 +2,7 @@ import metrics from '@content/evolution/metrics.json';
 import type { Locale } from '@/i18n/config';
 import { formatMetric } from '@/lib/metric-format';
 import { CountUp } from './CountUp';
+import { ScoreHelp } from './ScoreHelp';
 import { Tilt } from './Tilt';
 
 type Version = {
@@ -75,20 +76,19 @@ export function EvolutionArchive({
                 <dt>
                   <span>{name}</span>
                   {first ? (
-                    <button
-                      type='button'
-                      className='score__help'
-                      aria-label={`${labels.metrics.whatIs} ${name}`}
-                      aria-describedby={tipId}
-                    >
-                      ?
-                    </button>
+                    <ScoreHelp
+                      label={`${labels.metrics.whatIs} ${name}`}
+                      tipId={tipId}
+                      text={labels.metrics.help[row.id]}
+                    />
                   ) : (
-                    <span className='score__help score__help--ghost' aria-hidden='true' />
+                    <>
+                      <span className='score__help score__help--ghost' aria-hidden='true' />
+                      <span aria-hidden='true' className='score__tip'>
+                        {labels.metrics.help[row.id]}
+                      </span>
+                    </>
                   )}
-                  <span id={tipId} role={first ? 'tooltip' : undefined} aria-hidden={first ? undefined : true} className='score__tip'>
-                    {labels.metrics.help[row.id]}
-                  </span>
                 </dt>
                 <dd>
                   <CountUp to={value} unit={row.unit} locale={locale} order={metrics.rows.indexOf(row)} />

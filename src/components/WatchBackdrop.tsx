@@ -259,13 +259,18 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       button.style.transform = `translate(${p.x.toFixed(1)}px, ${p.y.toFixed(1)}px) translate(-50%, -50%)`;
       button.style.width = button.style.height = `${size.toFixed(1)}px`;
       button.dataset.ready = 'true';
+      // Where there is no room for the watch beside the text (one column), it goes behind the text once the
+      // hero is left: a faint background has no crown worth turning, so the control and its hint go away
+      // (they would only sit over the text). On the hero, where the watch is big, they stay.
+      const behind = narrow.matches && a.position > 0.35;
+      button.dataset.behind = behind ? 'true' : 'false';
       // The hint sits to the right of the crown, or under it when the edge of the screen is too close.
       button.dataset.hint = p.x + size / 2 + 170 > vw ? 'below' : 'right';
 
       // A thin thread ties the stepped-aside control back to the crown it belongs to.
       const tether = tetherRef.current;
       if (tether) {
-        const far = Math.hypot(p.x - a.crown.x, p.y - a.crown.y) > size * 0.8;
+        const far = !behind && Math.hypot(p.x - a.crown.x, p.y - a.crown.y) > size * 0.8;
         tether.style.opacity = far ? '1' : '0';
         tether.setAttribute('x1', p.x.toFixed(1));
         tether.setAttribute('y1', p.y.toFixed(1));

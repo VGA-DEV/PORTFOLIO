@@ -202,12 +202,12 @@ code {
   grid-template-columns: 1fr auto;
   align-items: center;
   gap: 0 var(--space-3);
-  padding-block: 0.4rem;
+  padding-block: 0.15rem;
 }
 
 .site-header__brand {
   color: var(--color-stage-ink);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.1em;
   white-space: nowrap;
@@ -240,10 +240,27 @@ code {
   padding-right: 2rem;
 }
 
+/* On phones every link of the header is a target of at least 40 px: the labels are small, so the box is
+   made big around them instead of the text. */
+.site-header__brand {
+  display: flex;
+  align-items: center;
+  min-height: 2.5rem;
+}
+
 .site-header__nav a {
-  display: block;
-  padding-block: 0.3rem;
+  display: flex;
+  align-items: center;
+  min-height: 2.25rem;
   white-space: nowrap;
+}
+
+.lang-switcher a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
 }
 
 .site-header__nav a,
@@ -263,15 +280,36 @@ code {
 
 .lang-switcher a[aria-current='true'] {
   color: var(--color-champagne);
-  border-bottom: 1px solid var(--color-champagne);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.4em;
 }
 
 @media (min-width: 58rem) {
   .site-header__inner {
     grid-template-columns: auto 1fr auto;
+    padding-block: 0.4rem;
+  }
+
+  /* The header is a single row here, with a mouse: the large touch targets are not needed. */
+  .site-header__brand,
+  .site-header__nav a,
+  .lang-switcher a {
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .site-header__nav a {
+    display: block;
+    padding-block: 0.3rem;
+  }
+
+  .lang-switcher a {
+    display: block;
   }
 
   .site-header__brand {
+    display: block;
     font-size: 0.9rem;
     letter-spacing: 0.16em;
   }
@@ -842,7 +880,7 @@ html[data-watch='flat'] .hero__watch .watch__frame {
   border: 1px solid var(--color-purple);
   color: var(--color-purple);
   font-family: var(--font-sans-stack);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.16em;
   line-height: 1.4;
@@ -871,6 +909,13 @@ html[data-watch='flat'] .hero__watch .watch__frame {
 .version--now .version__card {
   border-color: var(--color-ink);
   background: rgb(255 255 255 / 0.7);
+}
+
+/* On a phone the card gives the three figures per row the width they need. */
+@media (max-width: 47.99rem) {
+  .version__card {
+    padding-inline: 0.9rem;
+  }
 }
 
 .version__summary {
@@ -919,7 +964,7 @@ html[data-watch='flat'] .hero__watch .watch__frame {
   align-items: flex-end;
   min-height: 2.5em;
   color: var(--color-ink-soft);
-  font-size: 0.7rem;
+  font-size: 0.74rem;
   line-height: 1.25;
 }
 
@@ -1247,6 +1292,15 @@ html[data-watch='flat'] .hero__watch .watch__frame {
 .crown-control:focus-visible,
 .crown-control[data-held] {
   opacity: 1;
+}
+
+/* Where the watch sits faintly behind the text (one column, past the hero) there is no crown to turn:
+   the control and its hint fade away, out of reach and out of the tab order. */
+.crown-control[data-behind='true'] {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.3s var(--ease-out), visibility 0s linear 0.3s;
 }
 
 html[data-watch='3d'] .crown-control[data-ready='true'] {
@@ -1709,7 +1763,8 @@ html[data-sweep] .ledger__row:not([data-in]) .status__level {
 }
 
 .score__help:hover,
-.score__help:focus {
+.score__help:focus-visible,
+.score__help[aria-expanded='true'] {
   border-color: var(--color-purple);
   color: var(--color-purple);
 }
@@ -1750,8 +1805,13 @@ html[data-sweep] .ledger__row:not([data-in]) .status__level {
   visibility: hidden;
 }
 
+.score__helpbox {
+  display: contents;
+}
+
 .score dt:hover .score__tip,
-.score__help:focus + .score__tip {
+.score__help:focus-visible + .score__tip,
+.score__help[aria-expanded='true'] + .score__tip {
   opacity: 1;
   visibility: visible;
   transform: none;
@@ -1774,12 +1834,16 @@ html[data-sweep] .version:not([data-in]) .score__change {
   transition: opacity 0.3s var(--ease-out), transform 0.3s var(--ease-out);
 }
 
-:has(> [data-excite]:is(:hover, :focus-within)) > [data-excite]:not(:hover, :focus-within) > * {
-  opacity: 0.36;
+/* Only where there is a real hover (mouse): on a touch screen a tap leaves the hover stuck on the piece, and
+   the others would stay dimmed until the next tap. */
+@media (hover: hover) {
+  :has(> [data-excite]:is(:hover, :focus-within)) > [data-excite]:not(:hover, :focus-within) > * {
+    opacity: 0.36;
+  }
 }
 
 /* The version cards already lean towards the mouse, so they are not also pushed sideways. */
-@media (prefers-reduced-motion: no-preference) {
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
   :has(> [data-excite]:is(:hover, :focus-within)) > [data-excite]:not(.version):is(:hover, :focus-within) > * {
     transform: translateX(0.3rem);
   }

@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Josefin_Sans, Poiret_One } from 'next/font/google';
 import { ScrollRestore } from '@/components/ScrollRestore';
 import { SiteFooter } from '@/components/SiteFooter';
@@ -28,6 +28,11 @@ export const dynamicParams = false;
 export function generateStaticParams() {
   return locales.map((lang) => ({ lang }));
 }
+
+// The browser bar on phones takes the colour of the dark header.
+export const viewport: Viewport = {
+  themeColor: '#120818',
+};
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
