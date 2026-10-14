@@ -2,7 +2,6 @@ import metrics from '@content/evolution/metrics.json';
 import type { Locale } from '@/i18n/config';
 import { formatMetric } from '@/lib/metric-format';
 import { CountUp } from './CountUp';
-import { ScoreHelp } from './ScoreHelp';
 import { Tilt } from './Tilt';
 
 type Version = {
@@ -21,9 +20,7 @@ type Labels = {
     mobile: string;
     desktop: string;
     better: string;
-    whatIs: string;
     rows: Record<string, string>;
-    help: Record<string, string>;
   };
 };
 
@@ -36,9 +33,8 @@ const improves = (unit: string, change: number) => (unit === 'score' ? change > 
 /**
  * The archive of versions: one card per version with its own Lighthouse numbers, mobile and desktop.
  * From the second version on, each number counts from its old value to the new one when the section
- * arrives, and carries the change against the version before it. Each label has a small «?» that says
- * in a sentence what it measures. The runs are kept per version in `content/evolution/metrics.json`:
- * adding a version is adding its entry there and in the dictionaries.
+ * arrives, and carries the change against the version before it. The runs are kept per version in
+ * `content/evolution/metrics.json`: adding a version is adding its entry there and in the dictionaries.
  */
 export function EvolutionArchive({
   locale,
@@ -65,31 +61,10 @@ export function EvolutionArchive({
             const value = run[device][key];
             const change = before ? value - before[device][key] : 0;
             const better = before !== null && improves(row.unit, change);
-            const tipId = `tip-${version.id}-${device}-${row.id}`;
             const name = labels.metrics.rows[row.id];
-            // The same six labels repeat in every column. Only the first set shows a «?», is in the tab
-            // order and is read out; in the others the label itself answers to the mouse, and a hidden
-            // placeholder keeps the labels wrapping the same way, so nothing adds noise or tab stops.
-            const first = version.current && device === 'mobile';
             return (
               <div key={row.id} className='score'>
-                <dt>
-                  <span>{name}</span>
-                  {first ? (
-                    <ScoreHelp
-                      label={`${labels.metrics.whatIs} ${name}`}
-                      tipId={tipId}
-                      text={labels.metrics.help[row.id]}
-                    />
-                  ) : (
-                    <>
-                      <span className='score__help score__help--ghost' aria-hidden='true' />
-                      <span aria-hidden='true' className='score__tip'>
-                        {labels.metrics.help[row.id]}
-                      </span>
-                    </>
-                  )}
-                </dt>
+                <dt>{name}</dt>
                 <dd>
                   <CountUp to={value} unit={row.unit} locale={locale} order={metrics.rows.indexOf(row)} />
                   {before === null ? null : better ? (

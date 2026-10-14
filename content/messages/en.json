@@ -131,7 +131,6 @@
       "mobile": "Mobile",
       "desktop": "Desktop",
       "better": "Change from the previous version: ",
-      "whatIs": "What it measures:",
       "rows": {
         "performance": "Performance",
         "accessibility": "Accessibility",
@@ -139,14 +138,6 @@
         "seo": "SEO",
         "lcp": "Load (LCP)",
         "cls": "Shifts (CLS)"
-      },
-      "help": {
-        "performance": "How fast the page loads and responds. From 0 to 100: higher is better.",
-        "accessibility": "How easy it is to use for everyone, including with a screen reader or only a keyboard. From 0 to 100.",
-        "bestPractices": "Whether the site follows good security and code practices. From 0 to 100.",
-        "seo": "How well a search engine can understand the page. From 0 to 100.",
-        "lcp": "Seconds until the main content shows. Lower is better.",
-        "cls": "How much the content moves while it loads. 0 is best."
       }
     }
   },

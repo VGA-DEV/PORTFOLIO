@@ -131,7 +131,6 @@
       "mobile": "Móvil",
       "desktop": "Escritorio",
       "better": "Cambio respecto a la versión anterior: ",
-      "whatIs": "Qué mide",
       "rows": {
         "performance": "Rendimiento",
         "accessibility": "Accesibilidad",
@@ -139,14 +138,6 @@
         "seo": "SEO",
         "lcp": "Carga (LCP)",
         "cls": "Saltos (CLS)"
-      },
-      "help": {
-        "performance": "Lo rápido que carga y responde la página. De 0 a 100: más es mejor.",
-        "accessibility": "Lo fácil que es usarla para todo el mundo, también con lector de pantalla o solo con teclado. De 0 a 100.",
-        "bestPractices": "Si la web sigue buenas prácticas de seguridad y de código. De 0 a 100.",
-        "seo": "Lo bien que un buscador puede entender la página. De 0 a 100.",
-        "lcp": "Los segundos que tarda en verse el contenido principal. Menos es mejor.",
-        "cls": "Cuánto se mueve el contenido mientras carga. 0 es lo mejor."
       }
     }
   },
