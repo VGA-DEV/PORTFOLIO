@@ -1,6 +1,6 @@
 'use client';
 
-import { locales, type Locale } from '@/i18n/config';
+import { localeNames, locales, type Locale } from '@/i18n/config';
 
 type LanguageSwitcherProps = {
   current: Locale;
@@ -41,6 +41,7 @@ export function LanguageSwitcher({ current, label }: LanguageSwitcherProps) {
               href={`/${locale}/`}
               hrefLang={locale}
               lang={locale}
+              aria-label={localeNames[locale]}
               aria-current={locale === current ? 'true' : undefined}
               onClick={locale === current ? undefined : rememberPosition}
             >

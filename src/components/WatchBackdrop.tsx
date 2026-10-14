@@ -350,7 +350,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       <div className='watch-bg' aria-hidden='true'>
         <canvas className='watch-bg__canvas' ref={canvasRef} />
       </div>
-      <div className='callout' ref={calloutRef} data-tone='stage' data-edge='top' data-empty={note ? undefined : 'true'}>
+      <div className='callout' ref={calloutRef} aria-hidden='true' data-tone='stage' data-edge='top' data-empty={note ? undefined : 'true'}>
         <svg className='callout__line' aria-hidden='true' focusable='false'>
           <path ref={lineRef} pathLength='1' />
           <circle ref={dotRef} r='3.5' />

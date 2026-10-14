@@ -11,7 +11,7 @@ export function scanText(wide: boolean): Rect[] {
   if (wide) {
     const pad = 14;
     document.querySelectorAll<HTMLElement>('[data-watch-section] :is(.section__body, .hero__text)').forEach((el) => {
-      if (el.closest<HTMLElement>('.pin')?.style.visibility === 'hidden') return;
+      if (el.closest<HTMLElement>('.pin')?.dataset.away) return;
       const r = el.getBoundingClientRect();
       if (r.width > 0 && r.bottom > 0 && r.top < vh) {
         out.push({ l: r.left - pad, t: r.top - pad, r: r.right + pad, b: r.bottom + pad });

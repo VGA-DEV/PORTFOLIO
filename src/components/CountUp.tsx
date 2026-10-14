@@ -73,9 +73,14 @@ export function CountUp({
     };
   }, [to, unit, locale, order]);
 
+  // The animated text passes through 0 on its way up, so assistive technology reads the real value instead.
+  const final = formatMetric(locale, unit)(to);
   return (
-    <span ref={ref} suppressHydrationWarning>
-      {formatMetric(locale, unit)(to)}
-    </span>
+    <>
+      <span className='sr-only'>{final}</span>
+      <span ref={ref} aria-hidden='true' suppressHydrationWarning>
+        {final}
+      </span>
+    </>
   );
 }

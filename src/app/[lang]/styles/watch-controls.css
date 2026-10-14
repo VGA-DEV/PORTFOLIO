@@ -16,6 +16,8 @@
   opacity: 0.6;
   transition: opacity 0.25s var(--ease-out);
   --ctl: var(--color-champagne);
+  /* The focus ring over the dark sections is champagne; the light ones take purple (below). */
+  --focus: var(--color-champagne);
   --ctl-disc: rgb(18 8 24 / 0.5);
   --progress: 0;
   --turn: 0deg;
@@ -43,6 +45,7 @@ html[data-watch='3d'] .crown-control[data-ready='true'] {
 /* On the light sections the control takes dark ink, so it stays readable. */
 .crown-control[data-tone='paper'] {
   --ctl: #5b4a22;
+  --focus: var(--color-purple);
   --ctl-disc: rgb(243 244 252 / 0.75);
 }
 

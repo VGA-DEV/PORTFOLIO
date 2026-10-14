@@ -95,6 +95,7 @@ export function EvolutionArchive({
             <div className='ledger__head'>
               <h3 className='ledger__title'>
                 {version.name}
+                {version.current ? ' ' : null}
                 {version.current ? <span className='ledger__badge'>{labels.currentLabel}</span> : null}
               </h3>
               {version.tag ? (

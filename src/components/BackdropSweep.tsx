@@ -164,11 +164,14 @@ export function BackdropSweep() {
             heldPins.delete(pin);
           }
         }
-        // Out of sight, and out of reach, until it starts to arrive and once it has gone.
+        // Out of sight until it starts to arrive and once it has gone. It stays in the page for assistive
+        // technology (opacity, not visibility): only a section that has not arrived is marked, and the CSS
+        // makes it transparent and unclickable.
         const visible = !(k > 0 && before >= 0 && before < 0.4) && !(own >= 0.53);
         if (lastVisible.get(pin) !== visible) {
           lastVisible.set(pin, visible);
-          pin.style.visibility = visible ? 'visible' : 'hidden';
+          if (visible) delete pin.dataset.away;
+          else pin.dataset.away = 'true';
         }
       });
     };
@@ -230,16 +233,25 @@ export function BackdropSweep() {
     window.addEventListener('resize', onScroll, { passive: true });
     window.addEventListener('resize', setPins, { passive: true });
     const unsubscribe = subscribeMove(onScroll);
+    // Tabbing (or a screen reader) into a section that has not arrived takes the page to it, the way a link in
+    // the menu does, instead of leaving the focus on something invisible.
+    const onFocusIn = (event: FocusEvent) => {
+      const target = event.target instanceof Element ? event.target : null;
+      const pin = target?.closest<HTMLElement>('.pin');
+      if (pin?.dataset.away) pin.closest('section')?.scrollIntoView({ block: 'start', behavior: 'instant' });
+    };
+    document.addEventListener('focusin', onFocusIn);
     return () => {
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onScroll);
       window.removeEventListener('resize', setPins);
       unsubscribe();
+      document.removeEventListener('focusin', onFocusIn);
       resizeObserver.disconnect();
       cancelAnimationFrame(frame);
       pins.forEach((pin) => {
         pin.style.removeProperty('top');
-        pin.style.removeProperty('visibility');
+        delete pin.dataset.away;
         pin.style.removeProperty('transform');
         pin.style.removeProperty('height');
         pin.style.removeProperty('min-height');
