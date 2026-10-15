@@ -114,7 +114,7 @@
         "name": "Versión 2",
         "current": true,
         "measure": "Lighthouse en local · 13 oct 2026. Se repetirá con la web publicada.",
-        "summary": "Rehecha desde cero con Next.js y TypeScript, con un reloj en 3D, dos idiomas y el rendimiento y la accesibilidad medidos."
+        "summary": "Rehecha desde cero con Next.js y TypeScript. Tiene un reloj en 3D y dos idiomas, y su rendimiento y accesibilidad están medidos."
       },
       {
         "id": "v1",

@@ -49,7 +49,7 @@
       },
       {
         "name": "GYM_RECORDS",
-        "summary": "An Android app to log training and food, and check whether routines and diet help reach the goals. Pending: I want to take it forward.",
+        "summary": "An Android app to log workouts and meals, and to check whether routines and diet help you reach your goals. Pending: I want to see it through.",
         "status": "pending",
         "stack": [
           "Kotlin",
@@ -114,7 +114,7 @@
         "name": "Version 2",
         "current": true,
         "measure": "Lighthouse run locally · 13 Oct 2026. To be repeated on the published site.",
-        "summary": "Rebuilt from scratch with Next.js and TypeScript, with a 3D watch, two languages, and performance and accessibility measured."
+        "summary": "Rebuilt from scratch with Next.js and TypeScript. It has a 3D watch and two languages, and its performance and accessibility are measured."
       },
       {
         "id": "v1",
@@ -122,7 +122,7 @@
         "name": "Version 1",
         "current": false,
         "measure": "PageSpeed Insights · 6 Oct 2026",
-        "summary": "The first version, with Angular 16 and Angular Material. Content written by hand in one template and a contact form through EmailJS."
+        "summary": "The first version, with Angular 16 and Angular Material. Content written by hand in a single template, and a contact form using EmailJS."
       }
     ],
     "tagLabel": "Git tag",
@@ -159,11 +159,11 @@
   "notes": {
     "projects": {
       "part": "The whole",
-      "text": "A polished watch is the result of all its parts, from the largest to the smallest. A project is too: it comes from all my skills and areas of work together."
+      "text": "A polished watch is the result of all its parts, from the largest to the smallest. So is a project: it comes from all my skills and areas of work together."
     },
     "experience": {
       "part": "Dial and hands",
-      "text": "Time passes like the hands of a watch, and that time is what gives experience after each challenge."
+      "text": "Time passes like the hands of a watch, and that time is what builds experience after each challenge."
     },
     "stack": {
       "part": "Movement",
