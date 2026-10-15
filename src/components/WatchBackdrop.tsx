@@ -100,8 +100,17 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       // (they would only sit over the text). On the hero, where the watch is big, they stay.
       const behind = narrow.matches && a.position > 0.35;
       button.dataset.behind = behind ? 'true' : 'false';
-      // The hint sits to the right of the crown, or under it when the edge of the screen is too close.
-      button.dataset.hint = p.x + size / 2 + 170 > viewport.w ? 'below' : 'right';
+      // The hint sits to the right of the crown, or under it when the edge of the screen is too close (and then
+      // pulled to that edge, so its text, about 180 px wide, is not cut off).
+      const hintHalf = 95;
+      button.dataset.hint =
+        p.x + size / 2 + 170 <= viewport.w
+          ? 'right'
+          : p.x + hintHalf > viewport.w
+            ? 'below-end'
+            : p.x - hintHalf < 0
+              ? 'below-start'
+              : 'below';
 
       // A thin thread ties the stepped-aside control back to the crown it belongs to.
       const tether = tetherRef.current;

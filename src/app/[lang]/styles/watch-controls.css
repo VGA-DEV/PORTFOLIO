@@ -134,6 +134,22 @@ html[data-watch='3d'] .crown-control[data-ready='true'] {
   transform: translateX(-50%);
 }
 
+/* Under the crown but pulled to the screen edge it is near, so the text is not cut off. */
+.crown-control[data-hint='below-end'] .crown-control__hint,
+.crown-control[data-hint='below-start'] .crown-control__hint {
+  top: calc(100% + 0.2rem);
+  transform: none;
+}
+
+.crown-control[data-hint='below-end'] .crown-control__hint {
+  right: 0;
+  left: auto;
+}
+
+.crown-control[data-hint='below-start'] .crown-control__hint {
+  left: 0;
+}
+
 .crown-control:not([data-used]) .crown-control__hint,
 .crown-control:hover .crown-control__hint,
 .crown-control:focus-visible .crown-control__hint {

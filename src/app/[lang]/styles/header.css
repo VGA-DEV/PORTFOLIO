@@ -21,7 +21,9 @@
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.1em;
-  white-space: nowrap;
+  /* On a narrow phone the name goes onto two lines rather than pushing the language links off the screen. */
+  line-height: 1.25;
+  text-wrap: balance;
   text-decoration: none;
   text-transform: uppercase;
 }
@@ -123,6 +125,7 @@
     display: block;
     font-size: 0.9rem;
     letter-spacing: 0.16em;
+    white-space: nowrap;
   }
 
   .site-header__nav {
