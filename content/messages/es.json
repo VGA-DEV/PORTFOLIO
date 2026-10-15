@@ -1,7 +1,9 @@
 {
   "meta": {
     "title": "Víctor Manuel Gómez Álvarez · Desarrollador Full Stack",
-    "description": "Portfolio de Víctor Manuel Gómez Álvarez, desarrollador Full Stack con base en .NET y React. Madrid."
+    "description": "Portfolio de Víctor Manuel Gómez Álvarez, desarrollador Full Stack con base en .NET y React en Madrid. Proyectos, experiencia y stack.",
+    "jobTitle": "Desarrollador Full Stack",
+    "imageAlt": "Víctor Manuel Gómez Álvarez, desarrollador Full Stack, junto a un reloj de pulsera en 3D"
   },
   "a11y": {
     "skipToContent": "Saltar al contenido",

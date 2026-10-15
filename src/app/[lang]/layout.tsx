@@ -4,7 +4,7 @@ import { ScrollRestore } from '@/components/ScrollRestore';
 import { SiteFooter } from '@/components/SiteFooter';
 import { SiteHeader } from '@/components/SiteHeader';
 import { defaultLocale, locales } from '@/i18n/config';
-import { getProfile } from '@/i18n/content';
+import { getProfile, getStack } from '@/i18n/content';
 import { getDictionary, getLocale } from '@/i18n/dictionaries';
 // The stylesheet is split by area. The order of these imports IS the cascade order (later files override
 // earlier ones, and some rules rely on it), so keep it.
@@ -48,6 +48,12 @@ export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
   const dict = await getDictionary();
   const { siteUrl } = getProfile();
+  const image = {
+    url: `/og-${locale}.jpg`,
+    width: 1200,
+    height: 630,
+    alt: dict.meta.imageAlt,
+  };
 
   return {
     metadataBase: new URL(siteUrl),
@@ -65,8 +71,16 @@ export async function generateMetadata(): Promise<Metadata> {
       title: dict.meta.title,
       description: dict.meta.description,
       url: `/${locale}/`,
+      siteName: dict.hero.name,
       locale: locale === 'es' ? 'es_ES' : 'en_GB',
-      // TODO (Phase 4): add an Open Graph image.
+      alternateLocale: locale === 'es' ? ['en_GB'] : ['es_ES'],
+      images: [image],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: dict.meta.title,
+      description: dict.meta.description,
+      images: [image],
     },
   };
 }
@@ -74,10 +88,30 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function RootLayout({ children }: LayoutProps<'/[lang]'>) {
   const locale = await getLocale();
   const dict = await getDictionary();
+  const { siteUrl, linkedin, github } = getProfile();
+  // What a search engine can read about the person: only what the page already says publicly.
+  const person = {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: dict.hero.name,
+    jobTitle: dict.meta.jobTitle,
+    description: dict.meta.description,
+    url: `${siteUrl}/${locale}/`,
+    image: `${siteUrl}/og-${locale}.jpg`,
+    address: { '@type': 'PostalAddress', addressLocality: 'Madrid', addressCountry: 'ES' },
+    worksFor: { '@type': 'Organization', name: dict.experience.items.find((item) => item.current)?.company },
+    knowsAbout: getStack(locale).flatMap((group) => group.items.map((item) => item.label)),
+    sameAs: [linkedin, github],
+  };
 
   return (
     <html lang={locale} className={`${display.variable} ${sans.variable}`}>
       <body>
+        <script
+          type='application/ld+json'
+          // The data with every "<" escaped, so nothing in it can close the tag.
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(person).replace(/</g, '\\u003c') }}
+        />
         <noscript>
           <style>{'.hero__watch .dial,.hero__watch .watch__frame{opacity:1!important}'}</style>
         </noscript>
