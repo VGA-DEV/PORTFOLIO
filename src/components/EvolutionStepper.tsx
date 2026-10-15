@@ -2,14 +2,22 @@
 
 import { useEffect, useRef, type ReactNode } from 'react';
 import { WIDE_QUERY } from '@/lib/media';
-import { arriveProgress, leadProgress, leaveProgress } from '@/lib/transition';
+import { clamp01, smooth } from '@/lib/math';
+import { leadProgress } from '@/lib/transition';
 
 /** The step is the scroll through the lead that ends the section: past this, the numbers are the ones in view. */
 const NUMBERS_IN = 0.6;
 const NUMBERS_OUT = 0.5;
 /** How briskly the swap follows the scroll (a critically damped spring): a fast flick of the wheel, or a
-    jank in the page, glides in about half a second instead of showing up in a single frame. */
-const OMEGA = 9;
+    jank in the page, glides in about a second instead of showing up in a single frame. */
+const OMEGA = 5.5;
+
+/**
+ * The design leaves first, piece by piece, and is gone (second half of the step not yet started) before the
+ * first piece of the numbers appears: they never share the screen. `r` is the piece's place, 0 first to 1 last.
+ */
+const leave = (s: number, r: number) => smooth(clamp01((s - (0.02 + 0.2 * r)) / 0.26));
+const arrive = (s: number, r: number) => smooth(clamp01((s - (0.53 + 0.16 * r)) / 0.31));
 
 /**
  * Evolution says two things, the design (the comparer) and the numbers (the versions and their scores), and
@@ -77,12 +85,12 @@ export function EvolutionStepper({
     const draw = (s: number) => {
       outItems.forEach((el, i) => {
         const r = outItems.length > 1 ? i / (outItems.length - 1) : 0;
-        const gone = leaveProgress(s, r);
+        const gone = leave(s, r);
         set(el, 1 - gone, -34 * gone);
       });
       inItems.forEach((el, i) => {
         const r = inItems.length > 1 ? i / (inItems.length - 1) : 0;
-        const here = arriveProgress(s, r);
+        const here = arrive(s, r);
         set(el, here, 46 * (1 - here), true);
       });
       const view = s > NUMBERS_OUT ? 'numbers' : 'design';

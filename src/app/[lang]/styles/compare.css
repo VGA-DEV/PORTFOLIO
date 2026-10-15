@@ -266,25 +266,12 @@
     transform: rotate(45deg);
   }
 
-  .compare__arrow {
+  .compare__arrows {
     position: absolute;
-    top: 50%;
-    width: 0;
-    height: 0;
-    margin-top: -0.18rem;
-    border: 0.18rem solid transparent;
-  }
-
-  .compare__arrow--left {
-    left: 0.4rem;
-    border-right: 0.27rem solid var(--color-ink);
-    border-left: 0;
-  }
-
-  .compare__arrow--right {
-    right: 0.4rem;
-    border-left: 0.27rem solid var(--color-ink);
-    border-right: 0;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: var(--color-ink);
   }
 
   /* Pointed at, held or focused, the grip swells; until it has been used, a ring breathes around it. */

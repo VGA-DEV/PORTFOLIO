@@ -230,8 +230,10 @@ export function DesignCompare({
           onKeyDown={onKeyDown}
         >
           <span className='compare__grip' aria-hidden='true'>
-            <i className='compare__arrow compare__arrow--left' />
-            <i className='compare__arrow compare__arrow--right' />
+            {/* Drawn symmetric about the centre of its own box, so the arrows sit exactly on the diamond's axis. */}
+            <svg className='compare__arrows' viewBox='0 0 16 16' focusable='false'>
+              <path d='M6.4 5.2 6.4 10.8 3.4 8Z M9.6 5.2 9.6 10.8 12.6 8Z' />
+            </svg>
           </span>
         </div>
       </div>
