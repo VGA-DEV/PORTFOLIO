@@ -95,10 +95,10 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       button.style.transform = `translate(${p.x.toFixed(1)}px, ${p.y.toFixed(1)}px) translate(-50%, -50%)`;
       button.style.width = button.style.height = `${size.toFixed(1)}px`;
       button.dataset.ready = 'true';
-      // Where there is no room for the watch beside the text (one column), it goes behind the text once the
-      // hero is left: a faint background has no crown worth turning, so the control and its hint go away
-      // (they would only sit over the text). On the hero, where the watch is big, they stay.
-      const behind = narrow.matches && a.position > 0.35;
+      // Where there is no room for the watch beside the text (one column: phones and touch tablets) the watch is
+      // a background behind the text, the hero included, so there is no crown to turn: the control and its hint
+      // are never shown there (they would only sit over the text).
+      const behind = narrow.matches;
       button.dataset.behind = behind ? 'true' : 'false';
       // The hint sits to the right of the crown, or under it when the edge of the screen is too close (and then
       // pulled to that edge, so its text, about 180 px wide, is not cut off).

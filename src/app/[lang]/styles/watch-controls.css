@@ -29,8 +29,8 @@
   opacity: 1;
 }
 
-/* Where the watch sits faintly behind the text (one column, past the hero) there is no crown to turn:
-   the control and its hint fade away, out of reach and out of the tab order. */
+/* Where the watch is only a background behind the text (one column, the hero included) there is no crown to
+   turn: the control and its hint are out of sight, out of reach and out of the tab order. */
 .crown-control[data-behind='true'] {
   opacity: 0;
   visibility: hidden;
