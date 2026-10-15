@@ -16,7 +16,7 @@ export function orbitAngles(sides: readonly number[], count: number) {
 }
 
 /** One column: the height of the watch's centre, as a fraction of the screen, in each section. */
-export const STACK_ROWS = [0.72, 0.5, 0.5, 0.48, 0.5, 0.5, 0.5];
+export const STACK_ROWS = [0.72, 0.5, 0.5, 0.48, 0.5, 0.5];
 
 type FrameInput = {
   from: PoseState;

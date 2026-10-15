@@ -117,6 +117,20 @@ html[data-sweep] .pin {
   }
 }
 
+/* Extra scroll before the dwell, for a section whose content swaps for other content while it is held in
+   place (Evolution: the comparer, then the numbers). Only on the wide layout, where the swap works. */
+.lead {
+  display: none;
+  pointer-events: none;
+}
+
+@media (min-width: 62rem) and (pointer: fine) {
+  html[data-sweep] .lead {
+    display: block;
+    height: clamp(24rem, 100svh, 64rem);
+  }
+}
+
 /* Each section is pulled up over the end of the dwell before it, so its content is in
    place just as the dwell ends. The section itself is never painted (its plate and the like); only its
    content (the .pin) shows, and only when it has arrived. */

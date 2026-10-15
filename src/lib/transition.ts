@@ -18,6 +18,17 @@ export function dwellProgress(dwell: HTMLElement, viewport: number) {
 }
 
 /**
+ * How far a section's own step has got, from 0 to 1: the scroll through its lead, the stretch of extra scroll
+ * that sits between its content and its dwell. The content is held in place meanwhile, like in the dwell, and
+ * the step swaps one piece of content for another. Returns -1 when there is no lead to read.
+ */
+export function leadProgress(lead: HTMLElement, viewport: number) {
+  const rect = lead.getBoundingClientRect();
+  if (rect.height === 0) return -1;
+  return clamp01(((viewport - rect.top) / rect.height - 0.05) / 0.9);
+}
+
+/**
  * The change of section works row by row, top to bottom, so something is always on
  * screen: the rows of the section that is going leave; the watch moves on; and only once
  * it is on its way the same rows of the one that is coming arrive in their place. `r` is

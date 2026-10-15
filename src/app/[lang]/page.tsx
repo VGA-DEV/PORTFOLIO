@@ -6,6 +6,7 @@ import { DecoRule } from '@/components/DecoRule';
 import { DesignCompare } from '@/components/DesignCompare';
 import { DownloadLink } from '@/components/DownloadLink';
 import { EvolutionArchive } from '@/components/EvolutionArchive';
+import { EvolutionStepper } from '@/components/EvolutionStepper';
 import { Hero } from '@/components/Hero';
 import { Section } from '@/components/Section';
 import { BackdropSweep } from '@/components/BackdropSweep';
@@ -52,7 +53,6 @@ export default async function HomePage() {
           dict.notes.experience.text,
           dict.notes.stack.text,
           dict.notes.evolution.text,
-          dict.notes.numbers.text,
           dict.notes.contact.text,
         ]}
         crown={dict.crown}
@@ -161,42 +161,43 @@ export default async function HomePage() {
         tone='mist'
         title={dict.evolution.title}
         side='left'
+        lead
       >
-        <DesignCompare
-          width={compare.width}
-          height={compare.height}
-          labels={{
-            before: dict.evolution.compare.before,
-            after: dict.evolution.compare.after,
-            pairsLabel: dict.evolution.compare.pairsLabel,
-            slider: dict.evolution.compare.slider,
-            sliderValue: dict.evolution.compare.sliderValue,
-          }}
-          pairs={dict.evolution.compare.pairs.map((pair) => ({
-            ...pair,
-            beforeSrc: `/images/evolution/v1-${pair.id}.webp`,
-            afterSrc: `/images/evolution/v2-${locale}-${pair.id}.webp`,
-            thumbSrc: `/images/evolution/thumb-${locale}-${pair.id}.webp`,
-          }))}
-        />
-      </Section>
-
-      {/* The second step of Evolution: the same piece of the watch, so it stays put while the content changes. */}
-      <Section
-        id='evolution-numbers'
-        part={dict.notes.numbers.part}
-        tone='paper'
-        title={dict.evolution.numbersTitle}
-        side='left'
-      >
-        <EvolutionArchive
-          locale={locale}
-          versions={dict.evolution.versions}
-          labels={{
-            tagLabel: dict.evolution.tagLabel,
-            currentLabel: dict.evolution.currentLabel,
-            metrics: dict.evolution.metrics,
-          }}
+        <EvolutionStepper
+          numbersTitle={dict.evolution.numbersTitle}
+          design={
+            <DesignCompare
+              width={compare.width}
+              height={compare.height}
+              labels={{
+                before: dict.evolution.compare.before,
+                after: dict.evolution.compare.after,
+                pairsLabel: dict.evolution.compare.pairsLabel,
+                slider: dict.evolution.compare.slider,
+                sliderValue: dict.evolution.compare.sliderValue,
+              }}
+              pairs={dict.evolution.compare.pairs.map((pair) => ({
+                id: pair.id,
+                label: pair.label,
+                beforeAlt: pair.beforeAlt,
+                afterAlt: pair.afterAlt,
+                beforeSrc: `/images/evolution/v1-${pair.id}.webp`,
+                afterSrc: `/images/evolution/v2-${locale}-${pair.id}.webp`,
+                thumbSrc: `/images/evolution/thumb-${locale}-${pair.id}.webp`,
+              }))}
+            />
+          }
+          numbers={
+            <EvolutionArchive
+              locale={locale}
+              versions={dict.evolution.versions}
+              labels={{
+                tagLabel: dict.evolution.tagLabel,
+                currentLabel: dict.evolution.currentLabel,
+                metrics: dict.evolution.metrics,
+              }}
+            />
+          }
         />
       </Section>
 

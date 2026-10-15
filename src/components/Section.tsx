@@ -13,6 +13,8 @@ type SectionProps = {
   tone?: 'paper' | 'mist' | 'stage';
   /** Extra scroll after the section, during which it stays put while the watch moves on. */
   dwell?: boolean;
+  /** Extra scroll before the dwell, during which the section stays put while its content swaps for other content. */
+  lead?: boolean;
   /** `center` sets the heading and the intro on the middle of the column. */
   align?: 'start' | 'center';
   children?: ReactNode;
@@ -26,6 +28,7 @@ export function Section({
   side = 'left',
   tone = 'paper',
   dwell = true,
+  lead = false,
   align = 'start',
   children,
 }: SectionProps) {
@@ -57,6 +60,7 @@ export function Section({
           </div>
         </div>
       </div>
+      {lead ? <div className='lead' data-lead aria-hidden='true' /> : null}
       {dwell ? <div className='dwell' data-gap aria-hidden='true' /> : null}
     </section>
   );

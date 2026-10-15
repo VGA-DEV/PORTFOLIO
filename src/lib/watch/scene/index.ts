@@ -185,10 +185,10 @@ export async function createWatchScene({
     const b = Math.min(a + 1, lastIndex);
     const u = clamped - a;
     const ease = smooth(u);
+    // The jump: strongest halfway between two sections.
+    const burst = Math.sin(Math.PI * u);
     const from = STATES[a];
     const to = STATES[b];
-    // The jump: strongest halfway between two sections, and none between two that share a pose.
-    const burst = from === to ? 0 : Math.sin(Math.PI * u);
 
     const rotation = lerp3(from.rotation, to.rotation, ease);
     const focus = lerp3(from.focus, to.focus, ease);

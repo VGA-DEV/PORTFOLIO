@@ -90,7 +90,10 @@ export function EvolutionArchive({
   return (
     <ol className='versions'>
       {versions.map((version) => (
-        <li key={version.id} className={version.current ? 'version version--now' : 'version'} data-excite>
+        <li key={version.id} className={version.current ? 'version version--now' : 'version'}
+          data-excite
+          data-step-item
+        >
           <Tilt className='version__card'>
             <div className='ledger__head'>
               <h3 className='ledger__title'>

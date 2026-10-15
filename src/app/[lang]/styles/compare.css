@@ -1,5 +1,113 @@
-/* Evolution, first step: the comparer of equivalent sections of the first version and the current one.
-   One pair at a time, picked with a row of thumbnails under it. */
+/* Evolution: the design comparer and the numbers share one section, one after the other (the stepper), and
+   the comparer shows one pair of equivalent sections of the first version and the current one at a time,
+   picked with a row of thumbnails under it. */
+
+/* The two layers. Anywhere the step is not driven by the scroll (one column, reduced motion, no script) they
+   are shown one after the other; on the wide layout with the sweep on they sit in the same place and the
+   scroll swaps them (`EvolutionStepper`). */
+.stepper__layer--numbers {
+  margin-top: 1.8rem;
+}
+
+.stepper__label {
+  margin: 0 0 0.7rem;
+  color: var(--color-ink-soft);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+@media (min-width: 62rem) and (pointer: fine) {
+  html[data-sweep] .stepper {
+    display: grid;
+  }
+
+  html[data-sweep] .stepper__layer {
+    grid-area: 1 / 1;
+    margin: 0;
+  }
+
+  /* The numbers wait, unseen, until the scroll brings them in; the design is out of the way once they have. */
+  html[data-sweep] .stepper__layer--numbers [data-step-item] {
+    opacity: 0;
+  }
+
+  html[data-sweep] .stepper[data-view='design'] .stepper__layer--numbers,
+  html[data-sweep] .stepper:not([data-view]) .stepper__layer--numbers,
+  html[data-sweep] .stepper[data-view='numbers'] .stepper__layer--design {
+    pointer-events: none;
+  }
+
+  html[data-sweep] .stepper__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+/* The way the comparer is shown on phones, with reduced motion and without script: both captures one under
+   the other, each with its caption, and no divider. */
+.compare__legend,
+.compare__handle {
+  display: none;
+}
+
+.compare__legend {
+  margin: 0 0 0.35rem;
+  color: var(--color-ink-soft);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.compare__stage {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.compare__shot--before {
+  order: -1;
+}
+
+.compare__shot {
+  margin: 0;
+  border: 1px solid rgb(52 4 64 / 0.22);
+  border-radius: 3px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.compare__shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  animation: compare-in 0.45s var(--ease-out) both;
+}
+
+@keyframes compare-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.compare__tag {
+  padding: 0.2rem 0.6rem;
+  background: rgb(18 8 24 / 0.86);
+  color: #fff;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+
+/* The thumbnails: half the first version, half the current one. The chosen one is framed and lit; the
+   others lift a little when pointed at. */
 .compare__thumbs {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -25,6 +133,7 @@
   line-height: 1.3;
   text-align: left;
   cursor: pointer;
+  transition: transform 0.25s var(--ease-out), color 0.25s var(--ease-out);
 }
 
 .compare__thumb img {
@@ -33,12 +142,18 @@
   height: auto;
   border: 1px solid rgb(52 4 64 / 0.3);
   border-radius: 3px;
-  opacity: 0.7;
-  transition: opacity 0.2s var(--ease-out);
+  opacity: 0.62;
+  transition: opacity 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out), border-color 0.25s var(--ease-out);
 }
 
-.compare__thumb:hover img {
-  opacity: 1;
+@media (hover: hover) {
+  .compare__thumb:hover {
+    transform: translateY(-3px);
+  }
+
+  .compare__thumb:hover img {
+    opacity: 1;
+  }
 }
 
 .compare__thumb[aria-pressed='true'] {
@@ -52,64 +167,32 @@
   opacity: 1;
 }
 
-/* The way it is shown on phones, with reduced motion and without script: both captures one under the
-   other, each with its caption, and no handle. */
-.compare__stage {
-  display: grid;
-  gap: 0.8rem;
-}
-
-.compare__shot--before {
-  order: -1;
-}
-
-.compare__shot {
-  margin: 0;
-  border: 1px solid rgb(52 4 64 / 0.22);
-  border-radius: 3px;
-  background: #fff;
-  overflow: hidden;
-}
-
-.compare__shot img {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
-.compare__tag {
-  padding: 0.2rem 0.6rem;
-  background: rgb(18 8 24 / 0.86);
-  color: #fff;
-  font-size: 0.74rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  line-height: 1.5;
-  text-transform: uppercase;
-}
-
-.compare__handle,
-.compare__legend {
-  display: none;
-}
-
-.compare__legend {
-  margin: 0 0 0.35rem;
-  color: var(--color-ink-soft);
-  font-size: 0.74rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-
-.compare__note {
-  margin: 0.8rem 0 0;
-  font-size: 0.95rem;
-  line-height: 1.5;
-}
-
-/* The slider: the current version underneath, the first on top and cut at the handle. */
+/* The divider: the current version underneath, the first on top and cut at the line. */
 @media (min-width: 48rem) and (prefers-reduced-motion: no-preference) {
+  .compare__tag {
+    display: none;
+  }
+
+  .compare__legend {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  /* Whichever version shows more is the one named in full. */
+  .compare__legend span {
+    transition: color 0.3s var(--ease-out), opacity 0.3s var(--ease-out);
+  }
+
+  .compare__legend[data-lean='before'] span:last-child,
+  .compare__legend[data-lean='after'] span:first-child {
+    opacity: 0.45;
+  }
+
+  .compare__legend[data-lean='before'] span:first-child,
+  .compare__legend[data-lean='after'] span:last-child {
+    color: var(--color-purple);
+  }
+
   .compare__stage {
     position: relative;
     display: block;
@@ -140,16 +223,6 @@
     pointer-events: none;
   }
 
-  /* The captions are for the stacked view; here the two names sit above the picture, at each end. */
-  .compare__tag {
-    display: none;
-  }
-
-  .compare__legend {
-    display: flex;
-    justify-content: space-between;
-  }
-
   .compare__handle {
     position: absolute;
     top: 0;
@@ -162,56 +235,97 @@
     outline: none;
   }
 
+  /* A double rule, a light line beside a dark one, so it reads over pale and dark pictures alike. */
   .compare__handle::before {
     content: '';
     position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 50%;
-    width: 2px;
-    margin-left: -1px;
-    background: #fff;
-    box-shadow: 0 0 0 1px rgb(18 8 24 / 0.5);
+    inset: 0;
+    background:
+      linear-gradient(#fff, #fff) calc(50% - 2px) 0 / 1px 100% no-repeat,
+      linear-gradient(var(--color-ink), var(--color-ink)) calc(50% + 2px) 0 / 1px 100% no-repeat;
   }
 
+  /* The grip: a champagne diamond with two arrows, like the diamond in the rules under the titles. */
   .compare__grip {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 2.4rem;
-    height: 2.4rem;
-    margin: -1.2rem 0 0 -1.2rem;
-    border: 2px solid #fff;
-    border-radius: 50%;
-    background: var(--color-purple);
-    box-shadow: 0 0 0 1px rgb(18 8 24 / 0.5), 0 2px 8px rgb(18 8 24 / 0.35);
+    width: 2.6rem;
+    height: 2.6rem;
+    margin: -1.3rem 0 0 -1.3rem;
+    transition: transform 0.25s var(--ease-out);
   }
 
-  .compare__grip::before,
-  .compare__grip::after {
+  .compare__grip::before {
     content: '';
+    position: absolute;
+    inset: 0.3rem;
+    border: 1px solid var(--color-ink);
+    background: var(--color-champagne);
+    box-shadow: 0 0 0 2px #fff, 0 3px 10px rgb(18 8 24 / 0.35);
+    transform: rotate(45deg);
+  }
+
+  .compare__arrow {
     position: absolute;
     top: 50%;
     width: 0;
     height: 0;
-    margin-top: -0.3rem;
-    border: 0.3rem solid transparent;
+    margin-top: -0.28rem;
+    border: 0.28rem solid transparent;
   }
 
-  .compare__grip::before {
-    right: 55%;
-    border-right-color: #fff;
-    border-right-width: 0.4rem;
+  .compare__arrow--left {
+    left: 0.55rem;
+    border-right: 0.42rem solid var(--color-ink);
+    border-left: 0;
   }
 
-  .compare__grip::after {
-    left: 55%;
-    border-left-color: #fff;
-    border-left-width: 0.4rem;
+  .compare__arrow--right {
+    right: 0.55rem;
+    border-left: 0.42rem solid var(--color-ink);
+    border-right: 0;
   }
 
+  /* Pointed at, held or focused, the grip swells; until it has been used, a ring breathes around it. */
+  .compare__stage:hover .compare__grip,
   .compare__handle:focus-visible .compare__grip {
+    transform: scale(1.12);
+  }
+
+  .compare__stage[data-dragging='true'] .compare__grip {
+    transform: scale(1.25);
+  }
+
+  .compare__stage:not([data-touched]) .compare__grip::after {
+    content: '';
+    position: absolute;
+    inset: 0.3rem;
+    border: 1px solid var(--color-champagne);
+    transform: rotate(45deg);
+    animation: compare-ring 2.4s var(--ease-out) infinite;
+  }
+
+  .compare__handle:focus-visible .compare__grip::before {
     outline: 3px solid var(--focus);
     outline-offset: 3px;
+  }
+}
+
+@keyframes compare-ring {
+  from {
+    opacity: 0.9;
+    transform: rotate(45deg) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: rotate(45deg) scale(1.9);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .compare__shot img {
+    animation: none;
   }
 }

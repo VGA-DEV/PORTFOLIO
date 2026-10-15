@@ -43,24 +43,18 @@ const ALL: Partial<Record<Group, number>> = {
   crystal: 1, bezel: 1, dial: 1, hands: 1, movement: 1, caseBand: 1, caseBack: 1, lugs: 1, strap: 1, crown: 1,
 };
 
-/** The strap: the camera comes in close on it, so the case and the dial stay above, behind it. */
-const STRAP: PoseState = {
-  anchor: [0, -2.35, -0.3], width: 1.7, rotation: [0.5, -0.4, 0], focus: [0, -2.0, 0], half: 1.9, explode: 0.15, show: { ...ALL, propGlobe: 1 },
-};
-
 /**
- * One pose per page section: hero, projects, experience, stack, evolution (the design comparer),
- * evolution again (the numbers), contact. Between two sections the watch bursts apart, drops the pieces
- * it no longer needs and settles on the one the next section is about; between two sections that share a
- * pose (the two steps of Evolution) it stays where it is.
+ * One pose per page section: hero, projects, experience, stack, evolution,
+ * contact. Between two sections the watch bursts apart, drops the pieces it no
+ * longer needs and settles on the one the next section is about.
  */
 export const STATES: readonly PoseState[] = [
   { anchor: [0, 0, 0.1], width: 2.4, rotation: [0.16, -0.45, 0], focus: [0, 0, 0], half: 2.9, explode: 0, zoom: 0.98, show: ALL },
   { anchor: [0, 0, 0.1], width: 3.4, rotation: [0.2, -0.8, 0.03], focus: [0, 0, 0], half: 2.9, explode: 0, zoom: 0.98, show: { ...ALL, propCoaster: 1 }, apart: { strap: 0.7 }, reach: 0.6 },
   { anchor: [0, 0, 0.25], width: 2.6, rotation: [0.12, -0.4, 0], focus: [0, 0, 0.25], half: 2.4, explode: 0.55, show: { ...ALL, propCamera: 1 } },
   { anchor: [0, 0.1, -0.55], width: 2.4, rotation: [0.22, -0.9, 0.04], focus: [0, 0, -0.6], half: 2.8, explode: 0.85, show: { ...ALL, propGame: 1 } },
-  STRAP,
-  STRAP,
+  // The strap: the camera comes in close on it, so the case and the dial stay above, behind it.
+  { anchor: [0, -2.35, -0.3], width: 1.7, rotation: [0.5, -0.4, 0], focus: [0, -2.0, 0], half: 1.9, explode: 0.15, show: { ...ALL, propGlobe: 1 } },
   { anchor: [0, 0, -0.9], width: 3.4, rotation: [0.04, Math.PI + 0.12, 0], focus: [0, 0, -0.8], half: 2.4, explode: 0, show: { ...ALL, propTurntable: 1 } },
 ];
 

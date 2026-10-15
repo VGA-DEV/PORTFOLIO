@@ -152,28 +152,24 @@
         {
           "id": "hero",
           "label": "Home",
-          "note": "Lavender is no longer the background. A long paragraph with highlighted words becomes a single sentence, and the name and the watch take the lead.",
           "beforeAlt": "Version 1, home: justified text with highlighted words on a lavender background, a drawn laptop and a photo.",
           "afterAlt": "Version 2, home: the name in large type, the role and a sentence on a dark background, with a 3D watch."
         },
         {
           "id": "projects",
           "label": "Projects",
-          "note": "From paragraphs with bullets and filler images to one row per project: name, status in three levels, summary and stack. It reads at a glance.",
           "beforeAlt": "Version 1, projects: a paragraph and a bulleted list for each project, next to a square image.",
           "afterAlt": "Version 2, projects: one row per project with its name, status, summary and stack."
         },
         {
           "id": "stack",
           "label": "Stack",
-          "note": "The 0 to 5 ratings are replaced by groups of technologies, with no scores nobody can check. The core, .NET and React, is in bold.",
           "beforeAlt": "Version 1, skills: language logos with five rating circles each.",
           "afterAlt": "Version 2, stack: four groups with their technologies as text."
         },
         {
           "id": "contact",
           "label": "Contact",
-          "note": "From a paragraph with highlighted links, four social networks and a button to three clear ways: email, LinkedIn and GitHub. No form and no third-party service.",
           "beforeAlt": "Version 1, contact: four social icons, two paragraphs and a contact button.",
           "afterAlt": "Version 2, contact: a sentence and three ways to reach me, email, LinkedIn and GitHub, with the same weight."
         }
@@ -212,10 +208,6 @@
     "evolution": {
       "part": "Strap",
       "text": "A new strap renews a watch on the outside while the mechanism keeps being refined inside. This website evolves the same way: the look changes and, in the meantime, what is inside improves."
-    },
-    "numbers": {
-      "part": "Strap",
-      "text": "What improves inside can be measured: these are the Lighthouse scores of each version, the old one and the current one."
     },
     "contact": {
       "part": "Case back",
