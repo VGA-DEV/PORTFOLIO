@@ -267,6 +267,16 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
       const cleanups: (() => void)[] = [];
       const current = scene;
 
+      // If the GPU drops the WebGL context (a driver reset, memory pressure) the canvas would stay blank:
+      // stop drawing and show the flat watch instead.
+      const onContextLost = (event: Event) => {
+        event.preventDefault();
+        current.setRunning(false);
+        root.dataset.watch = 'flat';
+      };
+      canvas.addEventListener('webglcontextlost', onContextLost);
+      cleanups.push(() => canvas.removeEventListener('webglcontextlost', onContextLost));
+
       let frame = 0;
       const update = () => {
         frame = 0;
@@ -315,7 +325,7 @@ export function WatchBackdrop({ logoUrl, notes, crown }: WatchBackdropProps) {
 
       cleanups.push(bindExcite(current, root));
 
-      const sync = () => current.setRunning(!document.hidden);
+      const sync = () => current.setRunning(!document.hidden && root.dataset.watch === '3d');
       document.addEventListener('visibilitychange', sync);
       sync();
       cleanups.push(() => document.removeEventListener('visibilitychange', sync));
