@@ -107,6 +107,11 @@ export function DesignCompare({
         ))}
       </div>
 
+      <div className='compare__legend' aria-hidden='true'>
+        <span>{labels.before}</span>
+        <span>{labels.after}</span>
+      </div>
+
       <div
         ref={stage}
         className='compare__stage'

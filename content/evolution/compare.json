@@ -1,10 +1,14 @@
 {
   "width": 1440,
-  "height": 720,
+  "height": 850,
+  "v1": {
+    "header": 110,
+    "background": [249, 245, 255]
+  },
   "pairs": [
-    { "id": "hero", "v1": 0, "v2": 0 },
-    { "id": "projects", "v1": 790, "v2": 51 },
-    { "id": "stack", "v1": 3140, "v2": 110 },
-    { "id": "contact", "v1": 2290, "v2": 60 }
+    { "id": "hero", "v1": { "top": 0, "header": false, "body": 757 }, "v2": { "top": 0 } },
+    { "id": "projects", "v1": { "top": 770, "header": true }, "v2": { "top": 0 } },
+    { "id": "stack", "v1": { "top": 3130, "header": true }, "v2": { "top": 0 } },
+    { "id": "contact", "v1": { "top": 2280, "header": true, "body": 720 }, "v2": { "top": 0 } }
   ]
 }

@@ -89,8 +89,18 @@
   text-transform: uppercase;
 }
 
-.compare__handle {
+.compare__handle,
+.compare__legend {
   display: none;
+}
+
+.compare__legend {
+  margin: 0 0 0.35rem;
+  color: var(--color-ink-soft);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
 }
 
 .compare__note {
@@ -131,17 +141,14 @@
     pointer-events: none;
   }
 
+  /* The captions are for the stacked view; here the two names sit above the picture, at each end. */
   .compare__tag {
-    position: absolute;
-    top: 0.5rem;
+    display: none;
   }
 
-  .compare__tag--before {
-    left: 0.5rem;
-  }
-
-  .compare__tag--after {
-    right: 0.5rem;
+  .compare__legend {
+    display: flex;
+    justify-content: space-between;
   }
 
   .compare__handle {
