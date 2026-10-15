@@ -42,6 +42,10 @@ const clamp = (value: number) => Math.min(100, Math.max(0, value));
  * each time another pair is picked, the first version is wiped away to the middle, so the change reads as
  * a before and an after. On phones, and with reduced motion, the stylesheet shows both captures stacked,
  * each with its caption, and hides the divider; without script the same stacked view is used.
+ *
+ * The divider's position is never React state: it is written straight to the DOM (a CSS variable on the
+ * stage and the slider's ARIA values) on every frame, so moving it costs no re-render, and nothing else on
+ * the page, the scroll-driven swap with the numbers included, has to wait for it.
  */
 export function DesignCompare({
   pairs,
@@ -55,33 +59,49 @@ export function DesignCompare({
   labels: Labels;
 }) {
   const [active, setActive] = useState(0);
-  const [position, setPosition] = useState(START);
-  const [dragging, setDragging] = useState(false);
-  const [touched, setTouched] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const stage = useRef<HTMLDivElement>(null);
+  const handle = useRef<HTMLDivElement>(null);
+  const legend = useRef<HTMLDivElement>(null);
   const shown = useRef(START);
   const goal = useRef(START);
   const frame = useRef(0);
+  const dragging = useRef(false);
   const pair = pairs[active];
+
+  /** Put the divider at `value`: the line, the slider's values and which version the legend leans to. */
+  const apply = useCallback(
+    (value: number) => {
+      const rounded = Math.round(value);
+      stage.current?.style.setProperty('--pos', `${value.toFixed(2)}%`);
+      const slider = handle.current;
+      if (slider && slider.getAttribute('aria-valuenow') !== String(rounded)) {
+        slider.setAttribute('aria-valuenow', String(rounded));
+        slider.setAttribute('aria-valuetext', labels.sliderValue.replace('{value}', String(rounded)));
+      }
+      if (legend.current) legend.current.dataset.lean = value >= 50 ? 'before' : 'after';
+    },
+    [labels.sliderValue],
+  );
 
   const glide = useCallback(() => {
     cancelAnimationFrame(frame.current);
     const tick = () => {
       const next = shown.current + (goal.current - shown.current) * GLIDE;
       shown.current = Math.abs(goal.current - next) < 0.05 ? goal.current : next;
-      setPosition(shown.current);
+      apply(shown.current);
       if (shown.current !== goal.current) frame.current = requestAnimationFrame(tick);
     };
     frame.current = requestAnimationFrame(tick);
-  }, []);
+  }, [apply]);
 
   /** The divider starts at the first version and glides to the middle. */
   const wipe = useCallback(() => {
     shown.current = 100;
     goal.current = START;
+    apply(100);
     glide();
-  }, [glide]);
+  }, [apply, glide]);
 
   useEffect(() => () => cancelAnimationFrame(frame.current), []);
 
@@ -105,24 +125,39 @@ export function DesignCompare({
     return clamp(((clientX - box.left) / box.width) * 100);
   };
 
+  const touch = () => {
+    if (stage.current) stage.current.dataset.touched = 'true';
+  };
+
+  const setDragging = (value: boolean) => {
+    dragging.current = value;
+    if (!stage.current) return;
+    if (value) stage.current.dataset.dragging = 'true';
+    else delete stage.current.dataset.dragging;
+  };
+
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
     const target = at(event.clientX);
     if (target === null) return;
     setDragging(true);
-    setTouched(true);
+    touch();
+    // The browser would scroll the page to the element it focuses; the swap with the numbers depends on the
+    // scroll position, so the handle takes the focus without moving the page.
+    event.preventDefault();
+    handle.current?.focus({ preventScroll: true });
     event.currentTarget.setPointerCapture(event.pointerId);
     cancelAnimationFrame(frame.current);
     shown.current = goal.current = target;
-    setPosition(target);
+    apply(target);
   };
 
   const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
     const target = at(event.clientX);
     if (target === null) return;
-    if (dragging) {
+    if (dragging.current) {
       shown.current = goal.current = target;
-      setPosition(target);
-    } else if (event.pointerType === 'mouse') {
+      apply(target);
+    } else if (event.pointerType === 'mouse' && Math.abs(target - goal.current) > 0.2) {
       // Over the pictures with no button down, the divider follows the mouse, a little behind it.
       goal.current = target;
       glide();
@@ -135,9 +170,7 @@ export function DesignCompare({
     const now = goal.current;
     const keys: Record<string, number> = {
       ArrowLeft: now - STEP,
-      ArrowDown: now - STEP,
       ArrowRight: now + STEP,
-      ArrowUp: now + STEP,
       PageDown: now - BIG_STEP,
       PageUp: now + BIG_STEP,
       Home: 0,
@@ -145,7 +178,7 @@ export function DesignCompare({
     };
     if (!(event.key in keys)) return;
     event.preventDefault();
-    setTouched(true);
+    touch();
     goal.current = clamp(keys[event.key]);
     glide();
   };
@@ -156,11 +189,9 @@ export function DesignCompare({
     wipe();
   };
 
-  const rounded = Math.round(position);
-
   return (
     <div ref={root} className='compare'>
-      <div className='compare__legend' data-step-item aria-hidden='true' data-lean={position >= 50 ? 'before' : 'after'}>
+      <div ref={legend} className='compare__legend' data-step-item aria-hidden='true' data-lean='before'>
         <span>{labels.before}</span>
         <span>{labels.after}</span>
       </div>
@@ -169,9 +200,7 @@ export function DesignCompare({
         ref={stage}
         className='compare__stage'
         data-step-item
-        data-dragging={dragging ? 'true' : undefined}
-        data-touched={touched ? 'true' : undefined}
-        style={{ ['--ratio' as string]: `${width} / ${height}`, ['--pos' as string]: `${position}%` }}
+        style={{ ['--ratio' as string]: `${width} / ${height}`, ['--pos' as string]: `${START}%` }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={release}
@@ -188,6 +217,7 @@ export function DesignCompare({
           <figcaption className='compare__tag compare__tag--before'>{labels.before}</figcaption>
         </figure>
         <div
+          ref={handle}
           className='compare__handle'
           role='slider'
           tabIndex={0}
@@ -195,8 +225,8 @@ export function DesignCompare({
           aria-orientation='horizontal'
           aria-valuemin={0}
           aria-valuemax={100}
-          aria-valuenow={rounded}
-          aria-valuetext={labels.sliderValue.replace('{value}', String(rounded))}
+          aria-valuenow={START}
+          aria-valuetext={labels.sliderValue.replace('{value}', String(START))}
           onKeyDown={onKeyDown}
         >
           <span className='compare__grip' aria-hidden='true'>

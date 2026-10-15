@@ -7,6 +7,9 @@ import { arriveProgress, leadProgress, leaveProgress } from '@/lib/transition';
 /** The step is the scroll through the lead that ends the section: past this, the numbers are the ones in view. */
 const NUMBERS_IN = 0.6;
 const NUMBERS_OUT = 0.5;
+/** How briskly the swap follows the scroll (a critically damped spring): a fast flick of the wheel, or a
+    jank in the page, glides in about half a second instead of showing up in a single frame. */
+const OMEGA = 9;
 
 /**
  * Evolution says two things, the design (the comparer) and the numbers (the versions and their scores), and
@@ -64,12 +67,14 @@ export function EvolutionStepper({
       delete node.dataset.view;
     };
 
-    const update = () => {
-      frame = 0;
-      const active = document.documentElement.dataset.sweep === 'on' && wide.matches && !!lead;
-      if (!active || !lead) return;
-      const s = leadProgress(lead, window.innerHeight);
-      if (s < 0) return;
+    /** The step as the scroll has set it, and as it is shown: the second follows the first on a spring. */
+    let target = 0;
+    let shown = 0;
+    let velocity = 0;
+    let raf = 0;
+    let lastTime = 0;
+
+    const draw = (s: number) => {
       outItems.forEach((el, i) => {
         const r = outItems.length > 1 ? i / (outItems.length - 1) : 0;
         const gone = leaveProgress(s, r);
@@ -87,8 +92,46 @@ export function EvolutionStepper({
       else if (s < NUMBERS_OUT) delete inn.dataset.in;
     };
 
+    const follow = (now: number) => {
+      const dt = Math.min((now - lastTime) / 1000, 0.05);
+      lastTime = now;
+      for (let left = dt; left > 0; left -= 1 / 120) {
+        const h = Math.min(left, 1 / 120);
+        velocity += (OMEGA * OMEGA * (target - shown) - 2 * OMEGA * velocity) * h;
+        shown += velocity * h;
+      }
+      if (Math.abs(target - shown) < 0.0005 && Math.abs(velocity) < 0.002) {
+        shown = target;
+        velocity = 0;
+        raf = 0;
+      } else {
+        raf = requestAnimationFrame(follow);
+      }
+      draw(shown);
+    };
+
+    /** Read the scroll; `snap` puts the step straight there (on arrival, or when the layout changes). */
+    const update = (snap = false) => {
+      frame = 0;
+      const active = document.documentElement.dataset.sweep === 'on' && wide.matches && !!lead;
+      if (!active || !lead) return;
+      const s = leadProgress(lead, window.innerHeight);
+      if (s < 0) return;
+      target = s;
+      if (snap) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+        shown = s;
+        velocity = 0;
+        draw(s);
+      } else if (!raf) {
+        lastTime = performance.now();
+        raf = requestAnimationFrame(follow);
+      }
+    };
+
     const onScroll = () => {
-      if (!frame) frame = requestAnimationFrame(update);
+      if (!frame) frame = requestAnimationFrame(() => update());
     };
 
     // Where the step is not driven by the scroll, the figures count when their block comes into view.
@@ -112,7 +155,7 @@ export function EvolutionStepper({
     const refresh = () => {
       clear();
       watchBlock();
-      update();
+      update(true);
     };
 
     // The sweep switches itself on in its own effect: read it once that has run.
@@ -123,6 +166,7 @@ export function EvolutionStepper({
     return () => {
       cancelAnimationFrame(first);
       cancelAnimationFrame(frame);
+      cancelAnimationFrame(raf);
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onScroll);
       wide.removeEventListener('change', refresh);
