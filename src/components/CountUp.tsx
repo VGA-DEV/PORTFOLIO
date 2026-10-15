@@ -10,7 +10,7 @@ const STAGGER_MS = 90;
 const ease = (t: number) => 1 - (1 - t) ** 2.4;
 
 /**
- * A figure that counts up from zero to its value when its card arrives. The page ships with the
+ * A figure that counts up from zero to its value when its panel arrives. The page ships with the
  * final value, so without script (or with reduced motion, where the sweep is off) that is what is
  * shown. The text is written straight to the node on each frame, not through React state, so the
  * count stays smooth; the neighbouring figures start a beat apart, left to right and top to bottom.
@@ -30,12 +30,12 @@ export function CountUp({
 
   useEffect(() => {
     const node = ref.current;
-    const card = node?.closest<HTMLElement>('.version');
+    const card = node?.closest<HTMLElement>('.evo__panel--numbers');
     if (!node || !card) return;
     const format = formatMetric(locale, unit);
     let raf = 0;
     let timer = 0;
-    /** Whether the card was already in on the last read: the count restarts only when it comes in again. */
+    /** Whether the panel was already in on the last read: the count restarts only when it comes in again. */
     let wasIn: boolean | null = null;
     const sync = () => {
       if (document.documentElement.dataset.sweep !== 'on') {

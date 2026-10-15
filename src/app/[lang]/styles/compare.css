@@ -1,0 +1,211 @@
+/* Evolution: two tabs (the design comparer and the numbers) and, in the first, the comparer of equivalent
+   sections of the first version and the current one. One pair at a time, picked with a row of buttons. */
+.evo__tabs {
+  display: flex;
+  gap: 1.6rem;
+  margin: 0 0 0.9rem;
+  border-bottom: 1px solid rgb(52 4 64 / 0.2);
+}
+
+.evo__tab {
+  margin: 0 0 -1px;
+  padding: 0.35rem 0 0.45rem;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--color-ink-soft);
+  font-family: var(--font-sans-stack);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.evo__tab[aria-selected='true'] {
+  border-bottom-color: var(--color-purple);
+  color: var(--color-purple);
+}
+
+.compare__pairs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0 0 0.8rem;
+}
+
+.compare__pair {
+  padding: 0.22rem 0.85rem;
+  border: 1px solid rgb(52 4 64 / 0.32);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-ink);
+  font-family: var(--font-sans-stack);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.compare__pair[aria-pressed='true'] {
+  border-color: var(--color-ink);
+  background: var(--color-ink);
+  color: #fff;
+}
+
+/* The way it is shown on phones, with reduced motion and without script: both captures one under the
+   other, each with its caption, and no handle. */
+.compare__stage {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.compare__shot--before {
+  order: -1;
+}
+
+.compare__shot {
+  margin: 0;
+  border: 1px solid rgb(52 4 64 / 0.22);
+  border-radius: 3px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.compare__shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.compare__tag {
+  padding: 0.2rem 0.6rem;
+  background: rgb(18 8 24 / 0.86);
+  color: #fff;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+
+.compare__handle {
+  display: none;
+}
+
+.compare__note {
+  margin: 0.8rem 0 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* The slider: the current version underneath, the first on top and cut at the handle. */
+@media (min-width: 48rem) and (prefers-reduced-motion: no-preference) {
+  .compare__stage {
+    position: relative;
+    display: block;
+    aspect-ratio: var(--ratio);
+    border: 1px solid rgb(52 4 64 / 0.22);
+    border-radius: 3px;
+    background: #fff;
+    overflow: hidden;
+    cursor: ew-resize;
+    user-select: none;
+    touch-action: pan-y;
+  }
+
+  .compare__shot {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .compare__shot--before {
+    clip-path: inset(0 calc(100% - var(--pos)) 0 0);
+  }
+
+  .compare__shot img {
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+  }
+
+  .compare__tag {
+    position: absolute;
+    top: 0.5rem;
+  }
+
+  .compare__tag--before {
+    left: 0.5rem;
+  }
+
+  .compare__tag--after {
+    right: 0.5rem;
+  }
+
+  .compare__handle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: var(--pos);
+    display: block;
+    width: 2.6rem;
+    margin-left: -1.3rem;
+    cursor: ew-resize;
+    outline: none;
+  }
+
+  .compare__handle::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 2px;
+    margin-left: -1px;
+    background: #fff;
+    box-shadow: 0 0 0 1px rgb(18 8 24 / 0.5);
+  }
+
+  .compare__grip {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 2.4rem;
+    height: 2.4rem;
+    margin: -1.2rem 0 0 -1.2rem;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: var(--color-purple);
+    box-shadow: 0 0 0 1px rgb(18 8 24 / 0.5), 0 2px 8px rgb(18 8 24 / 0.35);
+  }
+
+  .compare__grip::before,
+  .compare__grip::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 0;
+    height: 0;
+    margin-top: -0.3rem;
+    border: 0.3rem solid transparent;
+  }
+
+  .compare__grip::before {
+    right: 55%;
+    border-right-color: #fff;
+    border-right-width: 0.4rem;
+  }
+
+  .compare__grip::after {
+    left: 55%;
+    border-left-color: #fff;
+    border-left-width: 0.4rem;
+  }
+
+  .compare__handle:focus-visible .compare__grip {
+    outline: 3px solid var(--focus);
+    outline-offset: 3px;
+  }
+}

@@ -35,6 +35,7 @@ npm run typecheck
 - A project, a job or a stack item: its entry in `content/messages/*.json` (both languages) or `content/stack.json`.
 - A version in the Evolution section: its entry in `content/evolution/metrics.json` and in `evolution.versions` of both dictionaries.
 - CVs: drop `cv-victor-gomez-es.pdf` and `cv-victor-gomez-en.pdf` in `public/cv/`; the download buttons appear when the files exist.
+- If a section's design changes, take new viewport captures of it into `content/evolution/v2/` and run `node scripts/crop-evolution.mjs` to cut the pairs of the design comparer in Evolution (`content/evolution/compare.json` holds the regions).
 - If the hero changes, regenerate `public/og-*.jpg` (a screenshot of the hero at 1200×630, without the header and the crown control).
 
 ## Hosting

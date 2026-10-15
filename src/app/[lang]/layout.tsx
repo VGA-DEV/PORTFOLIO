@@ -13,6 +13,7 @@ import './styles/header.css';
 import './styles/hero.css';
 import './styles/layout.css';
 import './styles/content.css';
+import './styles/compare.css';
 import './styles/footer.css';
 import './styles/watch-controls.css';
 import './styles/sweep.css';

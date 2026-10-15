@@ -141,6 +141,48 @@
         "lcp": "Carga (LCP)",
         "cls": "Saltos (CLS)"
       }
+    },
+    "views": {
+      "label": "Qué comparar",
+      "design": "Diseño",
+      "numbers": "Cifras"
+    },
+    "compare": {
+      "before": "Versión 1",
+      "after": "Versión 2",
+      "pairsLabel": "Sección a comparar",
+      "slider": "Comparador de la versión 1 y la versión 2. Mueve el control para ver una u otra",
+      "sliderValue": "{value} % de la versión 1",
+      "pairs": [
+        {
+          "id": "hero",
+          "label": "Inicio",
+          "note": "El lavanda deja de ser el fondo. Un párrafo largo con palabras resaltadas pasa a ser una sola frase, y el protagonismo es del nombre y del reloj.",
+          "beforeAlt": "Versión 1, inicio: texto justificado con palabras resaltadas sobre fondo lavanda, un portátil dibujado y una foto.",
+          "afterAlt": "Versión 2, inicio: el nombre en grande, el rol y una frase sobre un fondo oscuro, con un reloj en 3D."
+        },
+        {
+          "id": "projects",
+          "label": "Proyectos",
+          "note": "De párrafos con viñetas e imágenes de relleno a una fila por proyecto: nombre, estado en tres niveles, resumen y stack. Se lee de un vistazo.",
+          "beforeAlt": "Versión 1, proyectos: un párrafo y una lista con viñetas por proyecto, junto a una imagen cuadrada.",
+          "afterAlt": "Versión 2, proyectos: una fila por proyecto con su nombre, su estado, un resumen y su stack."
+        },
+        {
+          "id": "stack",
+          "label": "Stack",
+          "note": "Las puntuaciones del 0 al 5 se sustituyen por grupos con las tecnologías, sin notas que nadie pueda comprobar. La base, .NET y React, va en negrita.",
+          "beforeAlt": "Versión 1, habilidades: logotipos de lenguajes con cinco círculos de puntuación cada uno.",
+          "afterAlt": "Versión 2, stack: cuatro grupos con sus tecnologías en texto."
+        },
+        {
+          "id": "contact",
+          "label": "Contacto",
+          "note": "De un párrafo con enlaces resaltados, cuatro redes y un botón a tres vías claras: correo, LinkedIn y GitHub. Sin formulario ni servicios de terceros.",
+          "beforeAlt": "Versión 1, contacto: cuatro iconos de redes, dos párrafos y un botón de contacto.",
+          "afterAlt": "Versión 2, contacto: una frase y tres vías, correo, LinkedIn y GitHub, con el mismo peso."
+        }
+      ]
     }
   },
   "contact": {
