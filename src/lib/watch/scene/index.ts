@@ -220,8 +220,11 @@ export async function createWatchScene({
     }
 
     watch.position.set(-focus[0], -focus[1], -focus[2]);
-    rotator.rotation.x = rotation[0] + burst * 0.15 - shownY * 0.12;
-    rotator.rotation.y = rotation[1] - burst * 0.25 + shownX * 0.18;
+    // The mouse tilts the watch a little, but not where the camera is already looking steeply at the dial (the
+    // strap pose): there the fine radial lines of the dial shimmer at the slightest move, so it stays still.
+    const tilt = 1 - smooth(Math.min(Math.max((Math.abs(rotation[0]) - 0.25) / 0.25, 0), 1));
+    rotator.rotation.x = rotation[0] + burst * 0.15 - shownY * 0.12 * tilt;
+    rotator.rotation.y = rotation[1] - burst * 0.25 + shownX * 0.18 * tilt;
     rotator.rotation.z = rotation[2];
 
     // Orbit: opposite the section's text, and round the screen between sections.
@@ -230,7 +233,7 @@ export async function createWatchScene({
     const place = orbitPlace({ wide, centre, half, aspect, theta, row });
     rotator.position.x = place.x;
     rotator.position.y = place.y + Math.sin(t * 0.0009) * 0.03;
-    glassPhase.value = 0.2 + 0.4 * explode + shownX * 0.25 + Math.sin(t * 0.0004) * 0.05;
+    glassPhase.value = 0.2 + 0.4 * explode + shownX * 0.25 * tilt + Math.sin(t * 0.0004) * 0.05;
     fitCamera(half);
     const anchor = lerp3(from.anchor, to.anchor, ease);
     anchorNode.position.set(anchor[0], anchor[1], anchor[2]);
