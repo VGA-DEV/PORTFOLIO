@@ -59,7 +59,9 @@ export function createKit(gl: OGLRenderingContext, watch: Transform, dialTexture
   /** A mesh sets its own colour and finish just before it is drawn. */
   const makeMesh = (geometry: Geometry, m: Material, flat: boolean) => {
     const program = programFor(m.mode, flat);
-    const mesh = new Mesh(gl, { geometry, program });
+    // Never culled: the pieces are few and a bounding sphere that is tangent to the edge of the view (the dial, cut by
+    // the top of the screen on the strap pose) must not make a piece pop in and out as the watch moves a little.
+    const mesh = new Mesh(gl, { geometry, program, frustumCulled: false });
     const albedo = [...m.albedo];
     const f0 = [...m.f0];
     const uniforms = program.uniforms as Record<string, { value: unknown }>;

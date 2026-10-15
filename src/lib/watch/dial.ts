@@ -65,18 +65,30 @@ export function paintDial(
   ctx.fillStyle = base;
   ctx.fillRect(0, 0, width, height);
 
-  // Sunburst: alternating hair-thin wedges from the centre.
-  for (let k = 0; k < 720; k++) {
-    const a0 = (k / 720) * Math.PI * 2;
-    const a1 = ((k + 1) / 720) * Math.PI * 2;
-    const tone = 0.5 + 0.5 * Math.sin(k * 0.9) * Math.sin(k * 0.13);
-    ctx.fillStyle = k % 2 ? `rgba(255,255,255,${0.12 + 0.14 * tone})` : `rgba(52,4,64,${0.07 + 0.08 * tone})`;
-    ctx.beginPath();
-    ctx.moveTo(cx, cy);
-    ctx.lineTo(cx + Math.cos(a0) * 2000, cy + Math.sin(a0) * 2000);
-    ctx.lineTo(cx + Math.cos(a1) * 2000, cy + Math.sin(a1) * 2000);
-    ctx.closePath();
-    ctx.fill();
+  // Sunburst: alternating hair-thin wedges from the centre. They are drawn apart and softened a little before
+  // they go on the dial: crisp lines of that width are finer than a screen pixel over most of the dial, and
+  // shimmer at the slightest movement of the watch (the idle bob, the mouse) where it is seen large and steep.
+  const burst = document.createElement('canvas');
+  burst.width = width;
+  burst.height = height;
+  const rays = burst.getContext('2d');
+  if (rays) {
+    for (let k = 0; k < 720; k++) {
+      const a0 = (k / 720) * Math.PI * 2;
+      const a1 = ((k + 1) / 720) * Math.PI * 2;
+      const tone = 0.5 + 0.5 * Math.sin(k * 0.9) * Math.sin(k * 0.13);
+      rays.fillStyle = k % 2 ? `rgba(255,255,255,${0.12 + 0.14 * tone})` : `rgba(52,4,64,${0.07 + 0.08 * tone})`;
+      rays.beginPath();
+      rays.moveTo(cx, cy);
+      rays.lineTo(cx + Math.cos(a0) * 2000, cy + Math.sin(a0) * 2000);
+      rays.lineTo(cx + Math.cos(a1) * 2000, cy + Math.sin(a1) * 2000);
+      rays.closePath();
+      rays.fill();
+    }
+    // Where the canvas filter is not supported the rays simply go on as they are.
+    ctx.filter = 'blur(1.6px)';
+    ctx.drawImage(burst, 0, 0);
+    ctx.filter = 'none';
   }
 
   // Railway minute track.
