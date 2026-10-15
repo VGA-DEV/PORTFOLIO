@@ -52,7 +52,7 @@ html[data-sweep] .score__change {
   transition: opacity 0.7s var(--ease-out) 2.3s;
 }
 
-html[data-sweep] .evo__panel--numbers:not([data-in]) .score__change {
+html[data-sweep] .version:not([data-in]) .score__change {
   opacity: 0;
   transition: none;
 }

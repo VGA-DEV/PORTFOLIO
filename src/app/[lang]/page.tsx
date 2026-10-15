@@ -6,7 +6,6 @@ import { DecoRule } from '@/components/DecoRule';
 import { DesignCompare } from '@/components/DesignCompare';
 import { DownloadLink } from '@/components/DownloadLink';
 import { EvolutionArchive } from '@/components/EvolutionArchive';
-import { EvolutionPanels } from '@/components/EvolutionPanels';
 import { Hero } from '@/components/Hero';
 import { Section } from '@/components/Section';
 import { BackdropSweep } from '@/components/BackdropSweep';
@@ -17,15 +16,6 @@ import { formatDuration, monthsBetween } from '@/lib/duration';
 
 /** Pending, in development, working: one, two or three of three. */
 const STATUS_LEVEL: Record<string, number> = { pending: 1, inDevelopment: 2, working: 3 };
-
-const NO_SCRIPT_EVOLUTION = `
-  .evo__tabs, .compare__pairs, .compare__handle { display: none !important; }
-  .evo__panel[hidden] { display: block !important; }
-  .compare__stage { aspect-ratio: auto !important; display: grid; gap: 1rem; }
-  .compare__shot { position: static !important; clip-path: none !important; }
-  .compare__shot img { height: auto !important; }
-  .compare__tag { position: static !important; }
-`;
 
 const displayUrl = (url: string) => url.replace(/^https?:\/\/(www\.)?/, '');
 
@@ -62,6 +52,7 @@ export default async function HomePage() {
           dict.notes.experience.text,
           dict.notes.stack.text,
           dict.notes.evolution.text,
+          dict.notes.numbers.text,
           dict.notes.contact.text,
         ]}
         crown={dict.crown}
@@ -171,46 +162,42 @@ export default async function HomePage() {
         title={dict.evolution.title}
         side='left'
       >
-        <EvolutionPanels
+        <DesignCompare
+          width={compare.width}
+          height={compare.height}
           labels={{
-            group: dict.evolution.views.label,
-            design: dict.evolution.views.design,
-            numbers: dict.evolution.views.numbers,
+            before: dict.evolution.compare.before,
+            after: dict.evolution.compare.after,
+            pairsLabel: dict.evolution.compare.pairsLabel,
+            slider: dict.evolution.compare.slider,
+            sliderValue: dict.evolution.compare.sliderValue,
           }}
-          design={
-            <DesignCompare
-              width={compare.width}
-              height={compare.height}
-              labels={{
-                before: dict.evolution.compare.before,
-                after: dict.evolution.compare.after,
-                pairsLabel: dict.evolution.compare.pairsLabel,
-                slider: dict.evolution.compare.slider,
-                sliderValue: dict.evolution.compare.sliderValue,
-              }}
-              pairs={dict.evolution.compare.pairs.map((pair) => ({
-                ...pair,
-                beforeSrc: `/images/evolution/v1-${pair.id}.webp`,
-                afterSrc: `/images/evolution/v2-${locale}-${pair.id}.webp`,
-              }))}
-            />
-          }
-          numbers={
-            <EvolutionArchive
-              locale={locale}
-              versions={dict.evolution.versions}
-              labels={{
-                tagLabel: dict.evolution.tagLabel,
-                currentLabel: dict.evolution.currentLabel,
-                metrics: dict.evolution.metrics,
-              }}
-            />
-          }
+          pairs={dict.evolution.compare.pairs.map((pair) => ({
+            ...pair,
+            beforeSrc: `/images/evolution/v1-${pair.id}.webp`,
+            afterSrc: `/images/evolution/v2-${locale}-${pair.id}.webp`,
+            thumbSrc: `/images/evolution/thumb-${locale}-${pair.id}.webp`,
+          }))}
         />
-        {/* Without script the tabs do nothing, so both panels are shown and the tabs and the slider go away. */}
-        <noscript>
-          <style>{NO_SCRIPT_EVOLUTION}</style>
-        </noscript>
+      </Section>
+
+      {/* The second step of Evolution: the same piece of the watch, so it stays put while the content changes. */}
+      <Section
+        id='evolution-numbers'
+        part={dict.notes.numbers.part}
+        tone='paper'
+        title={dict.evolution.numbersTitle}
+        side='left'
+      >
+        <EvolutionArchive
+          locale={locale}
+          versions={dict.evolution.versions}
+          labels={{
+            tagLabel: dict.evolution.tagLabel,
+            currentLabel: dict.evolution.currentLabel,
+            metrics: dict.evolution.metrics,
+          }}
+        />
       </Section>
 
       <Section

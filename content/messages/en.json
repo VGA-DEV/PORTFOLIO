@@ -142,11 +142,6 @@
         "cls": "Shifts (CLS)"
       }
     },
-    "views": {
-      "label": "What to compare",
-      "design": "Design",
-      "numbers": "Numbers"
-    },
     "compare": {
       "before": "Version 1",
       "after": "Version 2",
@@ -183,7 +178,8 @@
           "afterAlt": "Version 2, contact: a sentence and three ways to reach me, email, LinkedIn and GitHub, with the same weight."
         }
       ]
-    }
+    },
+    "numbersTitle": "Numbers"
   },
   "contact": {
     "title": "Contact",
@@ -216,6 +212,10 @@
     "evolution": {
       "part": "Strap",
       "text": "A new strap renews a watch on the outside while the mechanism keeps being refined inside. This website evolves the same way: the look changes and, in the meantime, what is inside improves."
+    },
+    "numbers": {
+      "part": "Strap",
+      "text": "What improves inside can be measured: these are the Lighthouse scores of each version, the old one and the current one."
     },
     "contact": {
       "part": "Case back",

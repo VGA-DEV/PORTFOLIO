@@ -14,6 +14,19 @@ const out = 'public/images/evolution';
 mkdirSync(out, { recursive: true });
 const V1 = 'content/evolution/v1/desktop-full-1440.png';
 
+/** Thumbnails: half of the first version's cut and half of the current one's, side by side. */
+const THUMB_WIDTH = 360;
+const THUMB_HEIGHT = Math.round((THUMB_WIDTH * height) / width);
+const half = THUMB_WIDTH / 2;
+async function thumb(firstImage, currentFile, file) {
+  const left = await firstImage.clone().resize(THUMB_WIDTH, THUMB_HEIGHT).extract({ left: 0, top: 0, width: half, height: THUMB_HEIGHT }).toBuffer();
+  const right = await sharp(currentFile).extract({ left: 0, top: 0, width, height }).resize(THUMB_WIDTH, THUMB_HEIGHT).extract({ left: half, top: 0, width: half, height: THUMB_HEIGHT }).toBuffer();
+  await sharp({ create: { width: THUMB_WIDTH, height: THUMB_HEIGHT, channels: 3, background } })
+    .composite([{ input: left, left: 0, top: 0 }, { input: right, left: half, top: 0 }])
+    .webp({ quality: 78 })
+    .toFile(`${out}/${file}`);
+}
+
 const save = (image, file) => image.webp({ quality: 82 }).toFile(`${out}/${file}`);
 
 /** A screen of the first version: its header (if asked) and then a cut of the page, padded with the page colour. */
@@ -33,8 +46,11 @@ async function cutFirst({ top, header, body }) {
 }
 
 for (const pair of pairs) {
-  await save(await cutFirst(pair.v1), `v1-${pair.id}.webp`);
+  const firstImage = await cutFirst(pair.v1);
+  await save(firstImage.clone(), `v1-${pair.id}.webp`);
+  const firstBuffer = sharp(await firstImage.clone().png().toBuffer());
   for (const lang of ['es', 'en']) {
+    await thumb(firstBuffer, `content/evolution/v2/${lang}-${pair.id}.png`, `thumb-${lang}-${pair.id}.webp`);
     await save(
       sharp(`content/evolution/v2/${lang}-${pair.id}.png`).extract({ left: 0, top: pair.v2.top, width, height }),
       `v2-${lang}-${pair.id}.webp`,

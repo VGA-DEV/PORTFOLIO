@@ -142,11 +142,6 @@
         "cls": "Saltos (CLS)"
       }
     },
-    "views": {
-      "label": "Qué comparar",
-      "design": "Diseño",
-      "numbers": "Cifras"
-    },
     "compare": {
       "before": "Versión 1",
       "after": "Versión 2",
@@ -183,7 +178,8 @@
           "afterAlt": "Versión 2, contacto: una frase y tres vías, correo, LinkedIn y GitHub, con el mismo peso."
         }
       ]
-    }
+    },
+    "numbersTitle": "Cifras"
   },
   "contact": {
     "title": "Contacto",
@@ -216,6 +212,10 @@
     "evolution": {
       "part": "Correa",
       "text": "Cambiar la correa renueva el reloj por fuera mientras el mecanismo se sigue afinando por dentro. Esta web evoluciona igual: el aspecto cambia y, mientras tanto, mejora lo que hay dentro."
+    },
+    "numbers": {
+      "part": "Correa",
+      "text": "Lo que mejora por dentro se puede medir: son las cifras de Lighthouse de cada versión, la antigua y la actual."
     },
     "contact": {
       "part": "Fondo de caja",

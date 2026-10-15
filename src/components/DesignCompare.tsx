@@ -10,6 +10,7 @@ type Pair = {
   afterSrc: string;
   beforeAlt: string;
   afterAlt: string;
+  thumbSrc: string;
 };
 
 type Labels = {
@@ -20,6 +21,10 @@ type Labels = {
   sliderValue: string;
 };
 
+/** The size the thumbnails are cut at (scripts/crop-evolution.mjs). */
+const THUMB_WIDTH = 360;
+const THUMB_HEIGHT = 213;
+
 const START = 50;
 const STEP = 5;
 const BIG_STEP = 20;
@@ -29,7 +34,7 @@ const clamp = (value: number) => Math.min(100, Math.max(0, value));
 /**
  * The design comparer: one pair of equivalent sections at a time, the first version on the left and the
  * current one on the right, with a handle that moves the dividing line. Only one comparer is visible at
- * once; a row of buttons picks the section. The handle is a slider (arrow keys, Home, End, Page Up and
+ * once; a row of thumbnails under it, each half the first version and half the current one, picks the section. The handle is a slider (arrow keys, Home, End, Page Up and
  * Down) and can also be dragged. On phones, and with reduced motion, the stylesheet shows both captures
  * stacked, each with its caption, and hides the handle; without script the same stacked view is used.
  */
@@ -93,20 +98,6 @@ export function DesignCompare({
 
   return (
     <div className='compare'>
-      <div className='compare__pairs' role='group' aria-label={labels.pairsLabel}>
-        {pairs.map((item, index) => (
-          <button
-            key={item.id}
-            type='button'
-            className='compare__pair'
-            aria-pressed={index === active}
-            onClick={() => pick(index)}
-          >
-            {item.label}
-          </button>
-        ))}
-      </div>
-
       <div className='compare__legend' aria-hidden='true'>
         <span>{labels.before}</span>
         <span>{labels.after}</span>
@@ -148,6 +139,22 @@ export function DesignCompare({
       </div>
 
       <p className='compare__note'>{pair.note}</p>
+
+      <div className='compare__thumbs' role='group' aria-label={labels.pairsLabel}>
+        {pairs.map((item, index) => (
+          <button
+            key={item.id}
+            type='button'
+            className='compare__thumb'
+            aria-pressed={index === active}
+            onClick={() => pick(index)}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element -- static export; cut by scripts/crop-evolution.mjs */}
+            <img src={item.thumbSrc} alt='' width={THUMB_WIDTH} height={THUMB_HEIGHT} loading='lazy' draggable={false} />
+            <span>{item.label}</span>
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

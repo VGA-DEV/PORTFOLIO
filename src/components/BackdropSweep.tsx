@@ -231,12 +231,7 @@ export function BackdropSweep() {
     };
     setPins();
     const resizeObserver = new ResizeObserver(setPins);
-    pins.forEach((pin) => {
-      resizeObserver.observe(pin);
-      // A section whose content changes size on its own (Evolution's tabs) is fitted again.
-      const body = pin.querySelector<HTMLElement>('.section__body');
-      if (body) resizeObserver.observe(body);
-    });
+    pins.forEach((pin) => resizeObserver.observe(pin));
 
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(update);
