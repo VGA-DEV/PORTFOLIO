@@ -51,7 +51,7 @@ export function lathe(
 }
 
 /** Extrude a polygon that is star-shaped around the origin (fan triangulation). */
-export function extrudeStar(outline: readonly Vec2[], z0: number, z1: number) {
+function extrudeStar(outline: readonly Vec2[], z0: number, z1: number) {
   const b = new TriangleBuilder();
   for (let i = 0; i < outline.length; i++) {
     const [x0, y0] = outline[i];

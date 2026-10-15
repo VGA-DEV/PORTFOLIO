@@ -11,7 +11,7 @@ type Vec = [number, number, number];
 export type Pieces = Awaited<ReturnType<typeof loadWatchPieces>>;
 
 /** A node that belongs to a group of parts, with where it rests and how far it flies when the watch is taken apart. */
-export type Layer = {
+type Layer = {
   node: Transform;
   group: Group;
   base: Vec;

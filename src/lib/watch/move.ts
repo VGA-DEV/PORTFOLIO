@@ -19,8 +19,6 @@ export function setMoveLive(next: boolean) {
   listeners.forEach((fn) => fn());
 }
 
-export const isMoveLive = () => live;
-export const getMove = () => value;
 
 /** How far the watch has settled on section `k`, from 0 (still leaving the one before) to 1 (there). */
 export function arrivedAt(k: number) {

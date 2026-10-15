@@ -5,7 +5,7 @@
  */
 
 export type Vec2 = readonly [number, number];
-export type ProfilePoint = readonly [number, number];
+type ProfilePoint = readonly [number, number];
 
 export type SmoothMesh = {
   position: Float32Array;
@@ -170,7 +170,7 @@ export function loft(
 }
 
 /** A parametric surface with normals from central differences. */
-export function parametric(
+function parametric(
   nu: number,
   nv: number,
   f: (u: number, v: number) => V3,

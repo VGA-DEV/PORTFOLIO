@@ -11,7 +11,7 @@ export const rollLook = () => ({
   bow: Math.random() < 0.5 ? 1 : -1,
 });
 
-export type Look = ReturnType<typeof rollLook>;
+type Look = ReturnType<typeof rollLook>;
 
 /** Where the note has chosen to sit, and which cell of the search grid that was (empty = not chosen yet). */
 export type NoteSpot = Point & { key: string };

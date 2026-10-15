@@ -11,7 +11,7 @@ export const OUTLINE_POINTS = 120;
 /** Flat-shaded pieces are bare positions; smooth ones carry normals and uvs. */
 export type Piece = Float32Array | SmoothMesh;
 
-export type WatchPieces = {
+type WatchPieces = {
   caseBack: Piece;
   caseBand: Piece;
   lugs: Piece;
@@ -75,7 +75,7 @@ type TrackPoint = { x: number; y: number; z: number; a: number; s: number };
  * spline and resampled at an even spacing, so the rails and the little cars follow
  * exactly the same line.
  */
-export const COASTER_STEP = 0.04;
+const COASTER_STEP = 0.04;
 
 let coasterCache: { points: TrackPoint[]; length: number } | null = null;
 

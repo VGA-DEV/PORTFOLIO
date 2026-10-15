@@ -1,11 +1,11 @@
 import { CASE, rayHit, type Vec2 } from './smooth';
 
 /** Dial half-extents in scene units: the dial plate is the outline scaled by 0.9. */
-export const DIAL_SCALE = 0.9;
+const DIAL_SCALE = 0.9;
 export const DIAL_HALF_X = DIAL_SCALE * CASE.a;
 export const DIAL_HALF_Y = DIAL_SCALE * CASE.b;
 /** The engraved case back is the outline scaled by 0.985. */
-export const BACK_SCALE = 0.985;
+const BACK_SCALE = 0.985;
 export const BACK_HALF_X = BACK_SCALE * CASE.a;
 export const BACK_HALF_Y = BACK_SCALE * CASE.b;
 

@@ -1,4 +1,4 @@
-export type Rgb = readonly [number, number, number];
+type Rgb = readonly [number, number, number];
 
 /** Palette, kept in step with styles/base.css. */
 export const COLORS = {
