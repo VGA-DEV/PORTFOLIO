@@ -23,14 +23,6 @@ export async function createWatchScene({
   isWide,
   onAnchor,
 }: WatchSceneOptions): Promise<WatchScene> {
-  // Switches for finding out which part of the watch causes a problem seen on one machine: `?hide=crystal,dial`
-  // (any group name), `?notilt` (the mouse does not move the watch) and `?dpr=1` (a fixed resolution, no
-  // adapting). Nothing in the page links to them.
-  const debug = new URLSearchParams(window.location.search);
-  const hidden = new Set((debug.get('hide') ?? '').split(',').filter(Boolean));
-  const noTilt = debug.has('notilt');
-  const fixedDpr = Number(debug.get('dpr')) || 0;
-
   // Geometry is built in a worker while the renderer and textures are set up here.
   const piecesPromise = loadWatchPieces();
 
@@ -39,7 +31,7 @@ export async function createWatchScene({
     alpha: true,
     premultipliedAlpha: true,
     antialias: true,
-    dpr: fixedDpr || Math.min(window.devicePixelRatio || 1, window.matchMedia(COARSE_QUERY).matches ? 1.25 : 1.5),
+    dpr: Math.min(window.devicePixelRatio || 1, window.matchMedia(COARSE_QUERY).matches ? 1.25 : 1.5),
     webgl: 2,
   });
   const { gl } = renderer;
@@ -215,7 +207,7 @@ export async function createWatchScene({
       const vis = lerp(visibleFrom, visibleTo, fade);
       const isProp = layer.group.startsWith('prop');
       // The miniatures need room to be read: they only show beside the content, not behind it.
-      const scale = vis <= 0.001 || hidden.has(layer.group) || (isProp && !wide) ? 0 : isProp ? popIn(vis) : Math.pow(vis, 0.7);
+      const scale = vis <= 0.001 || (isProp && !wide) ? 0 : isProp ? popIn(vis) : Math.pow(vis, 0.7);
       layer.node.visible = scale > 0.01;
       if (isProp && scale > 0.4 && (!leadProp || scale > leadProp.scale)) leadProp = { node: layer.node, group: layer.group, scale };
       layer.node.scale.set(scale, scale, scale);
@@ -228,9 +220,8 @@ export async function createWatchScene({
     }
 
     watch.position.set(-focus[0], -focus[1], -focus[2]);
-    const follow = noTilt ? 0 : 1;
-    rotator.rotation.x = rotation[0] + burst * 0.15 - shownY * 0.12 * follow;
-    rotator.rotation.y = rotation[1] - burst * 0.25 + shownX * 0.18 * follow;
+    rotator.rotation.x = rotation[0] + burst * 0.15 - shownY * 0.12;
+    rotator.rotation.y = rotation[1] - burst * 0.25 + shownX * 0.18;
     rotator.rotation.z = rotation[2];
 
     // Orbit: opposite the section's text, and round the screen between sections.
@@ -279,7 +270,7 @@ export async function createWatchScene({
       if (!idle) {
         frameAverage = frameAverage * 0.9 + Math.min(frameMs, 100) * 0.1;
         slowFrames = frameAverage > 26 ? slowFrames + 1 : 0;
-        if (!fixedDpr && slowFrames > 40 && renderer.dpr > 0.75) {
+        if (slowFrames > 40 && renderer.dpr > 0.75) {
           renderer.dpr = Math.max(0.75, renderer.dpr - 0.25);
           resize();
           slowFrames = 0;
