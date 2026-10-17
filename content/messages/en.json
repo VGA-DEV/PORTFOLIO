@@ -38,7 +38,10 @@
         "summary": "A Wordle-style guessing game set in amusement parks. It is being built right now.",
         "status": "inDevelopment",
         "stack": [
-          "To be decided"
+          "React",
+          "Vite",
+          ".NET",
+          "Cloudflare R2"
         ],
         "links": []
       },
