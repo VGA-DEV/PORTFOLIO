@@ -40,7 +40,16 @@ npm run typecheck
 
 ## Hosting
 
-Static files only. The host should serve gzip or brotli (without it mobile LCP goes from about 2.5 s to about 4.9 s) and long caching for `/_next/static/`. `/` is a plain HTML page that redirects by browser language, so no server rules are needed.
+Static files only, on Apache. `public/.htaccess` is copied to the root of `out/` and holds the server rules: HTTPS and `www` to the bare domain in one redirect, `404.html` as the error page, MIME types (the worker must be JavaScript), gzip or brotli (without it mobile LCP goes from about 2.5 s to about 4.9 s), long caching for `/_next/static/`, `no-cache` for the pages and the worker, and a few safety headers. If the domain changes, edit it there and in `content/profile.json`.
+
+To publish from the hosting panel:
+
+1. `npm run build`, then `npm run package`. This writes `deploy/vga-dev-site.zip` with the content of `out/` at its root (forward slashes in the entry names, `.htaccess` included).
+2. In the panel's file manager, turn on *show hidden files* (`.htaccess` starts with a dot), keep a copy of what is there now, and empty the site's folder.
+3. Upload the zip to that folder and extract it there. The `.htaccess` must end up next to `index.html`.
+4. Check `/`, `/es/`, `/en/`, a wrong address (it must show the 404 page), `http://` and `www.` (both must end at `https://vga-dev.es/`), and the response headers (`curl -I https://vga-dev.es/es/` should show `content-encoding` and `cache-control: no-cache`).
+
+If the site answers with a 500 error after the upload, the host does not allow something in `.htaccess`: the first line to remove is `Options -Indexes`.
 
 ## Previous versions
 

@@ -1,0 +1,72 @@
+# Rules for the static export on Apache. `next build` copies this file to the root of `out/`.
+# Every block is wrapped in `IfModule`, so a module the host lacks is skipped instead of breaking the site.
+# The domain is the one in content/profile.json (siteUrl): change both if it ever moves.
+
+# --- Pages -------------------------------------------------------------------------------------------
+# `/` is index.html (it sends each visitor to /es/ or /en/), and /es/ and /en/ are folders with their own
+# index.html. Apache adds the trailing slash by itself (DirectorySlash).
+DirectoryIndex index.html
+ErrorDocument 404 /404.html
+Options -Indexes
+
+# --- HTTPS and one domain ----------------------------------------------------------------------------
+# http -> https, and www -> the bare domain, in a single redirect. Some hosts end TLS in front of Apache and
+# tell it so with X-Forwarded-Proto; without that check the redirect would loop.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTP_HOST} ^www\.vga-dev\.es$ [NC]
+  RewriteRule ^(.*)$ https://vga-dev.es/$1 [R=301,L]
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https
+  RewriteRule ^(.*)$ https://vga-dev.es/$1 [R=301,L]
+</IfModule>
+
+# --- File types --------------------------------------------------------------------------------------
+# The worker (/watch-geometry.worker.js) must be served as JavaScript or the browser refuses to start it.
+<IfModule mod_mime.c>
+  AddType application/javascript .js .mjs
+  AddType image/webp .webp
+  AddType image/avif .avif
+  AddType font/woff2 .woff2
+  AddType application/json .json
+  AddDefaultCharset UTF-8
+</IfModule>
+
+# --- Compression -------------------------------------------------------------------------------------
+# Without it the mobile load time goes from about 2.5 s to 4.9 s (CLAUDE.md, section 7, point 7).
+<IfModule mod_brotli.c>
+  AddOutputFilterByType BROTLI_COMPRESS text/html text/css text/plain text/xml application/javascript application/json application/xml image/svg+xml
+</IfModule>
+<IfModule !mod_brotli.c>
+  <IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml application/javascript application/json application/xml image/svg+xml
+  </IfModule>
+</IfModule>
+
+# --- Cache -------------------------------------------------------------------------------------------
+# The more specific rule goes last, because the last `Header set` wins.
+<IfModule mod_headers.c>
+  # Images and the PDFs of the CV: a week, and a check after that.
+  <FilesMatch "\.(webp|avif|png|jpg|jpeg|svg|ico|pdf)$">
+    Header set Cache-Control "public, max-age=604800"
+  </FilesMatch>
+
+  # The pages and the files that keep their name between versions: always ask the server first.
+  <FilesMatch "\.(html|xml|txt)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+  SetEnvIf Request_URI "^/watch-geometry\.worker\.js$" REVALIDATE
+  Header set Cache-Control "no-cache" env=REVALIDATE
+
+  # Everything under /_next/static/ has a hash in its name, so it never changes: a year, no questions.
+  SetEnvIf Request_URI "^/_next/static/" IMMUTABLE
+  Header set Cache-Control "public, max-age=31536000, immutable" env=IMMUTABLE
+
+  # --- Safety --------------------------------------------------------------------------------------
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+  # Once the site has worked over https for a while, this makes the browser always use it:
+  # Header always set Strict-Transport-Security "max-age=31536000"
+</IfModule>
