@@ -16,9 +16,9 @@
     },
     {
       "id": "v2",
-      "measured": "2026-10-13",
+      "measured": "2026-10-17",
       "mobile": { "performance": 97, "accessibility": 100, "bestPractices": 100, "seo": 100, "lcp": 2.5, "cls": 0 },
-      "desktop": { "performance": 100, "accessibility": 100, "bestPractices": 100, "seo": 100, "lcp": 0.6, "cls": 0 }
+      "desktop": { "performance": 100, "accessibility": 100, "bestPractices": 100, "seo": 100, "lcp": 0.5, "cls": 0 }
     }
   ]
 }

@@ -122,7 +122,7 @@
         "tag": "v2-nextjs",
         "name": "Versión 2",
         "current": true,
-        "measure": "Lighthouse en local · 13 oct 2026. Se repetirá con la web publicada.",
+        "measure": "Lighthouse en la web publicada · 17 oct 2026",
         "summary": "Rehecha desde cero con Next.js y TypeScript. Tiene un reloj en 3D y dos idiomas, y su rendimiento y accesibilidad están medidos."
       },
       {
