@@ -76,6 +76,26 @@
   font-size: 0.95rem;
 }
 
+/* Where to see a project: a repo, a demo or a store page. */
+.ledger__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.4em;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.ledger__links a {
+  color: var(--color-purple);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.25em;
+}
+
+.ledger__links a:hover {
+  color: var(--color-ink);
+}
+
 .ledger__label {
   color: var(--color-ink-soft);
   font-size: 0.78rem;

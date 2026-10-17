@@ -39,7 +39,8 @@
         "status": "inDevelopment",
         "stack": [
           "Por decidir"
-        ]
+        ],
+        "links": []
       },
       {
         "name": "SQUARED",
@@ -48,6 +49,12 @@
         "stack": [
           "Unity",
           "C#"
+        ],
+        "links": [
+          {
+            "label": "Ver en Google Play",
+            "href": "https://play.google.com/store/apps/details?id=com.vgadev.squared"
+          }
         ]
       },
       {
@@ -57,7 +64,8 @@
         "stack": [
           "Kotlin",
           "SQLite"
-        ]
+        ],
+        "links": []
       }
     ]
   },

@@ -78,6 +78,15 @@ export default async function HomePage() {
                   <span className='ledger__label'>{dict.projects.stackLabel}</span>
                   {project.stack.join(' · ')}
                 </p>
+                {project.links.length > 0 ? (
+                  <p className='ledger__links'>
+                    {project.links.map((link) => (
+                      <a key={link.href} href={link.href} rel='noopener noreferrer' target='_blank'>
+                        {link.label}
+                      </a>
+                    ))}
+                  </p>
+                ) : null}
               </div>
             </li>
           ))}
