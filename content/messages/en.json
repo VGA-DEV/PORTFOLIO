@@ -29,7 +29,7 @@
     "stackLabel": "Stack",
     "status": {
       "inDevelopment": "In development",
-      "working": "Released",
+      "working": "Working",
       "pending": "Pending"
     },
     "items": [
@@ -44,18 +44,13 @@
       },
       {
         "name": "SQUARED",
-        "summary": "A simple game where you fit a growing rectangle inside a frame, without falling short or going over. Published on Google Play.",
+        "summary": "A simple game where you fit a growing rectangle inside a frame, without falling short or going over.",
         "status": "working",
         "stack": [
           "Unity",
           "C#"
         ],
-        "links": [
-          {
-            "label": "View on Google Play",
-            "href": "https://play.google.com/store/apps/details?id=com.vgadev.squared"
-          }
-        ]
+        "links": []
       },
       {
         "name": "GYM_RECORDS",

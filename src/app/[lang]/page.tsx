@@ -17,6 +17,9 @@ import { formatDuration, monthsBetween } from '@/lib/duration';
 /** Pending, in development, working: one, two or three of three. */
 const STATUS_LEVEL: Record<string, number> = { pending: 1, inDevelopment: 2, working: 3 };
 
+/** Where to see a project (a repo, a demo); the list is empty while there is none. */
+type ProjectLink = { label: string; href: string };
+
 const displayUrl = (url: string) => url.replace(/^https?:\/\/(www\.)?/, '');
 
 export default async function HomePage() {
@@ -78,9 +81,9 @@ export default async function HomePage() {
                   <span className='ledger__label'>{dict.projects.stackLabel}</span>
                   {project.stack.join(' · ')}
                 </p>
-                {project.links.length > 0 ? (
+                {(project.links as ProjectLink[]).length > 0 ? (
                   <p className='ledger__links'>
-                    {project.links.map((link) => (
+                    {(project.links as ProjectLink[]).map((link) => (
                       <a key={link.href} href={link.href} rel='noopener noreferrer' target='_blank'>
                         {link.label}
                       </a>
