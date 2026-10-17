@@ -1,5 +1,3 @@
-import { existsSync } from 'node:fs';
-import { join } from 'node:path';
 import compare from '@content/evolution/compare.json';
 import { CursorLight } from '@/components/CursorLight';
 import { DecoRule } from '@/components/DecoRule';
@@ -13,23 +11,13 @@ import { BackdropSweep } from '@/components/BackdropSweep';
 import { WatchBackdrop } from '@/components/WatchBackdrop';
 import { getProfile, getStack } from '@/i18n/content';
 import { getDictionary, getLocale } from '@/i18n/dictionaries';
+import { cvLinks } from '@/lib/cv';
 import { formatDuration, monthsBetween } from '@/lib/duration';
 
 /** Pending, in development, working: one, two or three of three. */
 const STATUS_LEVEL: Record<string, number> = { pending: 1, inDevelopment: 2, working: 3 };
 
 const displayUrl = (url: string) => url.replace(/^https?:\/\/(www\.)?/, '');
-
-/** The CV files that exist in `public/cv/`, the one in the page's language first. Nothing is shown for a missing file. */
-function cvLinks(locale: string, labels: { es: string; en: string }) {
-  const all = [
-    { lang: 'es', file: 'cv-victor-gomez-es.pdf', label: labels.es },
-    { lang: 'en', file: 'cv-victor-gomez-en.pdf', label: labels.en },
-  ];
-  return all
-    .filter((cv) => existsSync(join(process.cwd(), 'public', 'cv', cv.file)))
-    .sort((a, b) => Number(b.lang === locale) - Number(a.lang === locale));
-}
 
 export default async function HomePage() {
   const locale = await getLocale();

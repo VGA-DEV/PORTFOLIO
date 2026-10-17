@@ -6,6 +6,7 @@ import { SiteHeader } from '@/components/SiteHeader';
 import { defaultLocale, locales } from '@/i18n/config';
 import { getProfile, getStack } from '@/i18n/content';
 import { getDictionary, getLocale } from '@/i18n/dictionaries';
+import { cvLinks } from '@/lib/cv';
 // The stylesheet is split by area. The order of these imports IS the cascade order (later files override
 // earlier ones, and some rules rely on it), so keep it.
 import './styles/base.css';
@@ -90,6 +91,8 @@ export default async function RootLayout({ children }: LayoutProps<'/[lang]'>) {
   const locale = await getLocale();
   const dict = await getDictionary();
   const { siteUrl, linkedin, github } = getProfile();
+  // The header offers the CV of the page's language, once the file is in `public/cv/`.
+  const [cv] = cvLinks(locale, { es: dict.contact.cvEs, en: dict.contact.cvEn });
   // What a search engine can read about the person: only what the page already says publicly.
   const person = {
     '@context': 'https://schema.org',
@@ -114,7 +117,9 @@ export default async function RootLayout({ children }: LayoutProps<'/[lang]'>) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(person).replace(/</g, '\\u003c') }}
         />
         <noscript>
-          <style>{'.hero__watch .dial,.hero__watch .watch__frame{opacity:1!important}'}</style>
+          <style>
+            {'.hero__watch .dial,.hero__watch .watch__frame{opacity:1!important}.site-header__cv{opacity:1!important;visibility:visible!important}'}
+          </style>
         </noscript>
         <a className='skip-link' href='#main'>
           {dict.a11y.skipToContent}
@@ -125,6 +130,7 @@ export default async function RootLayout({ children }: LayoutProps<'/[lang]'>) {
           nav={dict.nav}
           navLabel={dict.a11y.mainNav}
           languageLabel={dict.a11y.language}
+          cv={cv ? { href: `/cv/${cv.file}`, label: dict.nav.cv, name: cv.label } : undefined}
         />
         <ScrollRestore />
         <main id='main'>{children}</main>

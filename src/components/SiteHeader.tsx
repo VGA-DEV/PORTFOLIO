@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { Locale } from '@/i18n/config';
+import { HeaderCv } from './HeaderCv';
 import { LanguageSwitcher } from './LanguageSwitcher';
 
 type SiteHeaderProps = {
@@ -8,6 +9,8 @@ type SiteHeaderProps = {
   nav: Record<'projects' | 'experience' | 'stack' | 'evolution' | 'contact', string>;
   navLabel: string;
   languageLabel: string;
+  /** The CV in the page's language, when the file exists. */
+  cv?: { href: string; label: string; name: string };
 };
 
 const sections = ['projects', 'experience', 'stack', 'evolution', 'contact'] as const;
@@ -18,6 +21,7 @@ export function SiteHeader({
   nav,
   navLabel,
   languageLabel,
+  cv,
 }: SiteHeaderProps) {
   return (
     <header className='site-header'>
@@ -32,6 +36,7 @@ export function SiteHeader({
                 <a href={`#${id}`}>{nav[id]}</a>
               </li>
             ))}
+            {cv ? <HeaderCv href={cv.href} label={cv.label} name={cv.name} /> : null}
           </ul>
         </nav>
         <LanguageSwitcher current={locale} label={languageLabel} />

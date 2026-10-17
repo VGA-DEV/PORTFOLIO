@@ -91,6 +91,31 @@
   color: var(--color-champagne);
 }
 
+/* The CV link: out of sight on the hero (its place is kept, so nothing moves when it arrives), in champagne
+   with a small download arrow afterwards. */
+.site-header__cv {
+  transition: opacity 0.4s ease, visibility 0.4s;
+}
+
+.site-header__cv[data-show='false'] {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.site-header__nav .site-header__cv a {
+  gap: 0.4em;
+  color: var(--color-champagne);
+}
+
+.site-header__cv svg {
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .lang-switcher a[aria-current='true'] {
   color: var(--color-champagne);
   text-decoration: underline;
