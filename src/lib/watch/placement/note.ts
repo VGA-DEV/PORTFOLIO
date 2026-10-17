@@ -1,6 +1,9 @@
 import type { AnchorInfo } from '../scene';
 import { HEADER, MARGIN, overlap, rectOf, type Point, type Rect } from './space';
 
+/** The note keeps further from the bottom edge than from the others, so it never looks stuck to it. */
+const BOTTOM = 44;
+
 /** Every time the watch settles on a section the note draws a fresh look: where it likes to sit and how its line bends. */
 export const rollLook = () => ({
   /** Which side of the watch the note likes to sit on, as an angle round it. */
@@ -59,7 +62,7 @@ export function chooseNoteSpot(
   for (let i = 0; i <= xs; i++) {
     for (let j = 0; j <= ys; j++) {
       const x = MARGIN + ((vw - 2 * MARGIN - w) * i) / xs;
-      const y = HEADER + ((vh - HEADER - MARGIN - h) * j) / ys;
+      const y = HEADER + ((vh - HEADER - BOTTOM - h) * j) / ys;
       const cost = boxCost({ l: x, t: y, r: x + w, b: y + h }, around);
       if (cost < best.cost) best = { x, y, cost, key: `${i}:${j}` };
     }
@@ -71,7 +74,7 @@ export function chooseNoteSpot(
   return {
     ...chosen,
     x: Math.min(Math.max(chosen.x, MARGIN), Math.max(vw - MARGIN - w, MARGIN)),
-    y: Math.min(Math.max(chosen.y, HEADER), Math.max(vh - MARGIN - h, HEADER)),
+    y: Math.min(Math.max(chosen.y, HEADER), Math.max(vh - BOTTOM - h, HEADER)),
   };
 }
 

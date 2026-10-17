@@ -113,7 +113,7 @@
     "versions": [
       {
         "id": "v2",
-        "tag": "",
+        "tag": "v2-nextjs",
         "name": "Versión 2",
         "current": true,
         "measure": "Lighthouse en local · 13 oct 2026. Se repetirá con la web publicada.",
