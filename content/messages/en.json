@@ -28,7 +28,7 @@
     "stackLabel": "Stack",
     "status": {
       "inDevelopment": "In development",
-      "working": "Working",
+      "working": "Released",
       "pending": "Pending"
     },
     "items": [
@@ -138,15 +138,15 @@
         "accessibility": "Accessibility",
         "bestPractices": "Best practices",
         "seo": "SEO",
-        "lcp": "Load (LCP)",
-        "cls": "Shifts (CLS)"
+        "lcp": "Load time (LCP)",
+        "cls": "Layout shifts (CLS)"
       }
     },
     "compare": {
       "before": "Version 1",
       "after": "Version 2",
       "pairsLabel": "Section to compare",
-      "slider": "Comparer of version 1 and version 2. Move the handle to see one or the other",
+      "slider": "Comparison of version 1 and version 2. Move the handle to see either one",
       "sliderValue": "{value}% of version 1",
       "pairs": [
         {
@@ -179,7 +179,7 @@
   },
   "contact": {
     "title": "Contact",
-    "intro": "If you have read this far, I would like to hear what you think, and to talk about what you are working on.",
+    "intro": "If you have read this far, I would like to hear what you think, and talk about what you are working on.",
     "email": "Email",
     "linkedin": "LinkedIn",
     "github": "GitHub",
@@ -195,7 +195,7 @@
   "notes": {
     "projects": {
       "part": "The whole",
-      "text": "A polished watch is the result of all its parts, from the largest to the smallest. So is a project: it comes from all my skills and areas of work together."
+      "text": "A polished watch is the result of all its parts, from the largest to the smallest. A project is no different: it comes from all my skills working together."
     },
     "experience": {
       "part": "Dial and hands",
