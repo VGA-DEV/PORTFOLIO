@@ -1,6 +1,6 @@
 # Portfolio
 
-Personal portfolio of Víctor Manuel Gómez Álvarez. Next.js (App Router, TypeScript), static export, Spanish and English.
+Personal portfolio of Víctor Manuel Gómez Álvarez, live at [vga-dev.es](https://vga-dev.es). Next.js (App Router, TypeScript), static export, Spanish and English.
 
 A 3D Art Deco wristwatch sits fixed behind the page and moves to the piece each section is about. The 3D is progressive enhancement: without JavaScript, without WebGL2, with reduced motion, on data saver or on a weak device, the page is the same content with a flat SVG watch.
 
@@ -34,7 +34,7 @@ npm run typecheck
 
 - A project, a job or a stack item: its entry in `content/messages/*.json` (both languages) or `content/stack.json`.
 - A version in the Evolution section: its entry in `content/evolution/metrics.json` and in `evolution.versions` of both dictionaries.
-- CVs: drop `cv-victor-gomez-es.pdf` and `cv-victor-gomez-en.pdf` in `public/cv/`; the download buttons appear when the files exist.
+- CVs: drop `cv-victor-gomez-es.pdf` and `cv-victor-gomez-en.pdf` in `public/cv/`; the download buttons appear when the files exist. The folder is not kept in git: the CVs go up with the site only.
 - If a section's design changes, serve `out/` locally, run `node scripts/capture-evolution.mjs` to take new viewport captures into `content/evolution/v2/` and then `node scripts/crop-evolution.mjs` to cut the pairs of the design comparer in Evolution (`content/evolution/compare.json` holds the regions).
 - If the hero changes, regenerate `public/og-*.jpg` (a screenshot of the hero at 1200×630, without the header and the crown control).
 
@@ -53,4 +53,8 @@ If the site answers with a 500 error after the upload, the host does not allow s
 
 ## Previous versions
 
-Version 1 (Angular) is kept in the git tag `v1-angular`. It is not deployed.
+Version 1 (Angular) is kept in the git tag `v1-angular`, and version 2 (this one) is tagged `v2-nextjs`. Version 1 is not deployed.
+
+## Licence
+
+All rights reserved: the code is public to be read, not to be reused (see `LICENSE`). Contact: vgadev3loper@gmail.com.

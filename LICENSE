@@ -1,0 +1,10 @@
+Copyright (c) 2026 Víctor Manuel Gómez Álvarez. All rights reserved.
+
+The source code, texts, images and other content of this repository are
+published so that anyone can read them. No permission is granted to copy,
+modify, redistribute, sublicense or use them, in whole or in part, in other
+projects or websites without the written permission of the author.
+
+Third-party software keeps its own licence: the packages listed in
+package.json (Next.js, React, OGL and others) are used under theirs, and the
+fonts Poiret One and Josefin Sans are used under the SIL Open Font Licence.
