@@ -5,6 +5,9 @@
 /.next/
 /out/
 /deploy/
+
+# the CV files carry a phone number on purpose (the owner decided): they are uploaded with the site, never kept in git
+/public/cv/
 next-env.d.ts
 *.tsbuildinfo
 
